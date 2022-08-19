@@ -21,11 +21,11 @@ def main(args):
     # print(old_xlmroberta_tokenizer)
     # old_mbart_tokenizer = MBartTokenizer.from_pretrained("hyunwoongko/asian-bart-en")
     # print(old_mbart_tokenizer)
-    old_tokenizer.add_tokens(['<tr>', '<td>'] + ['<tdcolspan="{}">'.format(i) for i in range(10)] + ['<tdrowspan="{}">'.format(i) for i in range(10)])
+    # old_tokenizer.add_tokens(['<tr>', '<td>'] + ['<tdcolspan="{}">'.format(i) for i in range(10)] + ['<tdrowspan="{}">'.format(i) for i in range(10)])
     # print("added tokens", old_tokenizer)
     print("training!")
     # print("old_tokenizer.vocab_size", old_tokenizer.vocab_size)
-    tokenizer = old_tokenizer.train_new_from_iterator(training_corpus, old_tokenizer.vocab_size + 22)  # 52000)
+    tokenizer = old_tokenizer.train_new_from_iterator(training_corpus, old_tokenizer.vocab_size)# + 22)  # 52000)
 
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer.save_pretrained(args.output_dir)
