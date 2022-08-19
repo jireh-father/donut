@@ -17,6 +17,7 @@ def main(args):
 
     old_tokenizer = AutoTokenizer.from_pretrained("hyunwoongko/asian-bart-en")
     old_tokenizer.add_tokens(['<tr>', '<td>'] + ['<tdcolspan="{}">'.format(i) for i in range(10)] + ['<tdrowspan="{}">'.format(i) for i in range(10)])
+    print("training!")
     tokenizer = old_tokenizer.train_new_from_iterator(training_corpus, old_tokenizer.vocab_size + 1000)  # 52000)
 
     os.makedirs(args.output_dir, exist_ok=True)
