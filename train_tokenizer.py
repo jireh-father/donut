@@ -1,5 +1,5 @@
 # https://huggingface.co/course/chapter6/2?fw=pt
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, XLMRobertaTokenizer, MBartTokenizer
 import argparse
 import os
 
@@ -16,21 +16,35 @@ def main(args):
     training_corpus = get_training_corpus(corpus_lines)
 
     old_tokenizer = AutoTokenizer.from_pretrained("hyunwoongko/asian-bart-en")
+    # print(old_tokenizer)
+    # old_xlmroberta_tokenizer = XLMRobertaTokenizer.from_pretrained("hyunwoongko/asian-bart-en")
+    # print(old_xlmroberta_tokenizer)
+    # old_mbart_tokenizer = MBartTokenizer.from_pretrained("hyunwoongko/asian-bart-en")
+    # print(old_mbart_tokenizer)
     old_tokenizer.add_tokens(['<tr>', '<td>'] + ['<tdcolspan="{}">'.format(i) for i in range(10)] + ['<tdrowspan="{}">'.format(i) for i in range(10)])
+    # print("added tokens", old_tokenizer)
     print("training!")
-    tokenizer = old_tokenizer.train_new_from_iterator(training_corpus, old_tokenizer.vocab_size + 1000)  # 52000)
+    # print("old_tokenizer.vocab_size", old_tokenizer.vocab_size)
+    tokenizer = old_tokenizer.train_new_from_iterator(training_corpus, old_tokenizer.vocab_size + 22)  # 52000)
 
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer.save_pretrained(args.output_dir)
 
-    # tokenizer = AutoTokenizer.from_pretrained("huggingface-course/code-search-net-tokenizer")
+    loaded_tokenizer = AutoTokenizer.from_pretrained(args.output_dir)
+    print(loaded_tokenizer)
+
+    # xlmroberta_tokenizer = XLMRobertaTokenizer.from_pretrained(args.output_dir)
+    # print(xlmroberta_tokenizer)
+
+    mbart_tokenizer = MBartTokenizer.from_pretrained(args.output_dir)
+    print(mbart_tokenizer)
     print("done")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--corpus_path', type=str,
-                        default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\PubTabNet_2.0.0.jsonl")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\ofa_dataset")
+                        default="D:\corpus.txt")
+    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/tokenizer")
 
     main(parser.parse_args())
