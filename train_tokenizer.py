@@ -46,7 +46,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--corpus_path', type=str,
-                        default="D:\corpus.txt")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/tokenizer2")
+                        default="D:\dataset\\table_ocr\pubtabnet/total_corpus.txt")
+    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer")
 
     main(parser.parse_args())

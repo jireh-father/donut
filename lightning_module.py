@@ -40,6 +40,7 @@ class DonutModelPLModule(pl.LightningModule):
                     input_size=self.config.input_size,
                     max_length=self.config.max_length,
                     align_long_axis=self.config.align_long_axis,
+                    tokenizer_name_or_path=self.config.tokenizer_name_or_path
                     # with DonutConfig, the architecture customization is available, e.g.,
                     # encoder_layer=[2,2,14,2], decoder_layer=4, ...
                 )

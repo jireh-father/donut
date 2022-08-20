@@ -353,6 +353,7 @@ class DonutConfig(PretrainedConfig):
         max_position_embeddings: int = None,
         max_length: int = 1536,
         name_or_path: Union[str, bytes, os.PathLike] = "",
+        tokenizer_name_or_path: Union[str, bytes, os.PathLike] = "",
         **kwargs,
     ):
         super().__init__()
@@ -364,6 +365,7 @@ class DonutConfig(PretrainedConfig):
         self.max_position_embeddings = max_length if max_position_embeddings is None else max_position_embeddings
         self.max_length = max_length
         self.name_or_path = name_or_path
+        self.tokenizer_name_or_path = tokenizer_name_or_path
 
 
 class DonutModel(PreTrainedModel):
@@ -389,7 +391,7 @@ class DonutModel(PreTrainedModel):
         self.decoder = BARTDecoder(
             max_position_embeddings=self.config.max_position_embeddings,
             decoder_layer=self.config.decoder_layer,
-            name_or_path=self.config.name_or_path,
+            name_or_path=self.config.tokenizer_name_or_path,
         )
 
     def forward(self, image_tensors: torch.Tensor, decoder_input_ids: torch.Tensor, decoder_labels: torch.Tensor):
