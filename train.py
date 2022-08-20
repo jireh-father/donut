@@ -53,8 +53,9 @@ def save_config_file(config, path):
 
 def train(config):
     pl.utilities.seed.seed_everything(config.get("seed", 42), workers=True)
-
+    print("initializing model")
     model_module = DonutModelPLModule(config)
+    print("initializing data")
     data_module = DonutDataPLModule(config)
 
     # add datasets to data_module
