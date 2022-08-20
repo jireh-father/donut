@@ -13,15 +13,23 @@ from os.path import basename
 from pathlib import Path
 
 import numpy as np
+print(1)
 import pytorch_lightning as pl
+print(1)
 import torch
+print(1)
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
+print(1)
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
+print(1)
 from pytorch_lightning.plugins import CheckpointIO
+print(1)
 from pytorch_lightning.utilities import rank_zero_only
+print(1)
 from sconf import Config
-
+print(1)
 from donut import DonutDataset
+print(1)
 from lightning_module import DonutDataPLModule, DonutModelPLModule
 
 
