@@ -123,16 +123,21 @@ def train(config):
 
 
 if __name__ == "__main__":
+    print("initializing parser")
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--exp_version", type=str, required=False)
     args, left_argv = parser.parse_known_args()
 
+    print("initializing config")
     config = Config(args.config)
     config.argv_update(left_argv)
 
     config.exp_name = basename(args.config).split(".")[0]
     config.exp_version = datetime.datetime.now().strftime("%Y%m%d_%H%M%S") if not args.exp_version else args.exp_version
 
+    print("saving config file")
     save_config_file(config, Path(config.result_path) / config.exp_name / config.exp_version)
+
+    print("starting to train")
     train(config)
