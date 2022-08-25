@@ -63,10 +63,10 @@ class DonutDataset(Dataset):
         print(dataset_name_or_path, self.split)
         self.dataset = load_dataset(dataset_name_or_path, split=self.split)
         self.dataset_length = len(self.dataset)
-
+        print(self.dataset)
         self.gt_token_sequences = []
         for sample in self.dataset:
-            print("sample", print(sample))
+            print("sample", sample)
             # if "ground_truth" not in sample:
             #     print(sample)
             ground_truth = json.loads(sample["ground_truth"])
