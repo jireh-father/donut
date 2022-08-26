@@ -105,7 +105,6 @@ class DonutDataset(Dataset):
         sample = self.dataset[idx]
         im = Image.open(os.path.join(self.dataset_name_or_path, self.split, sample["file_name"]))
         # input_tensor
-        print(sample)
         # input_tensor = self.donut_model.encoder.prepare_input(sample["image"], random_padding=self.split == "train")
         input_tensor = self.donut_model.encoder.prepare_input(im, random_padding=self.split == "train")
 
