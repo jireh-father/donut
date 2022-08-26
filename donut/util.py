@@ -15,6 +15,7 @@ from nltk import edit_distance
 from torch.utils.data import Dataset
 from transformers.modeling_utils import PreTrainedModel
 from zss import Node
+from PIL import Image
 
 
 def save_json(write_path: Union[str, bytes, os.PathLike], save_obj: Any):
@@ -59,6 +60,7 @@ class DonutDataset(Dataset):
         self.task_start_token = task_start_token
         self.prompt_end_token = prompt_end_token if prompt_end_token else task_start_token
         self.sort_json_key = sort_json_key
+        self.dataset_name_or_path = dataset_name_or_path
         self.dataset = load_dataset(os.path.join(dataset_name_or_path, self.split), data_files='metadata.jsonl')['train']
         self.dataset_length = len(self.dataset)
         self.gt_token_sequences = []
@@ -101,9 +103,11 @@ class DonutDataset(Dataset):
             labels : masked labels (model doesn't need to predict prompt and pad token)
         """
         sample = self.dataset[idx]
-
+        im = Image.open(os.path.join(self.dataset_name_or_path, self.split, sample["file_name"]))
         # input_tensor
-        input_tensor = self.donut_model.encoder.prepare_input(sample["image"], random_padding=self.split == "train")
+        print(sample)
+        # input_tensor = self.donut_model.encoder.prepare_input(sample["image"], random_padding=self.split == "train")
+        input_tensor = self.donut_model.encoder.prepare_input(im, random_padding=self.split == "train")
 
         # input_ids
         processed_parse = random.choice(self.gt_token_sequences[idx])  # can be more than one, e.g., DocVQA Task 1
