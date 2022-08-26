@@ -104,7 +104,7 @@ def train(config):
     trainer = pl.Trainer(
         resume_from_checkpoint=config.get("resume_from_checkpoint_path", None),
         num_nodes=config.get("num_nodes", 1),
-        gpus=torch.cuda.device_count(),
+        # gpus=torch.cuda.device_count(),
         strategy="ddp",
         accelerator="gpu",
         plugins=custom_ckpt,
@@ -117,6 +117,7 @@ def train(config):
         num_sanity_val_steps=0,
         logger=logger,
         callbacks=[lr_callback, checkpoint_callback],
+        devices=torch.cuda.device_count(),
     )
 
     trainer.fit(model_module, data_module)
