@@ -40,7 +40,7 @@ def test(args, config):
     pretrained_model.eval()
 
     if args.save_path:
-        os.makedirs(os.path.dirname(args.save_path), exist_ok=True)
+        os.makedirs(args.save_path, exist_ok=True)
 
     output_list = []
     accs = []
