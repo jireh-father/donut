@@ -19,12 +19,18 @@ from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
 
 from donut import DonutConfig, DonutModel
+import teds
 
 
 class DonutModelPLModule(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
         self.config = config
+        if config.validation_metric == "teds":
+            self.teds = teds.TEDS()
+        elif config.validation_metric == "teds_structure":
+            self.teds = teds.TEDS(True)
+        self.validation_metric = config.validation_metric
 
         if self.config.get("pretrained_model_name_or_path", False):
             self.model = DonutModel.from_pretrained(
@@ -78,12 +84,20 @@ class DonutModelPLModule(pl.LightningModule):
             pred = re.sub(r"(?:(?<=>) | (?=</s_))", "", pred)
             answer = re.sub(r"<.*?>", "", answer, count=1)
             answer = answer.replace(self.model.decoder.tokenizer.eos_token, "")
-            scores.append(edit_distance(pred, answer) / max(len(pred), len(answer)))
+            if self.validation_metric.startswith("teds"):
+                pred = teds.postprocess_html_tag(pred)
+                answer = teds.postprocess_html_tag(answer)
+                scores.append(self.teds.evaluate(pred, answer))
+            else:
+                scores.append(edit_distance(pred, answer) / max(len(pred), len(answer)))
 
             if self.config.get("verbose", False) and len(scores) == 1:
                 self.print(f"Prediction: {pred}")
                 self.print(f"    Answer: {answer}")
-                self.print(f" Normed ED: {scores[0]}")
+                if self.validation_metric.startswith("teds"):
+                    self.print(f" TEDS: {scores[0]}")
+                else:
+                    self.print(f" Normed ED: {scores[0]}")
 
         return scores
 
@@ -100,9 +114,10 @@ class DonutModelPLModule(pl.LightningModule):
                 cnt[i] += len(scores)
                 total_metric[i] += np.sum(scores)
             val_metric[i] = total_metric[i] / cnt[i]
-            val_metric_name = f"val_metric_{i}th_dataset"
+            val_metric_name = f"val_metric_{self.validation_metric}_{i}th_dataset"
             self.log_dict({val_metric_name: val_metric[i]}, sync_dist=True)
-        self.log_dict({"val_metric": np.sum(total_metric) / np.sum(cnt)}, sync_dist=True)
+        self.log_dict({"val_metric_{}".format(self.validation_metric): np.sum(total_metric) / np.sum(cnt)},
+                      sync_dist=True)
 
     def configure_optimizers(self):
 
@@ -111,7 +126,7 @@ class DonutModelPLModule(pl.LightningModule):
         if self.config.get("max_epochs", None):
             assert len(self.config.train_batch_sizes) == 1, "Set max_epochs only if the number of datasets is 1"
             max_iter = (self.config.max_epochs * self.config.num_training_samples_per_epoch) / (
-                self.config.train_batch_sizes[0] * torch.cuda.device_count() * self.config.get("num_nodes", 1)
+                    self.config.train_batch_sizes[0] * torch.cuda.device_count() * self.config.get("num_nodes", 1)
             )
 
         if self.config.get("max_steps", None):

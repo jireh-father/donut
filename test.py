@@ -16,7 +16,7 @@ from PIL import Image
 from tqdm import tqdm
 
 from donut import DonutModel, JSONParseEvaluator, load_json, save_json
-
+import teds
 
 def test(args):
     pretrained_model = DonutModel.from_pretrained(args.pretrained_model_name_or_path)
@@ -34,36 +34,62 @@ def test(args):
 
     output_list = []
     accs = []
+    teds_structure_results = []
 
     dataset = load_dataset(args.dataset_name_or_path, split=args.split)
+
+    if args.task_name == "tableocr":
+        teds_metric_stru = teds.TEDS(True)
+        teds_metric = teds.TEDS()
 
     for idx, sample in tqdm(enumerate(dataset), total=len(dataset)):
         ground_truth = json.loads(sample["ground_truth"])
 
-        if args.task_name == "docvqa":
-            output = pretrained_model.inference(
-                image=sample["image"],
-                prompt=f"<s_{args.task_name}><s_question>{ground_truth["gt_parses"][0]['question'].lower()}</s_question><s_answer>",
-            )["predictions"][0]
-        else:
-            output = pretrained_model.inference(image=sample["image"], prompt=f"<s_{args.task_name}>")["predictions"][0]
+        # if args.task_name == "docvqa":
+        #     output = pretrained_model.inference(
+        #         image=sample["image"],
+        #         prompt=f"<s_{args.task_name}><s_question>{ground_truth["gt_parses"][0]['question'].lower()}</s_question><s_answer>",
+        #     )["predictions"][0]
+        # else:
+        #     output = pretrained_model.inference(image=sample["image"], prompt=f"<s_{args.task_name}>")["predictions"][0]
+        output = pretrained_model.inference(image=sample["image"], prompt=f"<s_{args.task_name}>")["predictions"][0]
 
         if args.task_name == "rvlcdip":
             gt = ground_truth["gt_parse"]
             score = float(output["class"] == gt["class"])
         elif args.task_name == "docvqa":
             score = 0.0  # note: docvqa is evaluated on the official website
+        elif args.task_name == "tableocr":
+            gt = ground_truth["gt_parse"]["text_sequence"]
+            output = teds.postprocess_html_tag(output)
+            gt = teds.postprocess_html_tag(gt)
+            score = teds_metric.evaluate(output, gt)
+            teds_structure_score = teds_metric_stru.evaluate(output, gt)
+            if args.verbose:
+                print("true", gt)
+                print("pred", output)
+                print("teds all", score)
+                print("teds only structure", teds_structure_score)
+
+
         else:
             gt = ground_truth["gt_parse"]
             evaluator = JSONParseEvaluator()
             score = evaluator.cal_acc(output, gt)
 
         accs.append(score)
+        if args.task_name == "tableocr":
+            teds_structure_results.append(teds_structure_score)
 
         output_list.append(output)
 
-    scores = {"accuracies": accs, "mean_accuracy": np.mean(accs)}
-    print(scores, f"length : {len(accs)}")
+    if args.task_name == "tableocr":
+        scores = {"teds": accs, "mean_teds": np.mean(accs), "teds_structure": teds_structure_results, "mean_teds_structure": np.mean(teds_structure_results)}
+        print("teds all", scores['mean_teds'], f"length : {len(accs)}")
+        print("teds only structure", scores['mean_teds_structure'], f"length : {len(accs)}")
+    else:
+        scores = {"accuracies": accs, "mean_accuracy": np.mean(accs)}
+        print(scores, f"length : {len(accs)}")
 
     if args.save_path:
         scores["predictions"] = output_list
@@ -79,6 +105,7 @@ if __name__ == "__main__":
     parser.add_argument("--split", type=str, default="test")
     parser.add_argument("--task_name", type=str, default=None)
     parser.add_argument("--save_path", type=str, default=None)
+    parser.add_argument("--verbose", action='store_true', default=False)
     args, left_argv = parser.parse_known_args()
 
     if args.task_name is None:
