@@ -59,7 +59,6 @@ class CustomConfig(Config):
 
 
 def postprocess_html_tag(html_tag):
-    print(html_tag)
     html_tag = html_tag.replace("<td", "</td><td")
     html_tag = html_tag.replace("<tr></td>", "<tr>")
     html_tag = html_tag.replace("<tdrowspan", "<td rowspan")
