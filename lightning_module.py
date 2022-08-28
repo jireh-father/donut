@@ -114,9 +114,9 @@ class DonutModelPLModule(pl.LightningModule):
                 cnt[i] += len(scores)
                 total_metric[i] += np.sum(scores)
             val_metric[i] = total_metric[i] / cnt[i]
-            val_metric_name = f"val_metric_{self.validation_metric}_{i}th_dataset"
+            val_metric_name = f"val_metric_{i}th_dataset"
             self.log_dict({val_metric_name: val_metric[i]}, sync_dist=True)
-        self.log_dict({"val_metric_{}".format(self.validation_metric): np.sum(total_metric) / np.sum(cnt)},
+        self.log_dict({"val_metric": np.sum(total_metric) / np.sum(cnt)},
                       sync_dist=True)
 
     def configure_optimizers(self):

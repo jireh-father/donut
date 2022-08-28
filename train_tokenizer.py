@@ -38,6 +38,7 @@ def main(args):
     # print(xlmroberta_tokenizer)
 
     mbart_tokenizer = MBartTokenizer.from_pretrained(args.output_dir)
+
     print(mbart_tokenizer)
     print(mbart_tokenizer.encode("<tr><td>test<tr><td>"))
     print("done")
