@@ -620,3 +620,37 @@ class DonutModelForTableOcrTest(DonutModel):
         super().__init__(config)
         task_name = "tableocr"
         self.decoder.add_special_tokens(f"<s_{task_name}>")
+
+    @classmethod
+    def from_pretrained(
+            cls,
+            pretrained_model_name_or_path: Union[str, bytes, os.PathLike],
+            *model_args,
+            **kwargs,
+    ):
+        r"""
+        Instantiate a pretrained donut model from a pre-trained model configuration
+
+        Args:
+            pretrained_model_name_or_path:
+                Name of a pretrained model name either registered in huggingface.co. or saved in local,
+                e.g., `naver-clova-ix/donut-base`, or `naver-clova-ix/donut-base-finetuned-rvlcdip`
+        """
+        model = super(DonutModelForTableOcrTest, cls).from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs)
+
+        # truncate or interplolate position embeddings of donut decoder
+        max_length = kwargs.get("max_length", model.config.max_position_embeddings)
+        if (
+                max_length != model.config.max_position_embeddings
+        ):  # if max_length of trained model differs max_length you want to train
+            model.decoder.model.model.decoder.embed_positions.weight = torch.nn.Parameter(
+                model.decoder.resize_bart_abs_pos_emb(
+                    model.decoder.model.model.decoder.embed_positions.weight,
+                    max_length
+                    + 2,
+                    # https://github.com/huggingface/transformers/blob/v4.11.3/src/transformers/models/mbart/modeling_mbart.py#L118-L119
+                )
+            )
+            model.config.max_position_embeddings = max_length
+
+        return model
