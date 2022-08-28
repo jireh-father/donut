@@ -17,9 +17,19 @@ from tqdm import tqdm
 
 from donut import DonutModel, JSONParseEvaluator, load_json, save_json
 import teds
+from sconf import Config
 
-def test(args):
-    pretrained_model = DonutModel.from_pretrained(args.pretrained_model_name_or_path)
+
+def test(args, config):
+    # pretrained_model = DonutModel.from_pretrained(args.pretrained_model_name_or_path)
+
+    pretrained_model = DonutModel.from_pretrained(
+        args.pretrained_model_name_or_path,
+        input_size=config.input_size,
+        max_length=config.max_length,
+        align_long_axis=config.align_long_axis,
+        ignore_mismatched_sizes=True,
+    )
 
     if torch.cuda.is_available():
         pretrained_model.half()
@@ -35,8 +45,6 @@ def test(args):
     output_list = []
     accs = []
     teds_structure_results = []
-
-
 
     if args.task_name == "tableocr":
         teds_metric_stru = teds.TEDS(True)
@@ -88,7 +96,8 @@ def test(args):
         output_list.append(output)
 
     if args.task_name == "tableocr":
-        scores = {"teds": accs, "mean_teds": np.mean(accs), "teds_structure": teds_structure_results, "mean_teds_structure": np.mean(teds_structure_results)}
+        scores = {"teds": accs, "mean_teds": np.mean(accs), "teds_structure": teds_structure_results,
+                  "mean_teds_structure": np.mean(teds_structure_results)}
         print("teds all", scores['mean_teds'], f"length : {len(accs)}")
         print("teds only structure", scores['mean_teds_structure'], f"length : {len(accs)}")
     else:
@@ -110,9 +119,16 @@ if __name__ == "__main__":
     parser.add_argument("--task_name", type=str, default=None)
     parser.add_argument("--save_path", type=str, default=None)
     parser.add_argument("--verbose", action='store_true', default=False)
+    parser.add_argument("--config", type=str, required=True)
     args, left_argv = parser.parse_known_args()
 
     if args.task_name is None:
         args.task_name = os.path.basename(args.dataset_name_or_path)
 
-    predicts = test(args)
+    args, left_argv = parser.parse_known_args()
+
+    print("initializing config")
+    config = Config(args.config)
+    config.argv_update(left_argv)
+
+    predicts = test(args, config)
