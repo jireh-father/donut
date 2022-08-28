@@ -40,7 +40,7 @@ def test(args, config):
     pretrained_model.eval()
 
     if args.save_path:
-        os.makedirs(args.save_path, exist_ok=True)
+        os.makedirs(os.path.dirname(args.save_path), exist_ok=True)
 
     output_list = []
     accs = []
@@ -64,7 +64,8 @@ def test(args, config):
         #     )["predictions"][0]
         # else:
         #     output = pretrained_model.inference(image=sample["image"], prompt=f"<s_{args.task_name}>")["predictions"][0]
-        output = pretrained_model.inference(image=sample["image"], prompt=f"<s_{args.task_name}>")["predictions"][0]
+        im = Image.open(os.path.join(args.dataset_name_or_path, sample["file_name"]))
+        output = pretrained_model.inference(im, prompt=f"<s_{args.task_name}>")["predictions"][0]
 
         if args.task_name == "rvlcdip":
             gt = ground_truth["gt_parse"]
