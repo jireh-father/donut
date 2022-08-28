@@ -395,9 +395,7 @@ class DonutModel(PreTrainedModel):
             name_or_path=self.config.tokenizer_name_or_path,
         )
 
-        if config.task_name == "tableocr":
-            self.decoder.add_special_tokens(f"<s_{config.task_name}>")
-
+        self.decoder.add_special_tokens("<s_tableocr>")
 
     def forward(self, image_tensors: torch.Tensor, decoder_input_ids: torch.Tensor, decoder_labels: torch.Tensor):
         """
