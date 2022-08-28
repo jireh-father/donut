@@ -36,11 +36,15 @@ def test(args):
     accs = []
     teds_structure_results = []
 
-    dataset = load_dataset(args.dataset_name_or_path, split=args.split)
+
 
     if args.task_name == "tableocr":
         teds_metric_stru = teds.TEDS(True)
         teds_metric = teds.TEDS()
+
+        dataset = load_dataset(args.dataset_name_or_path, data_files='metadata.jsonl')['train']
+    else:
+        dataset = load_dataset(args.dataset_name_or_path, split=args.split)
 
     for idx, sample in tqdm(enumerate(dataset), total=len(dataset)):
         ground_truth = json.loads(sample["ground_truth"])
