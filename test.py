@@ -54,7 +54,8 @@ def test(args, config):
     else:
         dataset = load_dataset(args.dataset_name_or_path, split=args.split)
 
-    for idx, sample in tqdm(enumerate(dataset), total=len(dataset)):
+    # for idx, sample in tqdm(enumerate(dataset), total=len(dataset)):
+    for idx, smaple in enumerate(dataset):
         ground_truth = json.loads(sample["ground_truth"])
 
         # if args.task_name == "docvqa":
@@ -74,7 +75,7 @@ def test(args, config):
             score = 0.0  # note: docvqa is evaluated on the official website
         elif args.task_name == "tableocr":
             gt = ground_truth["gt_parse"]["text_sequence"]
-            output = teds.postprocess_html_tag(output)
+            output = teds.postprocess_html_tag(output['text_sequence'])
             gt = teds.postprocess_html_tag(gt)
             score = teds_metric.evaluate(output, gt)
             teds_structure_score = teds_metric_stru.evaluate(output, gt)
