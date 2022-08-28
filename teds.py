@@ -136,7 +136,5 @@ class TEDS(object):
         n_nodes = max(n_nodes_pred, n_nodes_true)
         tree_pred = self.load_html_tree(pred)
         tree_true = self.load_html_tree(true)
-        print(tree_pred)
-        print(tree_true)
         distance = APTED(tree_pred, tree_true, CustomConfig()).compute_edit_distance()
         return 1.0 - (float(distance) / n_nodes)
