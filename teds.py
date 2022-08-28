@@ -14,9 +14,6 @@ from apted import APTED, Config
 from apted.helpers import Tree
 from lxml import etree, html
 from collections import deque
-from tqdm import tqdm
-from .parallel import parallel_process
-import re
 
 
 class TableTree(Tree):
@@ -59,54 +56,6 @@ class CustomConfig(Config):
             if node1.content or node2.content:
                 return self.normalized_distance(node1.content, node2.content)
         return 0.
-
-
-transtab = str.maketrans({key: None for key in r"""!#$%&'()*+,-.:;?@[\]^_`{|}~"""})
-transtab_post = str.maketrans({key: None for key in r"""<>"=/"""})
-tag_special_re = re.compile(r'[<>"=/]')
-
-
-def _filter_token(token, decode_td_span_tag=False):
-    if token.startswith("<td") or token in ['<tr>', '</td>', '</tr>']:
-        if decode_td_span_tag and (token.startswith("<tdr") or token.startswith("<tdc")):
-            return "<td {}".format(token[3:])
-        else:
-            return token
-    else:
-        return token.translate(transtab_post).strip()
-
-
-def preprocess_tag_str(tag_str, decode_td_span_tag=False, remove_close_tag=False, remove_content_token=False):
-    caption = tag_str.translate(transtab).strip()
-    caption_token_list = []
-    for token in caption.strip().split():
-        if remove_close_tag and token.startswith("</t"):
-            continue
-        if remove_content_token and not token.startswith("<t") and not token.startswith("</t"):
-            continue
-        caption_token_list.append(_filter_token(token, decode_td_span_tag))
-
-    return caption_token_list
-
-
-def decode_to_html(tags, restore_close_tag=False):
-    html_str = ""
-    for i, tag in enumerate(tags):
-        if restore_close_tag and tag == "<tr>" and i > 0:
-            html_str += "</td></tr>"
-        if restore_close_tag and tag == "<td>" and tags[i - 1] != "<tr>":
-            html_str += "</td>"
-
-        if tag.startswith("<"):
-            html_str += tag
-        else:
-            if i == 0 or tags[i - 1].startswith("<"):
-                html_str += tag
-            else:
-                html_str += " {}".format(tag)
-    if restore_close_tag:
-        html_str += "</td></tr>"
-    return html_str
 
 
 def postprocess_html_tag(html_tag):
@@ -191,17 +140,3 @@ class TEDS(object):
         print(tree_true)
         distance = APTED(tree_pred, tree_true, CustomConfig()).compute_edit_distance()
         return 1.0 - (float(distance) / n_nodes)
-
-    def batch(self, pred_htmls, true_htmls):
-        ''' Computes TEDS score between the prediction and the ground truth of
-            a batch of samples
-            @params pred_json: {'FILENAME': 'HTML CODE', ...}
-            @params true_json: {'FILENAME': {'html': 'HTML CODE'}, ...}
-            @output: {'FILENAME': 'TEDS SCORE', ...}
-        '''
-        if self.n_jobs == 1:
-            scores = [self.evaluate(pred_htmls[i], true_htmls[i]) for i in tqdm(range(len(true_htmls)))]
-        else:
-            inputs = [{'pred': pred_htmls[i], 'true': true_htmls[i]} for i in range(len(true_htmls))]
-            scores = parallel_process(inputs, self.evaluate, use_kwargs=True, n_jobs=self.n_jobs, front_num=1)
-        return scores
