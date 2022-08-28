@@ -40,7 +40,6 @@ class DonutModelPLModule(pl.LightningModule):
                 align_long_axis=self.config.align_long_axis,
                 ignore_mismatched_sizes=True,
             )
-            sys.exit()
         else:
             self.model = DonutModel(
                 config=DonutConfig(
