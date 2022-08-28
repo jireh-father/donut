@@ -23,27 +23,14 @@ from sconf import Config
 def test(args, config):
     # pretrained_model = DonutModel.from_pretrained(args.pretrained_model_name_or_path)
     if args.task_name == "tableocr":
-        pretrained_model = DonutModelForTableOcrTest(
-            config=DonutConfig(
-                input_size=config.input_size,
-                max_length=config.max_length,
-                align_long_axis=config.align_long_axis,
-                tokenizer_name_or_path=config.tokenizer_name_or_path
-                # with DonutConfig, the architecture customization is available, e.g.,
-                # encoder_layer=[2,2,14,2], decoder_layer=4, ...
-            )
-        )
 
-        # pretrained_model = DonutModelForTableOcrTest.from_pretrained(
-        #     args.pretrained_model_name_or_path,
-        #     input_size=config.input_size,
-        #     max_length=config.max_length,
-        #     align_long_axis=config.align_long_axis,
-        #     ignore_mismatched_sizes=True,
-        # )
-        pretrained_model, _, _, _, _ = DonutModelForTableOcrTest._load_pretrained_model(pretrained_model, None, None,
-                                                                                        None,
-                                                                                        args.pretrained_model_name_or_path)
+        pretrained_model = DonutModel.from_pretrained(
+            args.pretrained_model_name_or_path,
+            input_size=config.input_size,
+            max_length=config.max_length,
+            align_long_axis=config.align_long_axis,
+            ignore_mismatched_sizes=True,
+        )
     else:
         pretrained_model = DonutModel.from_pretrained(args.pretrained_model_name_or_path)
 
