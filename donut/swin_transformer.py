@@ -195,12 +195,17 @@ class WindowAttention(nn.Module):
             x: input features with shape of (num_windows*B, N, C)
             mask: (0/-inf) mask with shape of (num_windows, Wh*Ww, Wh*Ww) or None
         """
+        print("!!!! in attention x shape", x.shape)
         B_, N, C = x.shape
         qkv = self.qkv(x).reshape(B_, N, 3, self.num_heads, -1).permute(2, 0, 3, 1, 4)
+        print("qkv shape", qkv.shape)
         q, k, v = qkv.unbind(0)  # make torchscript happy (cannot use tensor as tuple)
-
+        print("q shape", q.shape)
+        print("k shape", k.shape)
+        print("v shape", v.shape)
         q = q * self.scale
         attn = (q @ k.transpose(-2, -1))
+        print("attention score result", attn.shape)
         attn = attn + self._get_rel_pos_bias()
 
         if mask is not None:
@@ -214,8 +219,10 @@ class WindowAttention(nn.Module):
         attn = self.attn_drop(attn)
 
         x = (attn @ v).transpose(1, 2).reshape(B_, N, -1)
+        print("weighted value", x.shape)
         x = self.proj(x)
         x = self.proj_drop(x)
+        print("attention output", x.shape)
         return x
 
 
