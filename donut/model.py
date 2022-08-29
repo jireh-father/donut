@@ -97,9 +97,14 @@ class SwinEncoder(nn.Module):
         Args:
             x: (batch_size, num_channels, height, width)
         """
+        print("================")
+        print("*** input size", x.shape)
         x = self.model.patch_embed(x)
         x = self.model.pos_drop(x)
+        print("patch embed", x.shape)
         x = self.model.layers(x)
+        print("swin encoder output", x.shape)
+        sys.exit()
         return x
 
     def prepare_input(self, img: PIL.Image.Image, random_padding: bool = False) -> torch.Tensor:
