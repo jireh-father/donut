@@ -395,7 +395,7 @@ class BasicLayer(nn.Module):
                 qkv_bias=qkv_bias, drop=drop, attn_drop=attn_drop,
                 drop_path=drop_path[i] if isinstance(drop_path, list) else drop_path, norm_layer=norm_layer)
             for i in range(depth)])
-
+        sys.exit()
         # patch merging layer
         if downsample is not None:
             self.downsample = downsample(input_resolution, dim=dim, norm_layer=norm_layer)
