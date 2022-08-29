@@ -50,37 +50,49 @@ def test(args, config):
     teds_structure_results = []
 
     if args.task_name == "tableocr":
-        teds_metric_stru = teds.TEDS(True)
-        teds_metric = teds.TEDS()
+        teds_metric_stru = teds.TEDS(True, n_jobs=args.num_processes)
+        teds_metric = teds.TEDS(n_jobs=args.num_processes)
 
         dataset = load_dataset(args.dataset_name_or_path, data_files='metadata.jsonl')['train']
     else:
         dataset = load_dataset(args.dataset_name_or_path, split=args.split)
 
     # for idx, sample in tqdm(enumerate(dataset), total=len(dataset)):
+    gt_list = []
+    pred_list = []
     for idx, sample in enumerate(dataset):
         ground_truth = json.loads(sample["ground_truth"])
-
-        # if args.task_name == "docvqa":
-        #     output = pretrained_model.inference(
-        #         image=sample["image"],
-        #         prompt=f"<s_{args.task_name}><s_question>{ground_truth["gt_parses"][0]['question'].lower()}</s_question><s_answer>",
-        #     )["predictions"][0]
-        # else:
-        #     output = pretrained_model.inference(image=sample["image"], prompt=f"<s_{args.task_name}>")["predictions"][0]
         print("###", sample["file_name"], "{}/{}".format(idx, len(dataset)))
         im = Image.open(os.path.join(args.dataset_name_or_path, sample["file_name"]))
         output = pretrained_model.inference(im, prompt=f"<s_{args.task_name}>")["predictions"][0]
 
-        if args.task_name == "rvlcdip":
-            gt = ground_truth["gt_parse"]
-            score = float(output["class"] == gt["class"])
-        elif args.task_name == "docvqa":
-            score = 0.0  # note: docvqa is evaluated on the official website
-        elif args.task_name == "tableocr":
-            gt = ground_truth["gt_parse"]["text_sequence"]
-            output = teds.postprocess_html_tag(output['text_sequence'])
-            gt = teds.postprocess_html_tag(gt)
+        gt = ground_truth["gt_parse"]["text_sequence"]
+        output = teds.postprocess_html_tag(output['text_sequence'])
+        gt = teds.postprocess_html_tag(gt)
+
+        output_list.append(output)
+
+        if args.num_processes > 1:
+            gt_list.append(gt)
+            pred_list.append(output)
+            if len(gt_list) == args.num_processes:
+                scores = teds_metric.batch(pred_list, gt_list)
+                stru_scores = teds_metric_stru.batch(pred_list, gt_list)
+                accs += scores
+                teds_structure_results += stru_scores
+                if args.verbose:
+                    for j, gt in enumerate(gt_list):
+                        output = pred_list[j]
+                        print("===== true")
+                        print(gt)
+                        print("===== pred")
+                        print(output)
+                        print("===== teds all", scores[j])
+                        print("===== teds only structure", stru_scores[j])
+
+                gt_list = []
+                pred_list = []
+        else:
             score = teds_metric.evaluate(output, gt)
             teds_structure_score = teds_metric_stru.evaluate(output, gt)
             if args.verbose:
@@ -91,17 +103,8 @@ def test(args, config):
                 print("===== teds all", score)
                 print("===== teds only structure", teds_structure_score)
 
-
-        else:
-            gt = ground_truth["gt_parse"]
-            evaluator = JSONParseEvaluator()
-            score = evaluator.cal_acc(output, gt)
-
-        accs.append(score)
-        if args.task_name == "tableocr":
+            accs.append(score)
             teds_structure_results.append(teds_structure_score)
-
-        output_list.append(output)
 
     if args.task_name == "tableocr":
         scores = {"teds": accs, "mean_teds": np.mean(accs), "teds_structure": teds_structure_results,
@@ -128,6 +131,7 @@ if __name__ == "__main__":
     parser.add_argument("--save_path", type=str, default=None)
     parser.add_argument("--verbose", action='store_true', default=False)
     parser.add_argument("--config", type=str, required=True)
+    parser.add_argument("--num_processes", type=int, default=1)
     args, left_argv = parser.parse_known_args()
 
     if args.task_name is None:
