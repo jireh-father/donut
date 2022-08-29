@@ -178,7 +178,7 @@ class BARTDecoder(nn.Module):
         self.add_special_tokens(["<sep/>"])  # <sep/> is used for representing a list in a JSON
         self.model.model.decoder.embed_tokens.padding_idx = self.tokenizer.pad_token_id
         self.model.prepare_inputs_for_generation = self.prepare_inputs_for_inference
-        self.add_special_tokens([self.task_start_token, self.prompt_end_token])
+        self.add_special_tokens(["<s_tableocr>"])
 
         # weight init with asian-bart
         if not name_or_path:
