@@ -402,6 +402,7 @@ class BasicLayer(nn.Module):
         self.depth = depth
         self.grad_checkpointing = False
 
+
         # build blocks
         self.blocks = nn.Sequential(*[
             SwinTransformerBlock(
@@ -418,12 +419,15 @@ class BasicLayer(nn.Module):
             self.downsample = None
 
     def forward(self, x):
+        print("basic block input x", x.shape)
         if self.grad_checkpointing and not torch.jit.is_scripting():
             x = checkpoint_seq(self.blocks, x)
         else:
             x = self.blocks(x)
+        print("basic block output x", x.shape)
         if self.downsample is not None:
             x = self.downsample(x)
+            print("basic block downsample x ", x.shape)
         return x
 
 
@@ -560,6 +564,7 @@ class SwinTransformer(nn.Module):
             x = x + self.absolute_pos_embed
         x = self.pos_drop(x)
         x = self.layers(x)
+        sys.exit()
         x = self.norm(x)  # B L C
         return x
 
