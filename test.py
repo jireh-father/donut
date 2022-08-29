@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -42,8 +43,8 @@ def test(args, config):
 
     pretrained_model.eval()
 
-    if args.save_path:
-        os.makedirs(os.path.dirname(args.save_path), exist_ok=True)
+    if args.output_dir:
+        os.makedirs(args.output_dir, exist_ok=True)
 
     output_list = []
     accs = []
@@ -92,7 +93,17 @@ def test(args, config):
                         print(output)
                         print("===== teds all", scores[j])
                         print("===== teds only structure", stru_scores[j])
+                if args.save_images and args.output_dir:
+                    for j, file_name in enumerate(file_list):
+                        image_path = os.path.join(args.dataset_name_or_path, file_name)
+                        im_output_path = os.path.join(args.output_dir, "result_images_all", str(scores[j])[2])
+                        os.makedirs(im_output_path, exist_ok=True)
+                        shutil.copy(image_path, im_output_path)
 
+                        im_output_path = os.path.join(args.output_dir, "result_images_structure",
+                                                      str(stru_scores[j])[2])
+                        os.makedirs(im_output_path, exist_ok=True)
+                        shutil.copy(image_path, im_output_path)
                 gt_list = []
                 pred_list = []
                 file_list = []
@@ -106,6 +117,14 @@ def test(args, config):
                 print(output)
                 print("===== teds all", score)
                 print("===== teds only structure", teds_structure_score)
+            if args.save_images and args.output_dir:
+                im_output_path = os.path.join(args.output_dir, "result_images_all", str(score)[2])
+                os.makedirs(im_output_path, exist_ok=True)
+                image_path = os.path.join(args.dataset_name_or_path, sample["file_name"])
+                shutil.copy(image_path, im_output_path)
+                im_output_path = os.path.join(args.output_dir, "result_images_structure", str(teds_structure_score)[2])
+                os.makedirs(im_output_path, exist_ok=True)
+                shutil.copy(image_path, im_output_path)
 
             accs.append(score)
             teds_structure_results.append(teds_structure_score)
@@ -119,9 +138,9 @@ def test(args, config):
         scores = {"accuracies": accs, "mean_accuracy": np.mean(accs)}
         print(scores, f"length : {len(accs)}")
 
-    if args.save_path:
+    if args.output_dir:
         scores["predictions"] = output_list
-        save_json(args.save_path, scores)
+        save_json(os.path.join(args.output_dir, "result.json"), scores)
 
     return output_list
 
@@ -132,8 +151,9 @@ if __name__ == "__main__":
     parser.add_argument("--dataset_name_or_path", type=str)
     parser.add_argument("--split", type=str, default="test")
     parser.add_argument("--task_name", type=str, default=None)
-    parser.add_argument("--save_path", type=str, default=None)
+    parser.add_argument("--output_dir", type=str, default=None)
     parser.add_argument("--verbose", action='store_true', default=False)
+    parser.add_argument("--save_images", action='store_true', default=False)
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--num_processes", type=int, default=1)
     args, left_argv = parser.parse_known_args()
