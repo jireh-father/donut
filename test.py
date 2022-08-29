@@ -83,10 +83,12 @@ def test(args, config):
             score = teds_metric.evaluate(output, gt)
             teds_structure_score = teds_metric_stru.evaluate(output, gt)
             if args.verbose:
-                print("true", gt)
-                print("pred", output)
-                print("teds all", score)
-                print("teds only structure", teds_structure_score)
+                print("===== true")
+                print(gt)
+                print("===== pred")
+                print(output)
+                print("===== teds all", score)
+                print("===== teds only structure", teds_structure_score)
 
 
         else:
