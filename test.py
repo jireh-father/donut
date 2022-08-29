@@ -60,6 +60,7 @@ def test(args, config):
     # for idx, sample in tqdm(enumerate(dataset), total=len(dataset)):
     gt_list = []
     pred_list = []
+    file_list = []
     for idx, sample in enumerate(dataset):
         ground_truth = json.loads(sample["ground_truth"])
         print("###", sample["file_name"], "{}/{}".format(idx, len(dataset)))
@@ -71,6 +72,7 @@ def test(args, config):
         gt = teds.postprocess_html_tag(gt)
 
         output_list.append(output)
+        file_list.append(sample["file_name"])
 
         if args.num_processes > 1:
             gt_list.append(gt)
@@ -83,6 +85,7 @@ def test(args, config):
                 if args.verbose:
                     for j, gt in enumerate(gt_list):
                         output = pred_list[j]
+                        print("#####", file_list[j])
                         print("===== true")
                         print(gt)
                         print("===== pred")
@@ -92,6 +95,7 @@ def test(args, config):
 
                 gt_list = []
                 pred_list = []
+                file_list = []
         else:
             score = teds_metric.evaluate(output, gt)
             teds_structure_score = teds_metric_stru.evaluate(output, gt)
