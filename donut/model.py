@@ -16,8 +16,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from PIL import ImageOps
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
-# from timm.models.swin_transformer import SwinTransformer
-from donut.swin_transformer import SwinTransformer
+from timm.models.swin_transformer import SwinTransformer
+# from donut.swin_transformer import SwinTransformer
 from torchvision import transforms
 from torchvision.transforms.functional import resize, rotate
 from transformers import MBartConfig, MBartForCausalLM, XLMRobertaTokenizer
