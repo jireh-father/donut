@@ -68,6 +68,7 @@ def test(args, config):
         #     )["predictions"][0]
         # else:
         #     output = pretrained_model.inference(image=sample["image"], prompt=f"<s_{args.task_name}>")["predictions"][0]
+        print("###", sample["file_name"])
         im = Image.open(os.path.join(args.dataset_name_or_path, sample["file_name"]))
         output = pretrained_model.inference(im, prompt=f"<s_{args.task_name}>")["predictions"][0]
 
