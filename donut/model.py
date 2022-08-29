@@ -157,9 +157,9 @@ class BARTDecoder(nn.Module):
         self.max_position_embeddings = max_position_embeddings
 
         self.tokenizer = XLMRobertaTokenizer.from_pretrained(
-            "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path
+            # "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path
+            "./tokenizer"
         )
-
         self.model = MBartForCausalLM(
             config=MBartConfig(
                 is_decoder=True,
@@ -178,6 +178,7 @@ class BARTDecoder(nn.Module):
         self.add_special_tokens(["<sep/>"])  # <sep/> is used for representing a list in a JSON
         self.model.model.decoder.embed_tokens.padding_idx = self.tokenizer.pad_token_id
         self.model.prepare_inputs_for_generation = self.prepare_inputs_for_inference
+        self.add_special_tokens([self.task_start_token, self.prompt_end_token])
 
         # weight init with asian-bart
         if not name_or_path:
@@ -392,11 +393,9 @@ class DonutModel(PreTrainedModel):
         self.decoder = BARTDecoder(
             max_position_embeddings=self.config.max_position_embeddings,
             decoder_layer=self.config.decoder_layer,
-            name_or_path=self.config.tokenizer_name_or_path,
+            name_or_path=self.config.tokenizer_name_or_path
         )
 
-        print(self.decoder.model)
-        sys.exit()
 
     def forward(self, image_tensors: torch.Tensor, decoder_input_ids: torch.Tensor, decoder_labels: torch.Tensor):
         """
