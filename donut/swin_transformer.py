@@ -291,7 +291,7 @@ class SwinTransformerBlock(nn.Module):
         H, W = self.input_resolution
         B, L, C = x.shape
         _assert(L == H * W, "input feature has wrong size")
-        print("input shape", x.shape)
+        print("[[[ swin block ]]] input shape", x.shape)
         shortcut = x
         x = self.norm1(x)
         x = x.view(B, H, W, C)
@@ -419,7 +419,7 @@ class BasicLayer(nn.Module):
             self.downsample = None
 
     def forward(self, x):
-        print("basic block input x", x.shape)
+        print(">>>> basic block basic block input x", x.shape)
         if self.grad_checkpointing and not torch.jit.is_scripting():
             x = checkpoint_seq(self.blocks, x)
         else:
@@ -559,7 +559,10 @@ class SwinTransformer(nn.Module):
         self.head = nn.Linear(self.num_features, num_classes) if num_classes > 0 else nn.Identity()
 
     def forward_features(self, x):
+        print("==============")
+        print("input image", x.shape)
         x = self.patch_embed(x)
+        print("input patch_embed", x.shape)
         if self.absolute_pos_embed is not None:
             x = x + self.absolute_pos_embed
         x = self.pos_drop(x)
