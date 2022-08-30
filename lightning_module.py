@@ -118,6 +118,7 @@ class DonutModelPLModule(pl.LightningModule):
             self.log_dict({val_metric_name: val_metric[i]}, sync_dist=True)
         self.log_dict({"val_metric": np.sum(total_metric) / np.sum(cnt)},
                       sync_dist=True)
+        print("average val teds", np.sum(total_metric) / np.sum(cnt))
 
     def configure_optimizers(self):
 

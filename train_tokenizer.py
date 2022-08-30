@@ -26,9 +26,14 @@ def main(args):
     # print("added tokens", old_tokenizer)
     print("training!")
     # print("old_tokenizer.vocab_size", old_tokenizer.vocab_size)
-    print(old_tokenizer.vocab_size // 2)
+
+    if args.vocab_size:
+        vocab_size = args.vocab_size
+    else:
+        vocab_size = old_tokenizer.vocab_size + 22
+    print("vocab_size", vocab_size)
     # tokenizer = old_tokenizer.train_new_from_iterator(training_corpus, old_tokenizer.vocab_size + 22, new_special_tokens=new_tokens)  # 52000)
-    tokenizer = old_tokenizer.train_new_from_iterator(training_corpus, old_tokenizer.vocab_size // 2,
+    tokenizer = old_tokenizer.train_new_from_iterator(training_corpus, vocab_size,
                                                       new_special_tokens=new_tokens)  # 52000)
     print(tokenizer.encode("<tr><td>test<tr><td>"))
     os.makedirs(args.output_dir, exist_ok=True)
@@ -51,6 +56,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--corpus_path', type=str,
                         default="D:\dataset\\table_ocr\pubtabnet/total_corpus.txt")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_half_vacab")
+    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_vocab_10k")
+    parser.add_argument('--vocab_size', type=int, default=None)
 
     main(parser.parse_args())

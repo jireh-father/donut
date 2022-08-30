@@ -3,6 +3,7 @@ from transformers import AutoTokenizer, XLMRobertaTokenizer, MBartTokenizer
 import argparse
 import json
 
+
 def remove_html_tags(text):
     """Remove html tags from a string"""
     import re
@@ -55,7 +56,10 @@ def convert_ptn_item_to_simple_html(item):
 
 
 def main(args):
-    tokenizer = XLMRobertaTokenizer.from_pretrained(args.token_path)
+    if args.use_fast_tokenizer:
+        tokenizer = AutoTokenizer.from_pretrained(args.token_path)
+    else:
+        tokenizer = XLMRobertaTokenizer.from_pretrained(args.token_path)
     print(tokenizer)
     max_len = 0
     max_tag = None
@@ -78,6 +82,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--label_path', type=str,
                         default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\PubTabNet_2.0.0.jsonl")
-    parser.add_argument('--token_path', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_half_vacab")
+    parser.add_argument('--token_path', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_vocab_10k")
+    parser.add_argument('--use_fast_tokenizer', action='store_true', default=True)
 
     main(parser.parse_args())
