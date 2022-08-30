@@ -96,12 +96,13 @@ def test(args, config):
                 if args.save_images and args.output_dir:
                     for j, file_name in enumerate(file_list):
                         image_path = os.path.join(args.dataset_name_or_path, file_name)
-                        im_output_path = os.path.join(args.output_dir, "result_images_all", str(scores[j])[2])
+                        im_output_path = os.path.join(args.output_dir, "result_images_all",
+                                                      "10" if scores[j] == 1.0 else str(scores[j])[2])
                         os.makedirs(im_output_path, exist_ok=True)
                         shutil.copy(image_path, im_output_path)
 
                         im_output_path = os.path.join(args.output_dir, "result_images_structure",
-                                                      str(stru_scores[j])[2])
+                                                      "10" if stru_scores[j] == 1.0 else str(stru_scores[j])[2])
                         os.makedirs(im_output_path, exist_ok=True)
                         shutil.copy(image_path, im_output_path)
                 gt_list = []
@@ -118,11 +119,13 @@ def test(args, config):
                 print("===== teds all", score)
                 print("===== teds only structure", teds_structure_score)
             if args.save_images and args.output_dir:
-                im_output_path = os.path.join(args.output_dir, "result_images_all", str(score)[2])
+                im_output_path = os.path.join(args.output_dir, "result_images_all",
+                                              "10" if score == 1.0 else str(score)[2])
                 os.makedirs(im_output_path, exist_ok=True)
                 image_path = os.path.join(args.dataset_name_or_path, sample["file_name"])
                 shutil.copy(image_path, im_output_path)
-                im_output_path = os.path.join(args.output_dir, "result_images_structure", str(teds_structure_score)[2])
+                im_output_path = os.path.join(args.output_dir, "result_images_structure",
+                                              "10" if teds_structure_score == 1.0 else str(teds_structure_score)[2])
                 os.makedirs(im_output_path, exist_ok=True)
                 shutil.copy(image_path, im_output_path)
 

@@ -97,14 +97,13 @@ class SwinEncoder(nn.Module):
         Args:
             x: (batch_size, num_channels, height, width)
         """
-        print("================")
-        print("*** input size", x.shape)
+        # print("================")
+        # print("*** input size", x.shape)
         x = self.model.patch_embed(x)
         x = self.model.pos_drop(x)
-        print("patch embed", x.shape)
+        # print("patch embed", x.shape)
         x = self.model.layers(x)
-        print("swin encoder output", x.shape)
-        sys.exit()
+        # print("swin encoder output", x.shape)
         return x
 
     def prepare_input(self, img: PIL.Image.Image, random_padding: bool = False) -> torch.Tensor:
@@ -622,9 +621,3 @@ class DonutModel(PreTrainedModel):
 
         return model
 
-
-class DonutModelForTableOcrTest(DonutModel):
-    def __init__(self, config: DonutConfig):
-        super().__init__(config)
-        task_name = "tableocr"
-        self.decoder.add_special_tokens(f"<s_{task_name}>")
