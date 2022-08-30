@@ -67,9 +67,12 @@ def main(args):
         if i % 10 == 0:
             print(i)
         item = json.loads(line)
+
         table_tag, tmp_total_texts, text_set, tmp_max_row_span, tmp_max_col_span = convert_ptn_item_to_simple_html(
             item)
-        cur_len = len(tokenizer.encode("".join(table_tag)))
+        html_code = "".join(table_tag)
+
+        cur_len = len(tokenizer.encode(html_code))
         if cur_len > max_len:
             max_len = cur_len
             max_tag = table_tag

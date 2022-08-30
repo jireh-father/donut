@@ -10,162 +10,128 @@ import os
 import re
 import shutil
 from pathlib import Path
-
+import re
 import numpy as np
 import torch
 from datasets import load_dataset
 from PIL import Image
 from tqdm import tqdm
 
-from donut import DonutModel, JSONParseEvaluator, load_json, save_json,  DonutConfig
-import teds
+from donut import DonutModel, JSONParseEvaluator, load_json, save_json, DonutConfig
+import teds as T
 from sconf import Config
 
 
-def test(args, config):
-    # pretrained_model = DonutModel.from_pretrained(args.pretrained_model_name_or_path)
-    if args.task_name == "tableocr":
+def remove_html_tags(text):
+    """Remove html tags from a string"""
+    import re
+    clean = re.compile('<.*?>')
+    return re.sub(clean, '', text)
 
-        pretrained_model = DonutModel.from_pretrained(
-            args.pretrained_model_name_or_path,
-            input_size=config.input_size,
-            max_length=config.max_length,
-            align_long_axis=config.align_long_axis,
-            ignore_mismatched_sizes=True,
-        )
-    else:
-        pretrained_model = DonutModel.from_pretrained(args.pretrained_model_name_or_path)
+
+def test(args, config):
+    model = DonutModel.from_pretrained(
+        args.pretrained_model_name_or_path,
+        input_size=config.input_size,
+        max_length=config.max_length,
+        align_long_axis=config.align_long_axis,
+        ignore_mismatched_sizes=True,
+    )
 
     if torch.cuda.is_available():
-        pretrained_model.half()
-        pretrained_model.to("cuda")
+        model.half()
+        model.to("cuda")
     else:
-        pretrained_model.encoder.to(torch.bfloat16)
+        model.encoder.to(torch.bfloat16)
+    model.eval()
 
-    pretrained_model.eval()
+    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
 
-    if args.output_dir:
-        os.makedirs(args.output_dir, exist_ok=True)
+    teds_metric_struct = T.TEDS(True, n_jobs=args.num_processes)
+    teds_metric = T.TEDS(n_jobs=args.num_processes)
 
-    output_list = []
-    accs = []
-    teds_structure_results = []
+    dataset = load_dataset(args.dataset_name_or_path, data_files='metadata.jsonl')['train']
 
-    if args.task_name == "tableocr":
-        teds_metric_stru = teds.TEDS(True, n_jobs=args.num_processes)
-        teds_metric = teds.TEDS(n_jobs=args.num_processes)
-
-        dataset = load_dataset(args.dataset_name_or_path, data_files='metadata.jsonl')['train']
-    else:
-        dataset = load_dataset(args.dataset_name_or_path, split=args.split)
-
-    # for idx, sample in tqdm(enumerate(dataset), total=len(dataset)):
     gt_list = []
     pred_list = []
     file_list = []
-    for idx, sample in enumerate(dataset):
-        ground_truth = json.loads(sample["ground_truth"])
-        print("###", sample["file_name"], "{}/{}".format(idx, len(dataset)))
-        im = Image.open(os.path.join(args.dataset_name_or_path, sample["file_name"]))
-        output = pretrained_model.inference(im, prompt=f"<s_{args.task_name}>")["predictions"][0]
 
-        gt = ground_truth["gt_parse"]["text_sequence"]
-        output = teds.postprocess_html_tag(output['text_sequence'])
-        gt = teds.postprocess_html_tag(gt)
+    total_teds_all = []
+    total_teds_struct = []
+    total_teds_content = []
 
-        output_list.append(output)
-        file_list.append(sample["file_name"])
+    with open(args.output_path, "w+", encoding="utf-8") as output:
+        for idx, sample in enumerate(dataset):
+            file_name = sample["file_name"]
+            print("###", file_name, "{}/{}".format(idx, len(dataset)))
+            sample_data = json.loads(sample["ground_truth"])
+            im = Image.open(os.path.join(args.dataset_name_or_path, file_name))
+            width, height = im.size
+            pred = model.inference(im, prompt=f"<s_{args.task_name}>")["predictions"][0]
 
-        if args.num_processes > 1:
+            gt = T.postprocess_html_tag(sample_data["gt_parse"]["text_sequence"])
+            pred = T.postprocess_html_tag(pred['text_sequence'])
+
+            file_list.append(file_name)
             gt_list.append(gt)
-            pred_list.append(output)
+            pred_list.append(pred)
             if len(gt_list) == args.num_processes:
-                scores = teds_metric.batch(pred_list, gt_list)
-                stru_scores = teds_metric_stru.batch(pred_list, gt_list)
-                accs += scores
-                teds_structure_results += stru_scores
-                if args.verbose:
-                    for j, gt in enumerate(gt_list):
-                        output = pred_list[j]
+                teds_all_list = teds_metric.batch(pred_list, gt_list)
+
+                teds_struct_list = teds_metric_struct.batch(pred_list, gt_list)
+                teds_content_list = teds_metric.batch(
+                    ["<tr><td>{}</td></tr>".format(remove_html_tags(pred)) for pred in pred_list],
+                    ["<tr><td>{}</td></tr>".format(remove_html_tags(gt)) for gt in gt_list])
+                total_teds_all += teds_all_list
+                total_teds_struct += teds_struct_list
+                total_teds_content += teds_content_list
+
+                for j, gt in enumerate(gt_list):
+                    teds_all = teds_all_list[j]
+                    teds_struct = teds_struct_list[j]
+                    teds_content = teds_content_list[j]
+                    pred = pred_list[j]
+
+                    output.write("{}\n".format(json.dumps({
+                        "file_name": file_name,
+                        "gt": gt,
+                        "pred": pred,
+                        "teds_all": teds_all,
+                        "teds_struct": teds_struct,
+                        "teds_content": teds_content,
+                        "image_width": width,
+                        "image_height": height
+                    })))
+
+                    if args.verbose:
+                        print("")
                         print("#####", file_list[j])
                         print("===== true")
                         print(gt)
                         print("===== pred")
-                        print(output)
-                        print("===== teds all", scores[j])
-                        print("===== teds only structure", stru_scores[j])
-                if args.save_images and args.output_dir:
-                    for j, file_name in enumerate(file_list):
-                        image_path = os.path.join(args.dataset_name_or_path, file_name)
-                        im_output_path = os.path.join(args.output_dir, "result_images_all",
-                                                      "10" if scores[j] == 1.0 else str(scores[j])[2])
-                        os.makedirs(im_output_path, exist_ok=True)
-                        shutil.copy(image_path, im_output_path)
-
-                        im_output_path = os.path.join(args.output_dir, "result_images_structure",
-                                                      "10" if stru_scores[j] == 1.0 else str(stru_scores[j])[2])
-                        os.makedirs(im_output_path, exist_ok=True)
-                        shutil.copy(image_path, im_output_path)
+                        print(pred)
+                        print("===== teds all", teds_all)
+                        print("===== teds structure", teds_struct)
+                        print("===== teds content", teds_content)
                 gt_list = []
                 pred_list = []
                 file_list = []
-        else:
-            score = teds_metric.evaluate(output, gt)
-            teds_structure_score = teds_metric_stru.evaluate(output, gt)
-            if args.verbose:
-                print("===== true")
-                print(gt)
-                print("===== pred")
-                print(output)
-                print("===== teds all", score)
-                print("===== teds only structure", teds_structure_score)
-            if args.save_images and args.output_dir:
-                im_output_path = os.path.join(args.output_dir, "result_images_all",
-                                              "10" if score == 1.0 else str(score)[2])
-                os.makedirs(im_output_path, exist_ok=True)
-                image_path = os.path.join(args.dataset_name_or_path, sample["file_name"])
-                shutil.copy(image_path, im_output_path)
-                im_output_path = os.path.join(args.output_dir, "result_images_structure",
-                                              "10" if teds_structure_score == 1.0 else str(teds_structure_score)[2])
-                os.makedirs(im_output_path, exist_ok=True)
-                shutil.copy(image_path, im_output_path)
 
-            accs.append(score)
-            teds_structure_results.append(teds_structure_score)
+    total_teds_mean = {
+        "teds_all": np.mean(total_teds_all),
+        "teds_structure": np.mean(total_teds_struct),
+        "teds_content": np.mean(total_teds_content)
+    }
 
-    if args.task_name == "tableocr":
-        scores = {"teds": accs, "mean_teds": np.mean(accs), "teds_structure": teds_structure_results,
-                  "mean_teds_structure": np.mean(teds_structure_results)}
-        print("teds all", scores['mean_teds'], f"length : {len(accs)}")
-        print("teds only structure", scores['mean_teds_structure'], f"length : {len(accs)}")
-    else:
-        scores = {"accuracies": accs, "mean_accuracy": np.mean(accs)}
-        print(scores, f"length : {len(accs)}")
-
-    if args.output_dir:
-        scores["predictions"] = output_list
-        save_json(os.path.join(args.output_dir, "result.json"), scores)
-        for score_dir in glob.glob(os.path.join(args.output_dir, "result_images_all", "*")):
-            if not os.path.isdir(score_dir):
-                continue
-            print("teds all", os.path.basename(score_dir), len(glob.glob(os.path.join(score_dir, "*"))))
-        for score_dir in glob.glob(os.path.join(args.output_dir, "result_images_structure", "*")):
-            if not os.path.isdir(score_dir):
-                continue
-            print("teds stru", os.path.basename(score_dir), len(glob.glob(os.path.join(score_dir, "*"))))
-
-    return output_list
+    print(total_teds_mean)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--pretrained_model_name_or_path", type=str)
     parser.add_argument("--dataset_name_or_path", type=str)
-    parser.add_argument("--split", type=str, default="test")
-    parser.add_argument("--task_name", type=str, default=None)
-    parser.add_argument("--output_dir", type=str, default=None)
+    parser.add_argument("--output_path", type=str, default=None)
     parser.add_argument("--verbose", action='store_true', default=False)
-    parser.add_argument("--save_images", action='store_true', default=False)
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--num_processes", type=int, default=1)
     args, left_argv = parser.parse_known_args()
@@ -179,4 +145,4 @@ if __name__ == "__main__":
     config = Config(args.config)
     config.argv_update(left_argv)
 
-    predicts = test(args, config)
+    test(args, config)
