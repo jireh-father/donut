@@ -3,6 +3,7 @@ Donut
 Copyright (c) 2022-present NAVER Corp.
 MIT License
 """
+import glob
 import argparse
 import json
 import os
@@ -144,6 +145,14 @@ def test(args, config):
     if args.output_dir:
         scores["predictions"] = output_list
         save_json(os.path.join(args.output_dir, "result.json"), scores)
+        for score_dir in glob.glob(os.path.join(args.output_dir, "result_images_all", "*")):
+            if not os.path.isdir(score_dir):
+                continue
+            print("teds all", os.path.basename(score_dir), len(glob.glob(os.path.join(score_dir, "*"))))
+        for score_dir in glob.glob(os.path.join(args.output_dir, "result_images_structure", "*")):
+            if not os.path.isdir(score_dir):
+                continue
+            print("teds stru", os.path.basename(score_dir), len(glob.glob(os.path.join(score_dir, "*"))))
 
     return output_list
 
