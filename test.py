@@ -136,11 +136,6 @@ if __name__ == "__main__":
     parser.add_argument("--num_processes", type=int, default=1)
     args, left_argv = parser.parse_known_args()
 
-    if args.task_name is None:
-        args.task_name = os.path.basename(args.dataset_name_or_path)
-
-    args, left_argv = parser.parse_known_args()
-
     print("initializing config")
     config = Config(args.config)
     config.argv_update(left_argv)
