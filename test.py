@@ -29,8 +29,13 @@ def remove_html_tags(text):
     return re.sub(clean, '', text)
 
 
+multiple_space_re = re.compile(r'[ ]{2,}')
+
+
 def convert(text):
-    return "<tr><td>{}</td></tr>".format(" ".join([remove_html_tags(token) for token in text.split("</td>")]))
+    text = " ".join([remove_html_tags(token) for token in text.split("</td>")])
+    text = multiple_space_re.sub(' ', text)
+    return "<tr><td>{}</td></tr>".format(text)
 
 
 def test(args, config):
