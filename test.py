@@ -17,7 +17,7 @@ from datasets import load_dataset
 from PIL import Image
 from tqdm import tqdm
 
-from donut import DonutModel, JSONParseEvaluator, load_json, save_json, DonutModelForTableOcrTest, DonutConfig
+from donut import DonutModel, JSONParseEvaluator, load_json, save_json,  DonutConfig
 import teds
 from sconf import Config
 
