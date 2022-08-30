@@ -35,7 +35,7 @@ multiple_space_re = re.compile(r'[ ]{2,}')
 def convert(text):
     text = " ".join([remove_html_tags(token) for token in text.split("</td>")])
     text = multiple_space_re.sub(' ', text)
-    return "<tr><td>{}</td></tr>".format(text)
+    return "<tr><td>{}</td></tr>".format(text.strip())
 
 
 def test(args, config):
