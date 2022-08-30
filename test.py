@@ -29,6 +29,10 @@ def remove_html_tags(text):
     return re.sub(clean, '', text)
 
 
+def convert(text):
+    return "<tr><td>{}</td></tr>".format(" ".join([remove_html_tags(token) for token in text.split("</td>")]))
+
+
 def test(args, config):
     model = DonutModel.from_pretrained(
         args.pretrained_model_name_or_path,
@@ -52,6 +56,7 @@ def test(args, config):
 
     dataset = load_dataset(args.dataset_name_or_path, data_files='metadata.jsonl')['train']
 
+    tag_re = re.compile(r'<[^>]+>')
     gt_list = []
     pred_list = []
     file_list = []
@@ -79,9 +84,9 @@ def test(args, config):
                 teds_all_list = teds_metric.batch(pred_list, gt_list)
 
                 teds_struct_list = teds_metric_struct.batch(pred_list, gt_list)
-                teds_content_list = teds_metric.batch(
-                    ["<tr><td>{}</td></tr>".format(remove_html_tags(pred)) for pred in pred_list],
-                    ["<tr><td>{}</td></tr>".format(remove_html_tags(gt)) for gt in gt_list])
+                pred_content_list = [convert(pred) for pred in pred_list]
+                gt_content_list = [convert(gt) for gt in gt_list]
+                teds_content_list = teds_metric.batch(pred_content_list, gt_content_list)
                 total_teds_all += teds_all_list
                 total_teds_struct += teds_struct_list
                 total_teds_content += teds_content_list
@@ -106,10 +111,18 @@ def test(args, config):
                     if args.verbose:
                         print("")
                         print("#####", file_list[j])
-                        print("===== true")
+                        print("===== gt")
                         print(gt)
                         print("===== pred")
                         print(pred)
+                        print("===== gt contents")
+                        print(gt_content_list[j])
+                        print("===== pred contents")
+                        print(pred_content_list[j])
+                        print("===== gt structure")
+                        print("".join(tag_re.findall(gt)))
+                        print("===== pred structure")
+                        print("".join(tag_re.findall(pred)))
                         print("===== teds all", teds_all)
                         print("===== teds structure", teds_struct)
                         print("===== teds content", teds_content)
