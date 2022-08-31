@@ -110,7 +110,7 @@ class CustomConfig(Config):
 
 
 tr_td_regex = re.compile(r'<tr>[ ]*</td>')
-
+span_regex = re.compile(r'(span="[0-9]+">){1,2}[ ]')
 
 def postprocess_html_tag(html_tag):
     html_tag = html_tag.replace("<td", "</td><td")
@@ -122,6 +122,7 @@ def postprocess_html_tag(html_tag):
     html_tag = html_tag[10:]
     html_tag += "</td></tr>"
     html_tag = html_tag.replace("<td> ", "<td>")
+    html_tag = span_regex.sub(r"\1", html_tag)
     return "<table>{}</table>".format(html_tag.replace(" </td>", "</td>"))
 
 
