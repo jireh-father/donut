@@ -122,7 +122,6 @@ def test(args, config):
                         "image_width": width,
                         "image_height": height
                     }
-                    print(item)
                     try:
                         output.write("{}\n".format(json.dumps(item)))
                     except:
