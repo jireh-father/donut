@@ -74,7 +74,7 @@ def test(args, config):
     error_data = []
 
     result_path = os.path.join(args.output_dir, "results.jsonl")
-    with open(result_path, "a+", encoding="utf-8") as output:
+    with open(result_path, "w+", encoding="utf-8") as output:
         for idx, sample in enumerate(dataset):
             if args.start_index and args.start_index > idx:
                 if idx % 10 == 0:
