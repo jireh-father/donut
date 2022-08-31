@@ -70,7 +70,7 @@ def test(args, config):
     total_teds_struct = []
     total_teds_content = []
 
-    with open(args.output_path, "w+", encoding="utf-8") as output:
+    with open(args.output_path, "a+", encoding="utf-8") as output:
         for idx, sample in enumerate(dataset):
             if args.start_index and args.start_index > idx:
                 if idx % 10 == 0:
