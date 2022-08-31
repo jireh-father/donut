@@ -3,6 +3,7 @@ Donut
 Copyright (c) 2022-present NAVER Corp.
 MIT License
 """
+import traceback
 import glob
 import argparse
 import json
@@ -54,7 +55,7 @@ def test(args, config):
         model.encoder.to(torch.bfloat16)
     model.eval()
 
-    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
+    os.makedirs(args.output_dir, exist_ok=True)
 
     teds_metric_struct = T.TEDS(True, n_jobs=args.num_processes)
     teds_metric = T.TEDS(n_jobs=args.num_processes)
@@ -70,7 +71,10 @@ def test(args, config):
     total_teds_struct = []
     total_teds_content = []
 
-    with open(args.output_path, "a+", encoding="utf-8") as output:
+    error_data = []
+
+    result_path = os.path.join(args.output_dir, "results.jsonl")
+    with open(result_path, "a+", encoding="utf-8") as output:
         for idx, sample in enumerate(dataset):
             if args.start_index and args.start_index > idx:
                 if idx % 10 == 0:
@@ -117,7 +121,12 @@ def test(args, config):
                         "image_height": height
                     }
                     print(item)
-                    output.write("{}\n".format(json.dumps(item)))
+                    try:
+                        output.write("{}\n".format(json.dumps(item)))
+                    except:
+                        item['index'] = idx
+                        error_data.append(item)
+                        traceback.print_exc()
 
                     if args.verbose:
                         print("")
@@ -147,6 +156,10 @@ def test(args, config):
         "teds_content": np.mean(total_teds_content)
     }
 
+    if error_data:
+        json.dump(error_data, open(os.path.join(args.output_dir, "errors.json"), "w+"))
+        print("errors", len(error_data))
+
     print(total_teds_mean)
 
 
@@ -154,7 +167,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--pretrained_model_name_or_path", type=str)
     parser.add_argument("--dataset_name_or_path", type=str)
-    parser.add_argument("--output_path", type=str, default=None)
+    parser.add_argument("--output_dir", type=str, default=None)
     parser.add_argument("--verbose", action='store_true', default=False)
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--num_processes", type=int, default=1)
