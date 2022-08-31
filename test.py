@@ -80,6 +80,8 @@ def test(args, config):
                 if idx % 10 == 0:
                     print("skip", idx)
                 continue
+            if args.test_cnt and args.test_cnt < idx:
+                break
             file_name = sample["file_name"]
             print("###", file_name, "{}/{}".format(idx, len(dataset)))
             sample_data = json.loads(sample["ground_truth"])
@@ -157,7 +159,7 @@ def test(args, config):
     }
 
     if error_data:
-        json.dump(error_data, open(os.path.join(args.output_dir, "errors.json"), "w+"))
+        json.dump(error_data, open(os.path.join(args.output_dir, "errors.json"), "w+", encoding="utf-8"))
         print("errors", len(error_data))
 
     print(total_teds_mean)
@@ -172,6 +174,7 @@ if __name__ == "__main__":
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--num_processes", type=int, default=1)
     parser.add_argument("--start_index", type=int, default=1)
+    parser.add_argument("--test_cnt", type=int, default=None)
     # 8666/9115
     args, left_argv = parser.parse_known_args()
 
