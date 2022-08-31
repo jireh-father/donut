@@ -72,6 +72,10 @@ def test(args, config):
 
     with open(args.output_path, "w+", encoding="utf-8") as output:
         for idx, sample in enumerate(dataset):
+            if args.start_index and args.start_index > idx:
+                if idx % 10 == 0:
+                    print("skip", idx)
+                continue
             file_name = sample["file_name"]
             print("###", file_name, "{}/{}".format(idx, len(dataset)))
             sample_data = json.loads(sample["ground_truth"])
@@ -102,7 +106,7 @@ def test(args, config):
                     teds_content = teds_content_list[j]
                     pred = pred_list[j]
 
-                    output.write("{}\n".format(json.dumps({
+                    item = {
                         "file_name": file_name,
                         "gt": gt,
                         "pred": pred,
@@ -111,7 +115,9 @@ def test(args, config):
                         "teds_content": teds_content,
                         "image_width": width,
                         "image_height": height
-                    })))
+                    }
+                    print(item)
+                    output.write("{}\n".format(json.dumps(item)))
 
                     if args.verbose:
                         print("")
@@ -152,6 +158,8 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", action='store_true', default=False)
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--num_processes", type=int, default=1)
+    parser.add_argument("--start_index", type=int, default=1)
+    # 8666/9115
     args, left_argv = parser.parse_known_args()
 
     print("initializing config")
