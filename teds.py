@@ -8,6 +8,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # Apache 2.0 License for more details.
+import re
 
 import distance
 from apted import APTED, Config
@@ -16,6 +17,7 @@ from lxml import etree, html
 from collections import deque
 from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
+
 
 def parallel_process(array, function, n_jobs=16, use_kwargs=False, front_num=0):
     """
@@ -107,9 +109,13 @@ class CustomConfig(Config):
         return 0.
 
 
+tr_td_regex = re.compile(r'<tr>[ ]*</td>')
+
+
 def postprocess_html_tag(html_tag):
     html_tag = html_tag.replace("<td", "</td><td")
-    html_tag = html_tag.replace("<tr></td>", "<tr>")
+    # html_tag = html_tag.replace("<tr></td>", "<tr>")
+    html_tag = tr_td_regex.sub("<tr>", html_tag)
     html_tag = html_tag.replace("<tdrowspan", "<td rowspan")
     html_tag = html_tag.replace("<tdcolspan", "<td colspan")
     html_tag = html_tag.replace("<tr>", "</td></tr><tr>")
