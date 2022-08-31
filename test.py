@@ -3,6 +3,7 @@ Donut
 Copyright (c) 2022-present NAVER Corp.
 MIT License
 """
+import pickle
 import traceback
 import glob
 import argparse
@@ -161,7 +162,7 @@ def test(args, config):
     }
 
     if error_data:
-        json.dump(error_data, open(os.path.join(args.output_dir, "errors.json"), "w+", encoding="utf-8"))
+        pickle.dump(error_data, open(os.path.join(args.output_dir, "errors.pickle"), "wb+"))
         print("errors", len(error_data))
 
     print(total_teds_mean)
