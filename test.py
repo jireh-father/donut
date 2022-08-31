@@ -90,6 +90,7 @@ def test(args, config):
             pred = model.inference(im, prompt=f"<s_tableocr>")["predictions"][0]
             print("debugging")
             print(pred['text_sequence'])
+            print(sample_data["gt_parse"]["text_sequence"])
             gt = T.postprocess_html_tag(sample_data["gt_parse"]["text_sequence"])
             pred = T.postprocess_html_tag(pred['text_sequence'])
 
