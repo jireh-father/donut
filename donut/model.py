@@ -211,13 +211,13 @@ class BARTDecoder(nn.Module):
                     # new_bart_state_dict[x] = bart_state_dict[x][: len(self.tokenizer), :]
                 elif x.endswith("embed_tokens.weight"):
                     print("embed_tokens")
-                    print(self.model.model.decoder.embed_tokens.shape)
+                    print(self.model.model.decoder.embed_tokens)
                     print(self.model.model.decoder.embed_tokens.wright.shape)
                     if len(self.model.model.decoder.embed_tokens) != len(bart_state_dict[x]):
                         pass
                 elif x.endswith("lm_head.weight"):
                     print("lm_head")
-                    print(self.model.lm_head.shape)
+                    print(self.model.lm_head)
                     print(self.model.lm_head.weight.shape)
                     if len(self.model.lm_head) != len(bart_state_dict[x]):
                         pass
