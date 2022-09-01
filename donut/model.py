@@ -408,7 +408,7 @@ class DonutModel(PreTrainedModel):
         self.decoder = BARTDecoder(
             max_position_embeddings=self.config.max_position_embeddings,
             decoder_layer=self.config.decoder_layer,
-            use_fast_tokenizer=self.use_fast_tokenizer
+            use_fast_tokenizer=self.config.use_fast_tokenizer
             # name_or_path=self.config.tokenizer_name_or_path
         )
 
