@@ -193,31 +193,31 @@ class BARTDecoder(nn.Module):
         self.add_special_tokens(["<s_tableocr>"])
 
         # weight init with asian-bart
-        if not name_or_path:
-            # bart_state_dict = MBartForCausalLM.from_pretrained("hyunwoongko/asian-bart-ecjk").state_dict()
-            bart_state_dict = MBartForCausalLM.from_pretrained("hyunwoongko/asian-bart-en").state_dict()
-            new_bart_state_dict = self.model.state_dict()
-            for x in new_bart_state_dict:
-                if x.endswith("embed_positions.weight") and self.max_position_embeddings != 1024:
-                    new_bart_state_dict[x] = torch.nn.Parameter(
-                        self.resize_bart_abs_pos_emb(
-                            bart_state_dict[x],
-                            self.max_position_embeddings
-                            + 2,
-                            # https://github.com/huggingface/transformers/blob/v4.11.3/src/transformers/models/mbart/modeling_mbart.py#L118-L119
-                        )
-                    )
-                # elif x.endswith("embed_tokens.weight") or x.endswith("lm_head.weight"):
-                    # new_bart_state_dict[x] = bart_state_dict[x][: len(self.tokenizer), :]
-                elif x.endswith("embed_tokens.weight") or x.endswith("lm_head.weight"):
-                    if len(new_bart_state_dict[x]) != len(bart_state_dict[x]):
-                        if len(new_bart_state_dict[x]) < len(bart_state_dict[x]):
-                            new_bart_state_dict[x] = bart_state_dict[x][: len(new_bart_state_dict[x]), :]
-                        else:
-                            new_bart_state_dict[x][: len(bart_state_dict[x]), :] = bart_state_dict[x]
-                else:
-                    new_bart_state_dict[x] = bart_state_dict[x]
-            self.model.load_state_dict(new_bart_state_dict)
+        # if not name_or_path:
+        #     # bart_state_dict = MBartForCausalLM.from_pretrained("hyunwoongko/asian-bart-ecjk").state_dict()
+        #     bart_state_dict = MBartForCausalLM.from_pretrained("hyunwoongko/asian-bart-en").state_dict()
+        #     new_bart_state_dict = self.model.state_dict()
+        #     for x in new_bart_state_dict:
+        #         if x.endswith("embed_positions.weight") and self.max_position_embeddings != 1024:
+        #             new_bart_state_dict[x] = torch.nn.Parameter(
+        #                 self.resize_bart_abs_pos_emb(
+        #                     bart_state_dict[x],
+        #                     self.max_position_embeddings
+        #                     + 2,
+        #                     # https://github.com/huggingface/transformers/blob/v4.11.3/src/transformers/models/mbart/modeling_mbart.py#L118-L119
+        #                 )
+        #             )
+        #         # elif x.endswith("embed_tokens.weight") or x.endswith("lm_head.weight"):
+        #             # new_bart_state_dict[x] = bart_state_dict[x][: len(self.tokenizer), :]
+        #         elif x.endswith("embed_tokens.weight") or x.endswith("lm_head.weight"):
+        #             if len(new_bart_state_dict[x]) != len(bart_state_dict[x]):
+        #                 if len(new_bart_state_dict[x]) < len(bart_state_dict[x]):
+        #                     new_bart_state_dict[x] = bart_state_dict[x][: len(new_bart_state_dict[x]), :]
+        #                 else:
+        #                     new_bart_state_dict[x][: len(bart_state_dict[x]), :] = bart_state_dict[x]
+        #         else:
+        #             new_bart_state_dict[x] = bart_state_dict[x]
+        #     self.model.load_state_dict(new_bart_state_dict)
 
     def add_special_tokens(self, list_of_tokens: List[str]):
         """
