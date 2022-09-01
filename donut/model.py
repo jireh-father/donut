@@ -20,7 +20,7 @@ from timm.models.swin_transformer import SwinTransformer
 # from donut.swin_transformer import SwinTransformer
 from torchvision import transforms
 from torchvision.transforms.functional import resize, rotate
-from transformers import MBartConfig, MBartForCausalLM, XLMRobertaTokenizer
+from transformers import MBartConfig, MBartForCausalLM, AutoTokenizer, XLMRobertaTokenizer
 from transformers.file_utils import ModelOutput
 from transformers.modeling_utils import PretrainedConfig, PreTrainedModel
 
@@ -155,16 +155,23 @@ class BARTDecoder(nn.Module):
     """
 
     def __init__(
-            self, decoder_layer: int, max_position_embeddings: int, name_or_path: Union[str, bytes, os.PathLike] = None
+            self, decoder_layer: int, max_position_embeddings: int, name_or_path: Union[str, bytes, os.PathLike] = None,
+            use_fast_tokenizer=False
     ):
         super().__init__()
         self.decoder_layer = decoder_layer
         self.max_position_embeddings = max_position_embeddings
 
-        self.tokenizer = XLMRobertaTokenizer.from_pretrained(
-            # "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path
-            "./tokenizer"
-        )
+        if use_fast_tokenizer:
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                # "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path
+                "./tokenizer"
+            )
+        else:
+            self.tokenizer = XLMRobertaTokenizer.from_pretrained(
+                # "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path
+                "./tokenizer"
+            )
         self.model = MBartForCausalLM(
             config=MBartConfig(
                 is_decoder=True,
@@ -362,6 +369,7 @@ class DonutConfig(PretrainedConfig):
             max_length: int = 1536,
             name_or_path: Union[str, bytes, os.PathLike] = "",
             tokenizer_name_or_path: Union[str, bytes, os.PathLike] = "",
+            use_fast_tokenizer = False,
             **kwargs,
     ):
         super().__init__()
@@ -374,6 +382,7 @@ class DonutConfig(PretrainedConfig):
         self.max_length = max_length
         self.name_or_path = name_or_path
         self.tokenizer_name_or_path = tokenizer_name_or_path
+        self.use_fast_tokenizer = use_fast_tokenizer
 
 
 class DonutModel(PreTrainedModel):
@@ -399,7 +408,8 @@ class DonutModel(PreTrainedModel):
         self.decoder = BARTDecoder(
             max_position_embeddings=self.config.max_position_embeddings,
             decoder_layer=self.config.decoder_layer,
-            name_or_path=self.config.tokenizer_name_or_path
+            use_fast_tokenizer=self.use_fast_tokenizer
+            # name_or_path=self.config.tokenizer_name_or_path
         )
 
 
