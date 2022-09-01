@@ -165,7 +165,7 @@ class BARTDecoder(nn.Module):
         if use_fast_tokenizer:
             self.tokenizer = AutoTokenizer.from_pretrained(
                 # "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path
-                "./tokenizer"
+                "./tokenizer_vocab_10k"
             )
         else:
             self.tokenizer = XLMRobertaTokenizer.from_pretrained(
