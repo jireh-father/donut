@@ -210,7 +210,6 @@ class BARTDecoder(nn.Module):
                 # elif x.endswith("embed_tokens.weight") or x.endswith("lm_head.weight"):
                     # new_bart_state_dict[x] = bart_state_dict[x][: len(self.tokenizer), :]
                 elif x.endswith("embed_tokens.weight") or x.endswith("lm_head.weight"):
-                    print(len(new_bart_state_dict[x]))
                     if len(new_bart_state_dict[x]) != len(bart_state_dict[x]):
                         if len(new_bart_state_dict[x]) < len(bart_state_dict[x]):
                             new_bart_state_dict[x] = bart_state_dict[x][: len(new_bart_state_dict[x]), :]
