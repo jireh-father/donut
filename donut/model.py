@@ -207,8 +207,20 @@ class BARTDecoder(nn.Module):
                             # https://github.com/huggingface/transformers/blob/v4.11.3/src/transformers/models/mbart/modeling_mbart.py#L118-L119
                         )
                     )
-                elif x.endswith("embed_tokens.weight") or x.endswith("lm_head.weight"):
-                    new_bart_state_dict[x] = bart_state_dict[x][: len(self.tokenizer), :]
+                # elif x.endswith("embed_tokens.weight") or x.endswith("lm_head.weight"):
+                    # new_bart_state_dict[x] = bart_state_dict[x][: len(self.tokenizer), :]
+                elif x.endswith("embed_tokens.weight"):
+                    print("embed_tokens")
+                    print(self.model.model.decoder.embed_tokens.shape)
+                    print(self.model.model.decoder.embed_tokens.wright.shape)
+                    if len(self.model.model.decoder.embed_tokens) != len(bart_state_dict[x]):
+                        pass
+                elif x.endswith("lm_head.weight"):
+                    print("lm_head")
+                    print(self.model.lm_head.shape)
+                    print(self.model.lm_head.weight.shape)
+                    if len(self.model.lm_head) != len(bart_state_dict[x]):
+                        pass
                 else:
                     new_bart_state_dict[x] = bart_state_dict[x]
             self.model.load_state_dict(new_bart_state_dict)
