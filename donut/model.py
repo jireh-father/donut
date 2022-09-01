@@ -187,7 +187,8 @@ class BARTDecoder(nn.Module):
 
         # weight init with asian-bart
         if not name_or_path:
-            bart_state_dict = MBartForCausalLM.from_pretrained("hyunwoongko/asian-bart-ecjk").state_dict()
+            # bart_state_dict = MBartForCausalLM.from_pretrained("hyunwoongko/asian-bart-ecjk").state_dict()
+            bart_state_dict = MBartForCausalLM.from_pretrained("hyunwoongko/asian-bart-en").state_dict()
             new_bart_state_dict = self.model.state_dict()
             for x in new_bart_state_dict:
                 if x.endswith("embed_positions.weight") and self.max_position_embeddings != 1024:
