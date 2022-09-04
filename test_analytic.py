@@ -20,9 +20,54 @@ from tqdm import tqdm
 from donut import DonutModel, JSONParseEvaluator, load_json, save_json, DonutConfig
 import teds as T
 from sconf import Config
+from transformers import AutoTokenizer, XLMRobertaTokenizer
+
+def test(args):
+    if args.use_fast_tokenizer:
+        tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_dir)
+    else:
+        tokenizer = XLMRobertaTokenizer.from_pretrained(args.tokenizer_dir)
+
+    new_item = []
+    for line in open(args.result_file, encoding="utf-8"):
+        item = json.loads(line)
+        item['num_gt_tokens'] = len(tokenizer.encode(item['gt']))
+        item['num_pred_tokens'] = len(tokenizer.encode(item['pred']))
+        item['gt_str_length'] = len(item['gt'])
+        item['pred_str_length'] = len(item['pred'])
+        # 셀갯수
+        # row 갯수
+        # col 갯수
+        ## 태그
+        # 컨텐츠
 
 
-def test(args, config):
+        score_dict = {
+            "total_pred_list": [],
+            "total_teds": [],
+            "total_struct_teds": [],
+
+            "simple_teds": [],
+            "simple_struct_teds": [],
+            "complex_teds": [],
+            "complex_struct_teds": [],
+
+            "teds_by_all_token_count": {},
+            "teds_struct_by_all_token_count": {},
+
+            "teds_by_content_token_count": {},
+            "teds_struct_tag_by_content_token_count": {},
+
+            "teds_by_tag_token_count": {},
+            "teds_struct_tag_by_token_count": {},
+            # 행열갯수
+            # 이미지사이즈별
+            # 최대 rowspan 갯수별
+            # 최대 colspan 갯수별
+            # cell 평균 크기별(width, height)
+            # row 및 col 크기별
+        }
+
     model = DonutModel.from_pretrained(
         args.pretrained_model_name_or_path,
         input_size=config.input_size,
@@ -172,24 +217,10 @@ def test(args, config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pretrained_model_name_or_path", type=str)
-    parser.add_argument("--dataset_name_or_path", type=str)
-    parser.add_argument("--split", type=str, default="test")
-    parser.add_argument("--task_name", type=str, default=None)
-    parser.add_argument("--output_dir", type=str, default=None)
-    parser.add_argument("--verbose", action='store_true', default=False)
-    parser.add_argument("--save_images", action='store_true', default=False)
-    parser.add_argument("--config", type=str, required=True)
-    parser.add_argument("--num_processes", type=int, default=1)
+    parser.add_argument("--result_file", type=str)
+    parser.add_argument("--output_file", type=str)
+    parser.add_argument("--tokenizer_dir", type=str)
+    parser.add_argument("--use_fast_tokenizer", default=False, action='store_true')
     args, left_argv = parser.parse_known_args()
 
-    if args.task_name is None:
-        args.task_name = os.path.basename(args.dataset_name_or_path)
-
-    args, left_argv = parser.parse_known_args()
-
-    print("initializing config")
-    config = Config(args.config)
-    config.argv_update(left_argv)
-
-    test(args, config)
+    test(args)

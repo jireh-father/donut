@@ -113,7 +113,7 @@ def test(args, config):
                     pred = pred_list[j]
 
                     item = {
-                        "file_name": file_name,
+                        "file_name": file_list[j],
                         "gt": gt,
                         "pred": pred,
                         "teds_all": teds_all,
