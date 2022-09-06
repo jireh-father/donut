@@ -22,7 +22,7 @@ def main(args):
     # old_mbart_tokenizer = MBartTokenizer.from_pretrained("hyunwoongko/asian-bart-en")
     # print(old_mbart_tokenizer)
     new_tokens = ['<tr>', '<td>'] + ['<tdcolspan="{}">'.format(i) for i in range(10)] + ['<tdrowspan="{}">'.format(i) for i in range(10)]
-    new_tokens += ['&gt;', '&lt;']
+    # new_tokens += ['&gt;', '&lt;']
     # old_tokenizer.add_tokens(new_tokens)
     # print("added tokens", old_tokenizer)
     print("training!")
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--corpus_path', type=str,
                         default="D:\dataset\\table_ocr\pubtabnet/total_corpus.txt")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_vocab_10k_with_gtlt")
-    parser.add_argument('--vocab_size', type=int, default=None)
+    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_vocab_100k")
+    parser.add_argument('--vocab_size', type=int, default=100000)
 
     main(parser.parse_args())
