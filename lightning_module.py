@@ -32,6 +32,20 @@ class DonutModelPLModule(pl.LightningModule):
             self.teds = teds.TEDS(True)
         self.validation_metric = config.validation_metric
 
+        task_start_tokens = []
+        prompt_end_tokens = []
+        for i, dataset_name_or_path in enumerate(config.dataset_name_or_paths):
+            if config.get("task_start_tokens", None):
+                task_start_token= config.task_start_tokens[0]
+            else:
+                task_start_token = f"<s_{config.task_name}>"
+            if "docvqa" in dataset_name_or_path:
+                prompt_end_token = "<s_answer>"
+            else:
+                prompt_end_token = f"<s_{config.task_name}>"
+            task_start_tokens.append(task_start_token)
+            prompt_end_tokens.append(prompt_end_token)
+
         if self.config.get("pretrained_model_name_or_path", False):
             self.model = DonutModel.from_pretrained(
                 self.config.pretrained_model_name_or_path,
@@ -39,7 +53,11 @@ class DonutModelPLModule(pl.LightningModule):
                 max_length=self.config.max_length,
                 align_long_axis=self.config.align_long_axis,
                 ignore_mismatched_sizes=True,
-                use_fast_tokenizer=self.config.use_fast_tokenizer
+                use_fast_tokenizer=self.config.use_fast_tokenizer,
+                tokenizer_name_or_path=self.config.tokenizer_name_or_path,
+                vision_model_name=self.config.vision_model_name,
+                bart_prtrained_path=self.config.bart_prtrained_path,
+                special_tokens=task_start_tokens + prompt_end_tokens
             )
         else:
             self.model = DonutModel(
@@ -48,7 +66,10 @@ class DonutModelPLModule(pl.LightningModule):
                     max_length=self.config.max_length,
                     align_long_axis=self.config.align_long_axis,
                     tokenizer_name_or_path=self.config.tokenizer_name_or_path,
-                    use_fast_tokenizer=self.config.use_fast_tokenizer
+                    use_fast_tokenizer=self.config.use_fast_tokenizer,
+                    vision_model_name=self.config.vision_model_name,
+                    bart_prtrained_path=self.config.bart_prtrained_path,
+                    special_tokens=task_start_tokens + prompt_end_tokens
                     # with DonutConfig, the architecture customization is available, e.g.,
                     # encoder_layer=[2,2,14,2], decoder_layer=4, ...
                 )

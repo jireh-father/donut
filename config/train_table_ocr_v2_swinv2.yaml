@@ -21,9 +21,9 @@ val_check_interval: 1.0
 check_val_every_n_epoch: 1
 gradient_clip_val: 1.0
 verbose: True
-tokenizer_name_or_path: "./tokenizer"
+tokenizer_name_or_path: ./tokenizer_vocab_10k
 task_name: tableocr
 validation_metric: teds
 use_fast_tokenizer: False
-vision_model_name: SwinTransformer
+vision_model_name: SwinTransformerV2
 bart_prtrained_path: hyunwoongko/asian-bart-en

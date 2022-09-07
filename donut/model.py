@@ -17,6 +17,7 @@ import torch.nn.functional as F
 from PIL import ImageOps
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.models.swin_transformer import SwinTransformer
+from timm.models.swin_transformer_v2 import SwinTransformerV2
 # from donut.swin_transformer import SwinTransformer
 from torchvision import transforms
 from torchvision.transforms.functional import resize, rotate
@@ -47,12 +48,14 @@ class SwinEncoder(nn.Module):
             window_size: int,
             encoder_layer: List[int],
             name_or_path: Union[str, bytes, os.PathLike] = None,
+            vision_model_name='SwinTransformer'
     ):
         super().__init__()
         self.input_size = input_size
         self.align_long_axis = align_long_axis
         self.window_size = window_size
         self.encoder_layer = encoder_layer
+        self.vision_model_name = vision_model_name
 
         self.to_tensor = transforms.Compose(
             [
@@ -61,19 +64,43 @@ class SwinEncoder(nn.Module):
             ]
         )
 
-        self.model = SwinTransformer(
-            img_size=self.input_size,
-            depths=self.encoder_layer,
-            window_size=self.window_size,
-            patch_size=4,
-            embed_dim=128,
-            num_heads=[4, 8, 16, 32],
-            num_classes=0,
-        )
+        if vision_model_name == "SwinTransformer":
+            self.model = SwinTransformer(
+                img_size=self.input_size,
+                depths=self.encoder_layer,
+                window_size=self.window_size,
+                patch_size=4,
+                embed_dim=128,
+                num_heads=[4, 8, 16, 32],
+                num_classes=0,
+            )
+            pretrained_name = 'swin_base_patch4_window12_384'
+        elif vision_model_name == "SwinTransformerV2":
+            self.model = SwinTransformerV2(
+                img_size=self.input_size,
+                depths=self.encoder_layer,
+                window_size=self.window_size,
+                patch_size=4,
+                embed_dim=128,
+                num_heads=[4, 8, 16, 32],
+                num_classes=0,
+            )
+            pretrained_name = 'swinv2_base_window12_192_22k'
+        else:
+            self.model = SwinTransformer(
+                img_size=self.input_size,
+                depths=self.encoder_layer,
+                window_size=self.window_size,
+                patch_size=4,
+                embed_dim=128,
+                num_heads=[4, 8, 16, 32],
+                num_classes=0,
+            )
+            pretrained_name = 'swin_base_patch4_window12_384'
 
         # weight init with swin
         if not name_or_path:
-            swin_state_dict = timm.create_model("swin_base_patch4_window12_384", pretrained=True).state_dict()
+            swin_state_dict = timm.create_model(pretrained_name, pretrained=True).state_dict()
             new_swin_state_dict = self.model.state_dict()
             for x in new_swin_state_dict:
                 if x.endswith("relative_position_index") or x.endswith("attn_mask"):
@@ -156,7 +183,7 @@ class BARTDecoder(nn.Module):
 
     def __init__(
             self, decoder_layer: int, max_position_embeddings: int, name_or_path: Union[str, bytes, os.PathLike] = None,
-            use_fast_tokenizer=False
+            use_fast_tokenizer=False, bart_prtrained_path="hyunwoongko/asian-bart-en", special_tokens=None
     ):
         super().__init__()
         self.decoder_layer = decoder_layer
@@ -164,13 +191,11 @@ class BARTDecoder(nn.Module):
 
         if use_fast_tokenizer:
             self.tokenizer = AutoTokenizer.from_pretrained(
-                # "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path
-                "./tokenizer_vocab_10k"
+                name_or_path
             )
         else:
             self.tokenizer = XLMRobertaTokenizer.from_pretrained(
-                # "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path
-                "./tokenizer"
+                name_or_path
             )
         self.model = MBartForCausalLM(
             config=MBartConfig(
@@ -190,12 +215,14 @@ class BARTDecoder(nn.Module):
         self.add_special_tokens(["<sep/>"])  # <sep/> is used for representing a list in a JSON
         self.model.model.decoder.embed_tokens.padding_idx = self.tokenizer.pad_token_id
         self.model.prepare_inputs_for_generation = self.prepare_inputs_for_inference
-        self.add_special_tokens(["<s_tableocr>"])
+        if special_tokens:
+            self.add_special_tokens(special_tokens)
+            # self.add_special_tokens(["<s_tableocr>"])
 
         # weight init with asian-bart
         if not name_or_path:
             # bart_state_dict = MBartForCausalLM.from_pretrained("hyunwoongko/asian-bart-ecjk").state_dict()
-            bart_state_dict = MBartForCausalLM.from_pretrained("hyunwoongko/asian-bart-en").state_dict()
+            bart_state_dict = MBartForCausalLM.from_pretrained(bart_prtrained_path).state_dict()
             new_bart_state_dict = self.model.state_dict()
             for x in new_bart_state_dict:
                 if x.endswith("embed_positions.weight") and self.max_position_embeddings != 1024:
@@ -208,7 +235,7 @@ class BARTDecoder(nn.Module):
                         )
                     )
                 # elif x.endswith("embed_tokens.weight") or x.endswith("lm_head.weight"):
-                    # new_bart_state_dict[x] = bart_state_dict[x][: len(self.tokenizer), :]
+                # new_bart_state_dict[x] = bart_state_dict[x][: len(self.tokenizer), :]
                 elif x.endswith("embed_tokens.weight") or x.endswith("lm_head.weight"):
                     if len(new_bart_state_dict[x]) != len(bart_state_dict[x]):
                         if len(new_bart_state_dict[x]) < len(bart_state_dict[x]):
@@ -375,7 +402,10 @@ class DonutConfig(PretrainedConfig):
             max_length: int = 1536,
             name_or_path: Union[str, bytes, os.PathLike] = "",
             tokenizer_name_or_path: Union[str, bytes, os.PathLike] = "",
-            use_fast_tokenizer = False,
+            use_fast_tokenizer=False,
+            vision_model_name='SwinTransformer',
+            bart_prtrained_path='hyunwoongko/asian-bart-en',
+            special_tokens=None,
             **kwargs,
     ):
         super().__init__()
@@ -389,6 +419,9 @@ class DonutConfig(PretrainedConfig):
         self.name_or_path = name_or_path
         self.tokenizer_name_or_path = tokenizer_name_or_path
         self.use_fast_tokenizer = use_fast_tokenizer
+        self.vision_model_name = vision_model_name
+        self.bart_prtrained_path = bart_prtrained_path
+        self.special_tokens = special_tokens
 
 
 class DonutModel(PreTrainedModel):
@@ -410,14 +443,16 @@ class DonutModel(PreTrainedModel):
             window_size=self.config.window_size,
             encoder_layer=self.config.encoder_layer,
             name_or_path=self.config.name_or_path,
+            vision_model_name=self.config.vision_model_name
         )
         self.decoder = BARTDecoder(
             max_position_embeddings=self.config.max_position_embeddings,
             decoder_layer=self.config.decoder_layer,
-            use_fast_tokenizer=self.config.use_fast_tokenizer
-            # name_or_path=self.config.tokenizer_name_or_path
+            use_fast_tokenizer=self.config.use_fast_tokenizer,
+            name_or_path=self.config.tokenizer_name_or_path,
+            bart_prtrained_path=self.config.bart_prtrained_path,
+            special_tokens=self.config.special_tokens
         )
-
 
     def forward(self, image_tensors: torch.Tensor, decoder_input_ids: torch.Tensor, decoder_labels: torch.Tensor):
         """
@@ -637,4 +672,3 @@ class DonutModel(PreTrainedModel):
             model.config.max_position_embeddings = max_length
 
         return model
-
