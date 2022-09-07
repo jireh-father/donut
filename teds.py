@@ -190,8 +190,11 @@ class TEDS(object):
         n_nodes_pred = len(pred.xpath(".//*"))
         n_nodes_true = len(true.xpath(".//*"))
         n_nodes = max(n_nodes_pred, n_nodes_true)
-        tree_pred = self.load_html_tree(pred)
-        tree_true = self.load_html_tree(true)
+        try:
+            tree_pred = self.load_html_tree(pred)
+            tree_true = self.load_html_tree(true)
+        except:
+            return 0.0
         distance = APTED(tree_pred, tree_true, CustomConfig()).compute_edit_distance()
         return 1.0 - (float(distance) / n_nodes)
 
