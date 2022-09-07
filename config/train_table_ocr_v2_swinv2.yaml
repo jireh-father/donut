@@ -4,7 +4,7 @@ result_path: "./result"
 pretrained_model_name_or_path: null
 dataset_name_or_paths: ["./dataset/pubtabnet"] # loading datasets (from moldehub or path)
 sort_json_key: False # cord dataset is preprocessed, and publicly available at https://huggingface.co/datasets/naver-clova-ix/cord-v2
-train_batch_sizes: [2]
+train_batch_sizes: [3]
 val_batch_sizes: [1]
 input_size: [1280, 960]
 max_length: 3000
