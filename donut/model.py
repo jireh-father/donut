@@ -129,6 +129,7 @@ class SwinEncoder(nn.Module):
         x = self.model.patch_embed(x)
         x = self.model.pos_drop(x)
         # print("patch embed", x.shape)
+        print(self.model.layers)
         x = self.model.layers(x)
         # print("swin encoder output", x.shape)
         return x
