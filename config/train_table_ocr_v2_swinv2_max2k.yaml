@@ -29,3 +29,4 @@ vision_model_name: SwinTransformerV2
 bart_prtrained_path: hyunwoongko/asian-bart-en
 swin_pretrained_path: swinv2_base_window12_192_22k
 window_size: 10
+swin_model_size: base

@@ -59,7 +59,8 @@ class DonutModelPLModule(pl.LightningModule):
                 bart_prtrained_path=self.config.bart_prtrained_path,
                 special_tokens=task_start_tokens + prompt_end_tokens,
                 swin_pretrained_path=self.config.swin_pretrained_path,
-                    window_size=self.config.window_size
+                window_size=self.config.window_size,
+                swin_model_size=self.config.swin_model_size
             )
         else:
             self.model = DonutModel(
@@ -73,7 +74,8 @@ class DonutModelPLModule(pl.LightningModule):
                     bart_prtrained_path=self.config.bart_prtrained_path,
                     special_tokens=task_start_tokens + prompt_end_tokens,
                     swin_pretrained_path=self.config.swin_pretrained_path,
-                    window_size=self.config.window_size
+                    window_size=self.config.window_size,
+                    swin_model_size=self.config.swin_model_size
                     # with DonutConfig, the architecture customization is available, e.g.,
                     # encoder_layer=[2,2,14,2], decoder_layer=4, ...
                 )

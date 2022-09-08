@@ -49,7 +49,8 @@ class SwinEncoder(nn.Module):
             encoder_layer: List[int],
             name_or_path: Union[str, bytes, os.PathLike] = None,
             vision_model_name='SwinTransformer',
-            swin_pretrained_path='swin_base_patch4_window12_384_in22k'
+            swin_pretrained_path='swin_base_patch4_window12_384_in22k',
+            swin_model_size='base'
     ):
         super().__init__()
         self.input_size = input_size
@@ -64,6 +65,12 @@ class SwinEncoder(nn.Module):
                 transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD),
             ]
         )
+        if swin_model_size == 'base':
+            embed_dim = 128
+            num_heads = [4, 8, 16, 32]
+        elif swin_model_size == 'large':
+            embed_dim = 192
+            num_heads = [6, 12, 24, 48]
 
         if vision_model_name == "SwinTransformer":
             self.model = SwinTransformer(
@@ -71,8 +78,8 @@ class SwinEncoder(nn.Module):
                 depths=self.encoder_layer,
                 window_size=self.window_size,
                 patch_size=4,
-                embed_dim=128,
-                num_heads=[4, 8, 16, 32],
+                embed_dim=embed_dim,
+                num_heads=num_heads,
                 num_classes=0,
             )
         elif vision_model_name == "SwinTransformerV2":
@@ -81,18 +88,8 @@ class SwinEncoder(nn.Module):
                 depths=self.encoder_layer,
                 window_size=self.window_size,
                 patch_size=4,
-                embed_dim=128,
-                num_heads=[4, 8, 16, 32],
-                num_classes=0,
-            )
-        else:
-            self.model = SwinTransformer(
-                img_size=self.input_size,
-                depths=self.encoder_layer,
-                window_size=self.window_size,
-                patch_size=4,
-                embed_dim=128,
-                num_heads=[4, 8, 16, 32],
+                embed_dim=embed_dim,
+                num_heads=num_heads,
                 num_classes=0,
             )
 
@@ -410,6 +407,7 @@ class DonutConfig(PretrainedConfig):
             bart_prtrained_path='hyunwoongko/asian-bart-en',
             swin_pretrained_path='swin_base_patch4_window12_384_in22k',
             special_tokens=None,
+            swin_model_size='base',
             **kwargs,
     ):
         super().__init__()
@@ -427,6 +425,7 @@ class DonutConfig(PretrainedConfig):
         self.bart_prtrained_path = bart_prtrained_path
         self.special_tokens = special_tokens
         self.swin_pretrained_path = swin_pretrained_path
+        self.swin_model_size = swin_model_size
 
 
 class DonutModel(PreTrainedModel):
@@ -449,7 +448,8 @@ class DonutModel(PreTrainedModel):
             encoder_layer=self.config.encoder_layer,
             name_or_path=self.config.name_or_path,
             vision_model_name=self.config.vision_model_name,
-            swin_pretrained_path=self.config.swin_pretrained_path
+            swin_pretrained_path=self.config.swin_pretrained_path,
+            swin_model_size=self.config.swin_model_size
         )
         self.decoder = BARTDecoder(
             max_position_embeddings=self.config.max_position_embeddings,
