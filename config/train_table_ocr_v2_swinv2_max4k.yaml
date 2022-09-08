@@ -25,5 +25,5 @@ tokenizer_name_or_path: "./tokenizer"
 task_name: tableocr
 validation_metric: teds
 use_fast_tokenizer: False
-vision_model_name: SwinTransformer
+vision_model_name: SwinTransformerV2
 bart_prtrained_path: hyunwoongko/asian-bart-en
