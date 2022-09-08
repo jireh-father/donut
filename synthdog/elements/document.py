@@ -59,6 +59,7 @@ class Document:
             size = (long_size, short_size) if landscape else (short_size, long_size)
 
         text_layers, texts = self.content.generate(size)
+
         paper_layer = self.paper.generate(size)
         self.effect.apply([*text_layers, paper_layer])
 

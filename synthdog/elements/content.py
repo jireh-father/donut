@@ -98,6 +98,10 @@ class Content:
             for bbox, align in layout:
                 x, y, w, h = bbox
                 text_layer, text = self.textbox.generate((w, h), self.reader, font)
+                print(text_layer)
+                print(text_layer.shape)
+                print(text_layer.max())
+                print(text_layer.min())
                 self.reader.prev()
 
                 if text_layer is None:
