@@ -36,7 +36,7 @@ class DonutModelPLModule(pl.LightningModule):
         prompt_end_tokens = []
         for i, dataset_name_or_path in enumerate(config.dataset_name_or_paths):
             if config.get("task_start_tokens", None):
-                task_start_token= config.task_start_tokens[0]
+                task_start_token = config.task_start_tokens[0]
             else:
                 task_start_token = f"<s_{config.task_name}>"
             if "docvqa" in dataset_name_or_path:
@@ -57,7 +57,8 @@ class DonutModelPLModule(pl.LightningModule):
                 tokenizer_name_or_path=self.config.tokenizer_name_or_path,
                 vision_model_name=self.config.vision_model_name,
                 bart_prtrained_path=self.config.bart_prtrained_path,
-                special_tokens=task_start_tokens + prompt_end_tokens
+                special_tokens=task_start_tokens + prompt_end_tokens,
+                swin_pretrained_path=self.config.swin_pretrained_path
             )
         else:
             self.model = DonutModel(
@@ -69,7 +70,8 @@ class DonutModelPLModule(pl.LightningModule):
                     use_fast_tokenizer=self.config.use_fast_tokenizer,
                     vision_model_name=self.config.vision_model_name,
                     bart_prtrained_path=self.config.bart_prtrained_path,
-                    special_tokens=task_start_tokens + prompt_end_tokens
+                    special_tokens=task_start_tokens + prompt_end_tokens,
+                    swin_pretrained_path=self.config.swin_pretrained_path
                     # with DonutConfig, the architecture customization is available, e.g.,
                     # encoder_layer=[2,2,14,2], decoder_layer=4, ...
                 )

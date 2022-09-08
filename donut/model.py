@@ -48,7 +48,8 @@ class SwinEncoder(nn.Module):
             window_size: int,
             encoder_layer: List[int],
             name_or_path: Union[str, bytes, os.PathLike] = None,
-            vision_model_name='SwinTransformer'
+            vision_model_name='SwinTransformer',
+            swin_pretrained_path='swin_base_patch4_window12_384_in22k'
     ):
         super().__init__()
         self.input_size = input_size
@@ -74,7 +75,6 @@ class SwinEncoder(nn.Module):
                 num_heads=[4, 8, 16, 32],
                 num_classes=0,
             )
-            pretrained_name = 'swin_base_patch4_window12_384'
         elif vision_model_name == "SwinTransformerV2":
             self.model = SwinTransformerV2(
                 img_size=self.input_size,
@@ -85,7 +85,6 @@ class SwinEncoder(nn.Module):
                 num_heads=[4, 8, 16, 32],
                 num_classes=0,
             )
-            pretrained_name = 'swinv2_base_window12_192_22k'
         else:
             self.model = SwinTransformer(
                 img_size=self.input_size,
@@ -96,11 +95,10 @@ class SwinEncoder(nn.Module):
                 num_heads=[4, 8, 16, 32],
                 num_classes=0,
             )
-            pretrained_name = 'swin_base_patch4_window12_384'
 
         # weight init with swin
         if not name_or_path:
-            swin_state_dict = timm.create_model(pretrained_name, pretrained=True).state_dict()
+            swin_state_dict = timm.create_model(swin_pretrained_path, pretrained=True).state_dict()
             new_swin_state_dict = self.model.state_dict()
             for x in new_swin_state_dict:
                 if x.endswith("relative_position_index") or x.endswith("attn_mask"):
@@ -410,6 +408,7 @@ class DonutConfig(PretrainedConfig):
             use_fast_tokenizer=False,
             vision_model_name='SwinTransformer',
             bart_prtrained_path='hyunwoongko/asian-bart-en',
+            swin_pretrained_path='swin_base_patch4_window12_384_in22k',
             special_tokens=None,
             **kwargs,
     ):
@@ -427,6 +426,7 @@ class DonutConfig(PretrainedConfig):
         self.vision_model_name = vision_model_name
         self.bart_prtrained_path = bart_prtrained_path
         self.special_tokens = special_tokens
+        self.swin_pretrained_path = swin_pretrained_path
 
 
 class DonutModel(PreTrainedModel):
@@ -448,7 +448,8 @@ class DonutModel(PreTrainedModel):
             window_size=self.config.window_size,
             encoder_layer=self.config.encoder_layer,
             name_or_path=self.config.name_or_path,
-            vision_model_name=self.config.vision_model_name
+            vision_model_name=self.config.vision_model_name,
+            swin_pretrained_path=self.config.swin_pretrained_path
         )
         self.decoder = BARTDecoder(
             max_position_embeddings=self.config.max_position_embeddings,

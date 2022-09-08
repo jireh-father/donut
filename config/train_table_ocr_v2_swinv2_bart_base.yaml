@@ -27,3 +27,4 @@ validation_metric: teds
 use_fast_tokenizer: False
 vision_model_name: SwinTransformerV2
 bart_prtrained_path: facebook/bart-base
+swin_pretrained_path: swinv2_base_window12_192_22k
