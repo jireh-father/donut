@@ -98,15 +98,15 @@ class Content:
             for bbox, align in layout:
                 x, y, w, h = bbox
                 text_layer, text = self.textbox.generate((w, h), self.reader, font)
-                print(text_layer.image)
-                print(text_layer.image.shape)
-                print(text_layer.image.max())
-                print(text_layer.image.min())
-                import os
-                from PIL import Image
-                import uuid
-                image = Image.fromarray(text_layer.image.astype(np.uint8))
-                image.save(str(uuid.uuid4()) + ".png")
+                # print(text_layer.image)
+                # print(text_layer.image.shape)
+                # print(text_layer.image.max())
+                # print(text_layer.image.min())
+                # from PIL import Image
+                # import uuid
+                # image = Image.fromarray(text_layer.image.astype(np.uint8))
+                # image.save(str(uuid.uuid4()) + ".png")
+                print(text_layer.bbox)
                 self.reader.prev()
 
                 if text_layer is None:
