@@ -472,8 +472,6 @@ class DonutModel(PreTrainedModel):
             decode_labels: (batch_size, sequence_length)
         """
         encoder_outputs = self.encoder(image_tensors)
-        print("encoder_outputs", encoder_outputs)
-        sys.exit()
         decoder_outputs = self.decoder(
             input_ids=decoder_input_ids,
             encoder_hidden_states=encoder_outputs,
@@ -523,6 +521,8 @@ class DonutModel(PreTrainedModel):
         prompt_tensors = prompt_tensors.to(self.device)
 
         last_hidden_state = self.encoder(image_tensors)
+        print("last_hidden_state", last_hidden_state)
+        sys.exit()
         if self.device.type != "cuda":
             last_hidden_state = last_hidden_state.to(torch.float32)
 
@@ -778,6 +778,8 @@ class DonutClipModel(PreTrainedModel):
             bart_pretrained_path=self.config.bart_pretrained_path,
             special_tokens=self.config.special_tokens
         )
+
+        self.text_projection = nn.Parameter(torch.empty(self.text_encoder.width, embed_dim))
 
     def forward(self, image_tensors: torch.Tensor, text_tensors: torch.Tensor):
         """
