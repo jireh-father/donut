@@ -309,6 +309,7 @@ class DonutClipModelPLModule(pl.LightningModule):
             decoder_input_ids.append(batch_data[1][:, :-1])
         image_tensors = torch.cat(image_tensors)
         decoder_input_ids = torch.cat(decoder_input_ids)
+        print(self.model(image_tensors, decoder_input_ids, return_loss=True, return_dict=True))
         loss = self.model(image_tensors, decoder_input_ids, return_loss=True, return_dict=True)[0]
         self.log_dict({"train_loss": loss}, sync_dist=True)
         return loss
