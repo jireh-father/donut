@@ -849,6 +849,14 @@ class DonutClipModel(PreTrainedModel):
             vision_model_output=vision_outputs,
         )
 
+    def add_special_tokens(self, list_of_tokens: List[str]):
+        """
+        Add special tokens to tokenizer and resize the token embeddings
+        """
+        newly_added_num = self.tokenizer.add_special_tokens({"additional_special_tokens": sorted(set(list_of_tokens))})
+        if newly_added_num > 0:
+            self.model.resize_token_embeddings(len(self.tokenizer))
+
     def json2token(self, obj: Any, update_special_tokens_for_json_key: bool = True, sort_json_key: bool = True):
         """
         Convert an ordered JSON object into a token sequence

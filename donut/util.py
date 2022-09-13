@@ -64,6 +64,12 @@ class DonutDataset(Dataset):
         self.dataset = load_dataset(os.path.join(dataset_name_or_path, self.split), data_files='metadata.jsonl')['train']
         self.dataset_length = len(self.dataset)
         self.gt_token_sequences = []
+
+        if hasattr(self.donut_model, "decoder"):
+            text_model = self.donut_model.decoder
+        else:
+            text_model = self.donut_model.text_encoder
+
         for sample in self.dataset:
             ground_truth = json.loads(sample["ground_truth"])
             if "gt_parses" in ground_truth:  # when multiple ground truths are available, e.g., docvqa
@@ -81,13 +87,13 @@ class DonutDataset(Dataset):
                         update_special_tokens_for_json_key=self.split == "train",
                         sort_json_key=self.sort_json_key,
                     )
-                    + self.donut_model.decoder.tokenizer.eos_token
+                    + text_model.tokenizer.eos_token
                     for gt_json in gt_jsons  # load json from list of json
                 ]
             )
 
-        self.donut_model.decoder.add_special_tokens([self.task_start_token, self.prompt_end_token])
-        self.prompt_end_token_id = self.donut_model.decoder.tokenizer.convert_tokens_to_ids(self.prompt_end_token)
+        text_model.add_special_tokens([self.task_start_token, self.prompt_end_token])
+        self.prompt_end_token_id = text_model.tokenizer.convert_tokens_to_ids(self.prompt_end_token)
 
     def __len__(self) -> int:
         return self.dataset_length
