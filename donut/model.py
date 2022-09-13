@@ -1089,6 +1089,7 @@ class BARTEncoder(nn.Module):
         if not return_dict:
             return (last_hidden_state, pooled_output) + outputs[1:]
         print(outputs)
+        print(len(outputs))
         return ModelOutput(
             last_hidden_state=last_hidden_state,
             pooler_output=pooled_output,
