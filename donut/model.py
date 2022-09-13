@@ -1001,7 +1001,8 @@ class BARTEncoder(nn.Module):
                 name_or_path
             )
 
-        self.tokenizer.add_special_tokens(["<sep/>"])  # <sep/> is used for representing a list in a JSON
+        self.tokenizer.add_special_tokens(
+            {"additional_special_tokens": ["<sep/>"]})  # <sep/> is used for representing a list in a JSON
         if special_tokens:
             self.tokenizer.add_special_tokens({"additional_special_tokens": sorted(set(special_tokens))})
             # self.add_special_tokens(["<s_tableocr>"])
