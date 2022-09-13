@@ -742,7 +742,7 @@ class DonutClipConfig(PretrainedConfig):
         self.tokenizer_name_or_path = tokenizer_name_or_path
         self.use_fast_tokenizer = use_fast_tokenizer
         self.vision_model_name = vision_model_name
-        self.bart_prtrained_path = bart_pretrained_path
+        self.bart_pretrained_path = bart_pretrained_path
         self.special_tokens = special_tokens
         self.swin_pretrained_path = swin_pretrained_path
         self.swin_model_size = swin_model_size
