@@ -1008,7 +1008,7 @@ class BARTEncoder(nn.Module):
             # self.add_special_tokens(["<s_tableocr>"])
 
         self.model = MBartEncoder(MBartConfig(
-            encoder_layers=self.self.encoder_layer,
+            encoder_layers=self.encoder_layer,
             max_position_embeddings=self.max_position_embeddings,
             vocab_size=len(self.tokenizer),
             scale_embedding=True,
