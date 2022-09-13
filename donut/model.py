@@ -773,7 +773,7 @@ class DonutClipModel(PreTrainedModel):
     def __init__(self, config: DonutClipConfig):
         super().__init__(config)
         self.config = config
-        self.image_encoder = SwinEncoder(
+        self.encoder = SwinEncoder(
             input_size=self.config.input_size,
             align_long_axis=self.config.align_long_axis,
             window_size=self.config.window_size,
@@ -811,7 +811,7 @@ class DonutClipModel(PreTrainedModel):
             decode_labels: (batch_size, sequence_length)
         """
 
-        vision_outputs = self.image_encoder(image_tensors)
+        vision_outputs = self.encoder(image_tensors)
         image_features = vision_outputs[:, 0, :]
         image_features = self.post_layernorm(image_features)
         image_features = self.visual_projection(image_features)
