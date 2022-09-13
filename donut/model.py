@@ -793,7 +793,7 @@ class DonutClipModel(PreTrainedModel):
             use_fast_tokenizer=self.config.use_fast_tokenizer,
             name_or_path=self.config.tokenizer_name_or_path,
             bart_pretrained_path=self.config.bart_pretrained_path,
-            special_tokens=self.config.special_tokens
+            special_tokens=self.config.special_tokens,
         )
 
         self.text_projection = nn.Linear(self.config.d_model, self.config.projection_dim, bias=False)
@@ -816,7 +816,7 @@ class DonutClipModel(PreTrainedModel):
         image_features = self.post_layernorm(image_features)
         image_features = self.visual_projection(image_features)
         # [1, 1200, 1024]
-        text_outputs = self.text_encoder(text_tensors)
+        text_outputs = self.text_encoder(text_tensors, return_dict=True)
         text_features = text_outputs[1]
         text_features = self.text_projection(text_features)
 
