@@ -315,10 +315,6 @@ class DonutClipModelPLModule(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx, dataset_idx=0):
         image_tensors, decoder_input_ids, prompt_end_idxs, answers = batch
-        decoder_prompts = pad_sequence(
-            [input_id[: end_idx + 1] for input_id, end_idx in zip(decoder_input_ids, prompt_end_idxs)],
-            batch_first=True,
-        )
 
         loss = self.model(image_tensors, decoder_input_ids, return_loss=True, return_dict=True)['loss']
         print("loss", loss)
