@@ -1093,7 +1093,7 @@ class BARTEncoder(nn.Module):
             last_hidden_state=last_hidden_state,
             pooler_output=pooled_output,
             hidden_states=last_hidden_state,
-            attentions=outputs['attentions'],
+            # attentions=outputs['attentions'],
         )
 
     def add_special_tokens(self, list_of_tokens: List[str]):
