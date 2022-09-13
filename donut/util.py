@@ -216,7 +216,7 @@ class DonutClipDataset(Dataset):
         im = Image.open(os.path.join(self.dataset_name_or_path, self.split, sample["file_name"]))
         # input_tensor
         # input_tensor = self.donut_model.encoder.prepare_input(sample["image"], random_padding=self.split == "train")
-        input_tensor = self.donut_model.image_encoder.prepare_input(im, random_padding=self.split == "train")
+        input_tensor = self.donut_model.encoder.prepare_input(im, random_padding=self.split == "train")
 
         # input_ids
         processed_parse = random.choice(self.gt_token_sequences[idx])  # can be more than one, e.g., DocVQA Task 1
