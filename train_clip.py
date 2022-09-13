@@ -20,7 +20,7 @@ from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 from pytorch_lightning.plugins import CheckpointIO
 from pytorch_lightning.utilities import rank_zero_only
 from sconf import Config
-from donut import DonutDataset
+from donut import DonutClipDataset
 from lightning_module import DonutDataPLModule, DonutClipModelPLModule
 
 
@@ -64,7 +64,7 @@ def train(config):
         task_name = config.task_name
         for split in ["train", "validation"]:
             datasets[split].append(
-                DonutDataset(
+                DonutClipDataset(
                     dataset_name_or_path=dataset_name_or_path,
                     donut_model=model_module.model,
                     max_length=config.max_length,
