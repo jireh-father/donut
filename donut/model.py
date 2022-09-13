@@ -1081,20 +1081,19 @@ class BARTEncoder(nn.Module):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
         )
-        last_hidden_state = outputs[0]
+        # last_hidden_state = outputs[0]
+        last_hidden_state = outputs['last_hidden_state']
         last_hidden_state = self.final_layer_norm(last_hidden_state)
 
         pooled_output = last_hidden_state[torch.arange(last_hidden_state.shape[0]), input_ids.argmax(dim=-1)]
 
         if not return_dict:
             return (last_hidden_state, pooled_output) + outputs[1:]
-        print(outputs)
-        print(len(outputs))
         return ModelOutput(
             last_hidden_state=last_hidden_state,
             pooler_output=pooled_output,
             hidden_states=last_hidden_state,
-            attentions=outputs[2],
+            attentions=outputs['attentions'],
         )
 
     def add_special_tokens(self, list_of_tokens: List[str]):
