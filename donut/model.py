@@ -735,7 +735,7 @@ class DonutClipConfig(PretrainedConfig):
         self.align_long_axis = align_long_axis
         self.window_size = window_size
         self.swin_encoder_layer = swin_encoder_layer
-        self.decoder_layer = bart_encoder_layer
+        self.bart_encoder_layer = bart_encoder_layer
         self.max_position_embeddings = max_length if max_position_embeddings is None else max_position_embeddings
         self.max_length = max_length
         self.name_or_path = name_or_path
