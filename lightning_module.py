@@ -18,7 +18,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
 
-from donut import DonutConfig, DonutModel
+from donut import DonutConfig, DonutModel, DonutClipModel, DonutClipConfig
 import teds
 
 
@@ -268,7 +268,7 @@ class DonutClipModelPLModule(pl.LightningModule):
             prompt_end_tokens.append(prompt_end_token)
 
         if self.config.get("pretrained_model_name_or_path", False):
-            self.model = DonutModel.from_pretrained(
+            self.model = DonutClipModel.from_pretrained(
                 self.config.pretrained_model_name_or_path,
                 input_size=self.config.input_size,
                 max_length=self.config.max_length,
@@ -284,8 +284,8 @@ class DonutClipModelPLModule(pl.LightningModule):
                 swin_model_size=self.config.swin_model_size
             )
         else:
-            self.model = DonutModel(
-                config=DonutConfig(
+            self.model = DonutClipModel(
+                config=DonutClipConfig(
                     input_size=self.config.input_size,
                     max_length=self.config.max_length,
                     align_long_axis=self.config.align_long_axis,
@@ -303,15 +303,13 @@ class DonutClipModelPLModule(pl.LightningModule):
             )
 
     def training_step(self, batch, batch_idx):
-        image_tensors, decoder_input_ids, decoder_labels = list(), list(), list()
+        image_tensors, decoder_input_ids = list(), list()
         for batch_data in batch:
             image_tensors.append(batch_data[0])
             decoder_input_ids.append(batch_data[1][:, :-1])
-            decoder_labels.append(batch_data[2][:, 1:])
         image_tensors = torch.cat(image_tensors)
         decoder_input_ids = torch.cat(decoder_input_ids)
-        decoder_labels = torch.cat(decoder_labels)
-        loss = self.model(image_tensors, decoder_input_ids, decoder_labels)[0]
+        loss = self.model(image_tensors, decoder_input_ids, return_loss=True, return_dict=True)[0]
         self.log_dict({"train_loss": loss}, sync_dist=True)
         return loss
 
@@ -322,34 +320,10 @@ class DonutClipModelPLModule(pl.LightningModule):
             batch_first=True,
         )
 
-        preds = self.model.inference(
-            image_tensors=image_tensors,
-            prompt_tensors=decoder_prompts,
-            return_json=False,
-            return_attentions=False,
-        )["predictions"]
+        loss = self.model(image_tensors, decoder_input_ids, return_loss=True, return_dict=True)[0]
+        print("loss", loss)
 
-        scores = list()
-        for pred, answer in zip(preds, answers):
-            pred = re.sub(r"(?:(?<=>) | (?=</s_))", "", pred)
-            answer = re.sub(r"<.*?>", "", answer, count=1)
-            answer = answer.replace(self.model.decoder.tokenizer.eos_token, "")
-            if self.validation_metric.startswith("teds"):
-                pred = teds.postprocess_html_tag(pred)
-                answer = teds.postprocess_html_tag(answer)
-                scores.append(self.teds.evaluate(pred, answer))
-            else:
-                scores.append(edit_distance(pred, answer) / max(len(pred), len(answer)))
-
-            if self.config.get("verbose", False) and len(scores) == 1:
-                self.print(f"Prediction: {pred}")
-                self.print(f"    Answer: {answer}")
-                if self.validation_metric.startswith("teds"):
-                    self.print(f" TEDS: {scores[0]}")
-                else:
-                    self.print(f" Normed ED: {scores[0]}")
-
-        return scores
+        return [loss, len(image_tensors)]
 
     def validation_epoch_end(self, validation_step_outputs):
         num_of_loaders = len(self.config.dataset_name_or_paths)
@@ -360,18 +334,19 @@ class DonutClipModelPLModule(pl.LightningModule):
         total_metric = [0] * num_of_loaders
         val_metric = [0] * num_of_loaders
         for i, results in enumerate(validation_step_outputs):
-            for scores in results:
-                cnt[i] += len(scores)
-                total_metric[i] += np.sum(scores)
+            for result in results:
+                loss = result[0]
+                cnt = result[1]
+                cnt[i] += cnt
+                total_metric[i] += loss * cnt
             val_metric[i] = total_metric[i] / cnt[i]
             val_metric_name = f"val_metric_{i}th_dataset"
             self.log_dict({val_metric_name: val_metric[i]}, sync_dist=True)
         self.log_dict({"val_metric": np.sum(total_metric) / np.sum(cnt)},
                       sync_dist=True)
-        print("average val teds", np.sum(total_metric) / np.sum(cnt))
+        print("epoch loss", np.sum(total_metric) / np.sum(cnt))
 
     def configure_optimizers(self):
-
         max_iter = None
 
         if self.config.get("max_epochs", None):
@@ -384,7 +359,7 @@ class DonutClipModelPLModule(pl.LightningModule):
             max_iter = min(self.config.max_steps, max_iter) if max_iter is not None else self.config.max_steps
 
         assert max_iter is not None
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.config.lr)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.config.lr, betas=(0.9,0.98), eps=1e-6)
         scheduler = {
             "scheduler": self.cosine_scheduler(optimizer, max_iter, self.config.warmup_steps),
             "name": "learning_rate",

@@ -25,6 +25,7 @@ from transformers import MBartConfig, MBartForCausalLM, AutoTokenizer, XLMRobert
 from transformers.models.mbart.modeling_mbart import MBartEncoder
 from transformers.file_utils import ModelOutput
 from transformers.modeling_utils import PretrainedConfig, PreTrainedModel
+from transformers import CLIPProcessor, CLIPModel
 
 
 class SwinEncoder(nn.Module):
@@ -521,8 +522,6 @@ class DonutModel(PreTrainedModel):
         prompt_tensors = prompt_tensors.to(self.device)
 
         last_hidden_state = self.encoder(image_tensors)
-        print("last_hidden_state", last_hidden_state)
-        sys.exit()
         if self.device.type != "cuda":
             last_hidden_state = last_hidden_state.to(torch.float32)
 
@@ -727,6 +726,8 @@ class DonutClipConfig(PretrainedConfig):
             swin_pretrained_path='swin_base_patch4_window12_384_in22k',
             special_tokens=None,
             swin_model_size='base',
+            d_model=1024,
+            projection_dim=512,
             **kwargs,
     ):
         super().__init__()
@@ -745,6 +746,19 @@ class DonutClipConfig(PretrainedConfig):
         self.special_tokens = special_tokens
         self.swin_pretrained_path = swin_pretrained_path
         self.swin_model_size = swin_model_size
+        self.d_model = d_model
+        self.projection_dim = projection_dim
+
+
+def contrastive_loss(logits: torch.Tensor) -> torch.Tensor:
+    return nn.functional.cross_entropy(logits, torch.arange(len(logits), device=logits.device))
+
+
+def clip_loss(similarity: torch.Tensor) -> torch.Tensor:
+    caption_loss = contrastive_loss(similarity)
+    image_loss = contrastive_loss(similarity.T)
+    return (caption_loss + image_loss) / 2.0
+
 
 class DonutClipModel(PreTrainedModel):
     r"""
@@ -769,6 +783,9 @@ class DonutClipModel(PreTrainedModel):
             swin_pretrained_path=self.config.swin_pretrained_path,
             swin_model_size=self.config.swin_model_size
         )
+        self.visual_projection = nn.Linear(self.config.d_model, self.config.projection_dim, bias=False)
+        self.post_layernorm = nn.LayerNorm(self.config.d_model)
+        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
         self.text_encoder = BARTEncoder(
             max_position_embeddings=self.config.max_position_embeddings,
@@ -779,9 +796,11 @@ class DonutClipModel(PreTrainedModel):
             special_tokens=self.config.special_tokens
         )
 
-        self.text_projection = nn.Parameter(torch.empty(self.text_encoder.width, embed_dim))
+        self.text_projection = nn.Linear(self.config.d_model, self.config.projection_dim, bias=False)
 
-    def forward(self, image_tensors: torch.Tensor, text_tensors: torch.Tensor):
+    def forward(self, image_tensors: torch.Tensor, text_tensors: torch.Tensor,
+                return_loss=False,
+                return_dict: Optional[bool] = None):
         """
         Calculate a loss given an input image and a desired token sequence,
         the model will be trained in a teacher-forcing manner
@@ -792,104 +811,43 @@ class DonutClipModel(PreTrainedModel):
             decode_labels: (batch_size, sequence_length)
         """
 
-        image_features = self.image_encode(image_tensors)
-        text_features = self.text_encode(text_tensors)
+        vision_outputs = self.image_encoder(image_tensors)
+        image_features = vision_outputs[:, 0, :]
+        image_features = self.post_layernorm(image_features)
+        image_features = self.visual_projection(image_features)
+        # [1, 1200, 1024]
+        text_outputs = self.text_encoder(text_tensors)
+        text_features = text_outputs[1]
+        text_features = self.text_projection(text_features)
+
+        # [batch, output_embed_dim]
 
         # normalized features
-        image_features = image_features / image_features.norm(dim=1, keepdim=True)
-        text_features = text_features / text_features.norm(dim=1, keepdim=True)
+        image_features = image_features / image_features.norm(p=2, dim=-1, keepdim=True)
+        text_features = text_features / text_features.norm(p=2, dim=-1, keepdim=True)
 
         # cosine similarity as logits
         logit_scale = self.logit_scale.exp()
-        logits_per_image = logit_scale * image_features @ text_features.t()
-        logits_per_text = logits_per_image.t()
+        logits_per_text = torch.matmul(text_features, image_features.t()) * logit_scale
+        logits_per_image = logits_per_text.T
 
+        loss = None
+        if return_loss:
+            loss = clip_loss(logits_per_text)
 
-        return decoder_outputs
+        if not return_dict:
+            output = (logits_per_image, logits_per_text, text_features, image_features, text_outputs, vision_outputs)
+            return ((loss,) + output) if loss is not None else output
 
-    def inference(
-            self,
-            image: PIL.Image = None,
-            prompt: str = None,
-            image_tensors: Optional[torch.Tensor] = None,
-            prompt_tensors: Optional[torch.Tensor] = None,
-            return_json: bool = True,
-            return_attentions: bool = False,
-    ):
-        """
-        Generate a token sequence in an auto-regressive manner,
-        the generated token sequence is convereted into an ordered JSON format
-
-        Args:
-            image: input document image (PIL.Image)
-            prompt: task prompt (string) to guide Donut Decoder generation
-            image_tensors: (1, num_channels, height, width)
-                convert prompt to tensor if image_tensor is not fed
-            prompt_tensors: (1, sequence_length)
-                convert image to tensor if prompt_tensor is not fed
-        """
-        # prepare backbone inputs (image and prompt)
-        if image is None and image_tensors is None:
-            raise ValueError("Expected either image or image_tensors")
-        if all(v is None for v in {prompt, prompt_tensors}):
-            raise ValueError("Expected either prompt or prompt_tensors")
-
-        if image_tensors is None:
-            image_tensors = self.encoder.prepare_input(image).unsqueeze(0)
-
-        if self.device.type == "cuda":  # half is not compatible in cpu implementation.
-            image_tensors = image_tensors.half()
-            image_tensors = image_tensors.to(self.device)
-        else:
-            image_tensors = image_tensors.to(torch.bfloat16)
-
-        if prompt_tensors is None:
-            prompt_tensors = self.decoder.tokenizer(prompt, add_special_tokens=False, return_tensors="pt")["input_ids"]
-
-        prompt_tensors = prompt_tensors.to(self.device)
-
-        last_hidden_state = self.encoder(image_tensors)
-        if self.device.type != "cuda":
-            last_hidden_state = last_hidden_state.to(torch.float32)
-
-        encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
-
-        if len(encoder_outputs.last_hidden_state.size()) == 1:
-            encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
-        if len(prompt_tensors.size()) == 1:
-            prompt_tensors = prompt_tensors.unsqueeze(0)
-
-        # get decoder output
-        decoder_output = self.decoder.model.generate(
-            decoder_input_ids=prompt_tensors,
-            encoder_outputs=encoder_outputs,
-            max_length=self.config.max_length,
-            early_stopping=True,
-            pad_token_id=self.decoder.tokenizer.pad_token_id,
-            eos_token_id=self.decoder.tokenizer.eos_token_id,
-            use_cache=True,
-            num_beams=1,
-            bad_words_ids=[[self.decoder.tokenizer.unk_token_id]],
-            return_dict_in_generate=True,
-            output_attentions=return_attentions,
+        return ModelOutput(
+            loss=loss,
+            logits_per_image=logits_per_image,
+            logits_per_text=logits_per_text,
+            text_embeds=text_features,
+            image_embeds=image_features,
+            text_model_output=text_outputs,
+            vision_model_output=vision_outputs,
         )
-
-        output = {"predictions": list()}
-        for seq in self.decoder.tokenizer.batch_decode(decoder_output.sequences):
-            seq = seq.replace(self.decoder.tokenizer.eos_token, "").replace(self.decoder.tokenizer.pad_token, "")
-            seq = re.sub(r"<.*?>", "", seq, count=1).strip()  # remove first task start token
-            if return_json:
-                output["predictions"].append(self.token2json(seq))
-            else:
-                output["predictions"].append(seq)
-
-        if return_attentions:
-            output["attentions"] = {
-                "self_attentions": decoder_output.decoder_attentions,
-                "cross_attentions": decoder_output.cross_attentions,
-            }
-
-        return output
 
     def json2token(self, obj: Any, update_special_tokens_for_json_key: bool = True, sort_json_key: bool = True):
         """
@@ -989,7 +947,7 @@ class DonutClipModel(PreTrainedModel):
                 Name of a pretrained model name either registered in huggingface.co. or saved in local,
                 e.g., `naver-clova-ix/donut-base`, or `naver-clova-ix/donut-base-finetuned-rvlcdip`
         """
-        model = super(DonutModel, cls).from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs)
+        model = super(DonutClipModel, cls).from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs)
 
         # truncate or interplolate position embeddings of donut decoder
         max_length = kwargs.get("max_length", model.config.max_position_embeddings)
@@ -1027,7 +985,8 @@ class BARTEncoder(nn.Module):
 
     def __init__(
             self, encoder_layer: int, max_position_embeddings: int, name_or_path: Union[str, bytes, os.PathLike] = None,
-            use_fast_tokenizer=False, bart_pretrained_path="hyunwoongko/asian-bart-en", special_tokens=None, d_model=1024
+            use_fast_tokenizer=False, bart_pretrained_path="hyunwoongko/asian-bart-en", special_tokens=None,
+            d_model=1024
     ):
         super().__init__()
         self.encoder_layer = encoder_layer
@@ -1055,10 +1014,7 @@ class BARTEncoder(nn.Module):
             add_final_layer_norm=True,
             pad_token_id=self.tokenizer.pad_token_id
         ))
-
-        self.model.forward = self.forward  # to get cross attentions and utilize `generate` function
-        self.model.config.is_encoder_decoder = False  # to get cross-attention
-        self.model.prepare_inputs_for_generation = self.prepare_inputs_for_inference
+        self.final_layer_norm = nn.LayerNorm(d_model)
 
         # weight init with asian-bart
         if not name_or_path:
@@ -1086,35 +1042,10 @@ class BARTEncoder(nn.Module):
                     new_bart_state_dict[x] = bart_state_dict[x]
             self.model.load_state_dict(new_bart_state_dict)
 
-    def prepare_inputs_for_inference(self, input_ids: torch.Tensor, past=None, use_cache: bool = None, **model_kwargs):
-        """
-        Args:
-            input_ids: (batch_size, sequence_lenth)
-        Returns:
-            input_ids: (batch_size, sequence_length)
-            attention_mask: (batch_size, sequence_length)
-            encoder_hidden_states: (batch_size, sequence_length, embedding_dim)
-        """
-        attention_mask = input_ids.ne(self.tokenizer.pad_token_id).long()
-        if past is not None:
-            input_ids = input_ids[:, -1:]
-        output = {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "past_key_values": past,
-            "use_cache": use_cache,
-            "encoder_hidden_states": model_kwargs["encoder_outputs"].last_hidden_state,
-        }
-        return output
-
     def forward(
             self,
             input_ids,
             attention_mask: Optional[torch.Tensor] = None,
-            encoder_hidden_states: Optional[torch.Tensor] = None,
-            past_key_values: Optional[torch.Tensor] = None,
-            labels: Optional[torch.Tensor] = None,
-            use_cache: bool = None,
             output_attentions: Optional[torch.Tensor] = None,
             output_hidden_states: Optional[torch.Tensor] = None,
             return_dict: bool = None,
@@ -1142,35 +1073,26 @@ class BARTEncoder(nn.Module):
             output_hidden_states if output_hidden_states is not None else self.model.config.output_hidden_states
         )
         return_dict = return_dict if return_dict is not None else self.model.config.use_return_dict
-        outputs = self.model.model.decoder(
+        outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
-            encoder_hidden_states=encoder_hidden_states,
-            past_key_values=past_key_values,
-            use_cache=use_cache,
             output_attentions=output_attentions,
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
         )
+        last_hidden_state = outputs[0]
+        last_hidden_state = self.final_layer_norm(last_hidden_state)
 
-        logits = self.model.lm_head(outputs[0])
-
-        loss = None
-        if labels is not None:
-            loss_fct = nn.CrossEntropyLoss(ignore_index=-100)
-            loss = loss_fct(logits.view(-1, self.model.config.vocab_size), labels.view(-1))
+        pooled_output = last_hidden_state[torch.arange(last_hidden_state.shape[0]), input_ids.argmax(dim=-1)]
 
         if not return_dict:
-            output = (logits,) + outputs[1:]
-            return (loss,) + output if loss is not None else output
+            return (last_hidden_state, pooled_output) + outputs[1:]
 
         return ModelOutput(
-            loss=loss,
-            logits=logits,
-            past_key_values=outputs.past_key_values,
-            hidden_states=outputs.hidden_states,
-            decoder_attentions=outputs.attentions,
-            cross_attentions=outputs.cross_attentions,
+            last_hidden_state=last_hidden_state,
+            pooler_output=pooled_output,
+            hidden_states=last_hidden_state,
+            attentions=outputs[2],
         )
 
     @staticmethod

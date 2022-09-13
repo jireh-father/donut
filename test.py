@@ -47,6 +47,14 @@ def test(args, config):
         max_length=config.max_length,
         align_long_axis=config.align_long_axis,
         ignore_mismatched_sizes=True,
+        use_fast_tokenizer=config.use_fast_tokenizer,
+        tokenizer_name_or_path=config.tokenizer_name_or_path,
+        vision_model_name=config.vision_model_name,
+        bart_prtrained_path=config.bart_prtrained_path,
+        special_tokens=['<s_tableocr>'],
+        swin_pretrained_path=config.swin_pretrained_path,
+        window_size=config.window_size,
+        swin_model_size=config.swin_model_size
     )
 
     if torch.cuda.is_available():
