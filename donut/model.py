@@ -116,7 +116,8 @@ class SwinEncoder(nn.Module):
                     pos_bias = F.interpolate(pos_bias, size=(new_len, new_len), mode="bicubic", align_corners=False)
                     new_swin_state_dict[x] = pos_bias.permute(0, 2, 3, 1).reshape(1, new_len ** 2, -1).squeeze(0)
                 else:
-                    new_swin_state_dict[x] = swin_state_dict[x]
+                    if x in swin_state_dict:
+                        new_swin_state_dict[x] = swin_state_dict[x]
             self.model.load_state_dict(new_swin_state_dict)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
