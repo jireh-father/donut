@@ -25,3 +25,4 @@ tokenizer_name_or_path: "./tokenizer"
 task_name: tableocr
 validation_metric: teds
 use_fast_tokenizer: True
+ape: False

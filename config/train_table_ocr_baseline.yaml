@@ -24,3 +24,4 @@ verbose: True
 tokenizer_name_or_path: "./tokenizer"
 task_name: tableocr
 validation_metric: teds
+ape: False

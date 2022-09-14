@@ -30,3 +30,4 @@ bart_prtrained_path: hyunwoongko/asian-bart-en
 swin_pretrained_path: swin_base_patch4_window12_384_in22k
 window_size: 10
 swin_model_size: base
+ape: False
