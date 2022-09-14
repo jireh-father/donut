@@ -102,6 +102,6 @@ if __name__ == "__main__":
 
     print("initializing config")
     config = Config(args.config)
-    config.argv_update(left_argv)
+    # config.argv_update(left_argv)
 
     test(args, config)
