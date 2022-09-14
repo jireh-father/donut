@@ -54,7 +54,8 @@ def test(args, config):
         special_tokens=['<s_tableocr>'],
         swin_pretrained_path=config.swin_pretrained_path,
         window_size=config.window_size,
-        swin_model_size=config.swin_model_size
+        swin_model_size=config.swin_model_size,
+        ape=config.ape
     )
 
     if torch.cuda.is_available():
