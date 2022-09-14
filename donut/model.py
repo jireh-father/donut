@@ -52,7 +52,8 @@ class SwinEncoder(nn.Module):
             name_or_path: Union[str, bytes, os.PathLike] = None,
             vision_model_name='SwinTransformer',
             swin_pretrained_path='swin_base_patch4_window12_384_in22k',
-            swin_model_size='base'
+            swin_model_size='base',
+            ape=False
     ):
         super().__init__()
         self.input_size = input_size
@@ -83,6 +84,7 @@ class SwinEncoder(nn.Module):
                 embed_dim=embed_dim,
                 num_heads=num_heads,
                 num_classes=0,
+                ape=ape
             )
         elif vision_model_name == "SwinTransformerV2":
             self.model = SwinTransformerV2(
@@ -93,6 +95,7 @@ class SwinEncoder(nn.Module):
                 embed_dim=embed_dim,
                 num_heads=num_heads,
                 num_classes=0,
+                ape=ape
             )
 
         # weight init with swin
@@ -410,6 +413,7 @@ class DonutConfig(PretrainedConfig):
             swin_pretrained_path='swin_base_patch4_window12_384_in22k',
             special_tokens=None,
             swin_model_size='base',
+            ape=False,
             **kwargs,
     ):
         super().__init__()
@@ -418,6 +422,7 @@ class DonutConfig(PretrainedConfig):
         self.window_size = window_size
         self.encoder_layer = encoder_layer
         self.decoder_layer = decoder_layer
+        self.ape = ape
         self.max_position_embeddings = max_length if max_position_embeddings is None else max_position_embeddings
         self.max_length = max_length
         self.name_or_path = name_or_path
@@ -451,7 +456,8 @@ class DonutModel(PreTrainedModel):
             name_or_path=self.config.name_or_path,
             vision_model_name=self.config.vision_model_name,
             swin_pretrained_path=self.config.swin_pretrained_path,
-            swin_model_size=self.config.swin_model_size
+            swin_model_size=self.config.swin_model_size,
+            ape=self.config.ape
         )
         self.decoder = BARTDecoder(
             max_position_embeddings=self.config.max_position_embeddings,
@@ -728,6 +734,7 @@ class DonutClipConfig(PretrainedConfig):
             swin_model_size='base',
             d_model=1024,
             projection_dim=512,
+            ape=False,
             **kwargs,
     ):
         super().__init__()
@@ -738,6 +745,7 @@ class DonutClipConfig(PretrainedConfig):
         self.bart_encoder_layer = bart_encoder_layer
         self.max_position_embeddings = max_length if max_position_embeddings is None else max_position_embeddings
         self.max_length = max_length
+        self.ape = ape
         self.name_or_path = name_or_path
         self.tokenizer_name_or_path = tokenizer_name_or_path
         self.use_fast_tokenizer = use_fast_tokenizer
@@ -781,7 +789,8 @@ class DonutClipModel(PreTrainedModel):
             name_or_path=self.config.name_or_path,
             vision_model_name=self.config.vision_model_name,
             swin_pretrained_path=self.config.swin_pretrained_path,
-            swin_model_size=self.config.swin_model_size
+            swin_model_size=self.config.swin_model_size,
+            ape=self.config.ape
         )
         self.visual_projection = nn.Linear(self.config.d_model, self.config.projection_dim, bias=False)
         self.post_layernorm = nn.LayerNorm(self.config.d_model)

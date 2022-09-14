@@ -60,7 +60,8 @@ class DonutModelPLModule(pl.LightningModule):
                 special_tokens=task_start_tokens + prompt_end_tokens,
                 swin_pretrained_path=self.config.swin_pretrained_path,
                 window_size=self.config.window_size,
-                swin_model_size=self.config.swin_model_size
+                swin_model_size=self.config.swin_model_size,
+                ape=self.config.ape
             )
         else:
             self.model = DonutModel(
@@ -75,7 +76,8 @@ class DonutModelPLModule(pl.LightningModule):
                     special_tokens=task_start_tokens + prompt_end_tokens,
                     swin_pretrained_path=self.config.swin_pretrained_path,
                     window_size=self.config.window_size,
-                    swin_model_size=self.config.swin_model_size
+                    swin_model_size=self.config.swin_model_size,
+                    ape=self.config.ape
                     # with DonutConfig, the architecture customization is available, e.g.,
                     # encoder_layer=[2,2,14,2], decoder_layer=4, ...
                 )
@@ -281,7 +283,8 @@ class DonutClipModelPLModule(pl.LightningModule):
                 special_tokens=task_start_tokens + prompt_end_tokens,
                 swin_pretrained_path=self.config.swin_pretrained_path,
                 window_size=self.config.window_size,
-                swin_model_size=self.config.swin_model_size
+                swin_model_size=self.config.swin_model_size,
+                ape=self.config.ape
             )
         else:
             self.model = DonutClipModel(
@@ -296,7 +299,8 @@ class DonutClipModelPLModule(pl.LightningModule):
                     special_tokens=task_start_tokens + prompt_end_tokens,
                     swin_pretrained_path=self.config.swin_pretrained_path,
                     window_size=self.config.window_size,
-                    swin_model_size=self.config.swin_model_size
+                    swin_model_size=self.config.swin_model_size,
+                    ape=self.config.ape
                     # with DonutConfig, the architecture customization is available, e.g.,
                     # encoder_layer=[2,2,14,2], decoder_layer=4, ...
                 )
@@ -355,7 +359,7 @@ class DonutClipModelPLModule(pl.LightningModule):
             max_iter = min(self.config.max_steps, max_iter) if max_iter is not None else self.config.max_steps
 
         assert max_iter is not None
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.config.lr, betas=(0.9,0.98), eps=1e-6)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.config.lr, betas=(0.9, 0.98), eps=1e-6)
         scheduler = {
             "scheduler": self.cosine_scheduler(optimizer, max_iter, self.config.warmup_steps),
             "name": "learning_rate",
