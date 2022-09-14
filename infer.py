@@ -78,7 +78,8 @@ def test(args, config):
             break
 
         im = Image.open(im_path)
-        pred = model.inference(im, prompt=f"<s_tableocr>")["predictions"][0]
+        with torch.set_grad_enabled(False):
+            pred = model.inference(im, prompt=f"<s_tableocr>")["predictions"][0]
         pred = T.postprocess_html_tag(pred['text_sequence'])
 
         output_path = os.path.join(args.output_dir, os.path.basename(im_path)) + ".html"
@@ -90,11 +91,11 @@ def test(args, config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pretrained_model_name_or_path", type=str)
-    parser.add_argument("--image_dir", type=str)
-    parser.add_argument("--output_dir", type=str, default=None)
-    parser.add_argument("--config", type=str, required=True)
-    parser.add_argument("--start_index", type=int, default=1)
+    parser.add_argument("--pretrained_model_name_or_path", type=str, default='D:\\result\\tableocr\models\\tokenizer_swinv2_max4k_fs')
+    parser.add_argument("--image_dir", type=str, default='D:\dataset\\table_ocr\\test_samples_en')
+    parser.add_argument("--output_dir", type=str, default='D:\\result\\tableocr\infer_results')
+    parser.add_argument("--config", type=str, required=True, default='./config/train_table_ocr_v2_swinv2_max4k.yaml')
+    parser.add_argument("--start_index", type=int, default=0)
     parser.add_argument("--test_cnt", type=int, default=None)
     # 8666/9115
     args, left_argv = parser.parse_known_args()
