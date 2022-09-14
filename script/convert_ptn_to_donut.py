@@ -69,10 +69,12 @@ def convert_ptn_item_to_simple_html(item, use_thead=False):
 
 def main(args):
     total_chars = set()
-    total_texts = []
+    train_texts = []
+    val_texts = []
     os.makedirs(args.output_dir, exist_ok=True)
     chars_output = os.path.join(args.output_dir, "chars.json")
-    corpus_output = os.path.join(args.output_dir, "total_corpus.txt")
+    train_corpus_output = os.path.join(args.output_dir, "train_corpus.txt")
+    val_corpus_output = os.path.join(args.output_dir, "val_corpus.txt")
 
     output_json_train = os.path.join(args.output_dir, "train_metadata.jsonl")
     output_json_val = os.path.join(args.output_dir, "val_metadata.jsonl")
@@ -88,7 +90,7 @@ def main(args):
             item = json.loads(line)
             table_tag, tmp_total_texts, text_set, tmp_max_row_span, tmp_max_col_span = convert_ptn_item_to_simple_html(
                 item, args.use_thead)
-            total_texts.append(" ".join(tmp_total_texts))
+
             if max_row_span < tmp_max_row_span:
                 max_row_span = tmp_max_row_span
             if max_col_span < tmp_max_col_span:
@@ -96,8 +98,10 @@ def main(args):
             total_chars.update(text_set)
             if item['split'] == "train":
                 outf = output_train
+                train_texts.append(" ".join(tmp_total_texts))
             else:
                 outf = output_val
+                val_texts.append(" ".join(tmp_total_texts))
             gt_parse = {
                 "gt_parse": {"text_sequence": args.join_delimiter.join(table_tag)}
             }
@@ -110,8 +114,11 @@ def main(args):
     total_chars = list(total_chars)
     total_chars.sort()
     json.dump(total_chars, open(chars_output, "w+"))
-    with open(corpus_output, "w+", encoding="utf-8") as corpus_outf:
-        for text in total_texts:
+    with open(train_corpus_output, "w+", encoding="utf-8") as corpus_outf:
+        for text in train_texts:
+            corpus_outf.write("{}\n".format(text))
+    with open(val_corpus_output, "w+", encoding="utf-8") as corpus_outf:
+        for text in val_texts:
             corpus_outf.write("{}\n".format(text))
 
     print("max_row_span", max_row_span)
