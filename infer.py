@@ -67,7 +67,7 @@ def test(args, config):
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    image_files = os.path.join(args.image_dir, "*.jpg")
+    image_files = glob.glob(os.path.join(args.image_dir, "*.jpg"))
 
     for idx, im_path in enumerate(image_files):
         if args.start_index and args.start_index > idx:
