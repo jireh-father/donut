@@ -336,9 +336,8 @@ class DonutClipModelPLModule(pl.LightningModule):
         for i, results in enumerate(validation_step_outputs):
             for result in results:
                 loss = result[0]
-                cnt = result[1]
-                cnt[i] += cnt
-                total_metric[i] += loss * cnt
+                cnt[i] += result[1]
+                total_metric[i] += loss * result[1]
             val_metric[i] = total_metric[i] / cnt[i]
             val_metric_name = f"val_metric_{i}th_dataset"
             self.log_dict({val_metric_name: val_metric[i]}, sync_dist=True)
