@@ -22,6 +22,8 @@ def main(args):
     # old_mbart_tokenizer = MBartTokenizer.from_pretrained("hyunwoongko/asian-bart-en")
     # print(old_mbart_tokenizer)
     new_tokens = ['<tr>', '<td>'] + ['<tdcolspan="{}">'.format(i) for i in range(10)] + ['<tdrowspan="{}">'.format(i) for i in range(10)]
+    if args.use_thead:
+        new_tokens += ['<thead>', '<tbody>']
     # new_tokens += ['&gt;', '&lt;']
     # old_tokenizer.add_tokens(new_tokens)
     # print("added tokens", old_tokenizer)
@@ -31,7 +33,10 @@ def main(args):
     if args.vocab_size:
         vocab_size = args.vocab_size
     else:
-        vocab_size = old_tokenizer.vocab_size + 24
+        if args.use_thead:
+            vocab_size = old_tokenizer.vocab_size + 24
+        else:
+            vocab_size = old_tokenizer.vocab_size + 26
     print("vocab_size", vocab_size)
     # tokenizer = old_tokenizer.train_new_from_iterator(training_corpus, old_tokenizer.vocab_size + 22, new_special_tokens=new_tokens)  # 52000)
     tokenizer = old_tokenizer.train_new_from_iterator(training_corpus, vocab_size,
@@ -57,7 +62,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--corpus_path', type=str,
                         default="D:\dataset\\table_ocr\pubtabnet/total_corpus.txt")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_vocab_100k")
-    parser.add_argument('--vocab_size', type=int, default=100000)
+    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_use_head")
+    parser.add_argument('--vocab_size', type=int, default=None)#100000)
+    parser.add_argument('--use_thead', action='store_true', default=True)
 
     main(parser.parse_args())

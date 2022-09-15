@@ -321,6 +321,7 @@ class DonutClipModelPLModule(pl.LightningModule):
         image_tensors, decoder_input_ids, prompt_end_idxs, answers = batch
 
         loss = self.model(image_tensors, decoder_input_ids, return_loss=True, return_dict=True)['loss']
+        loss = loss.item()
         print("loss", loss)
 
         return [loss, len(image_tensors)]

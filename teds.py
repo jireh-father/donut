@@ -119,8 +119,15 @@ def postprocess_html_tag(html_tag):
     html_tag = html_tag.replace("<tdrowspan", "<td rowspan")
     html_tag = html_tag.replace("<tdcolspan", "<td colspan")
     html_tag = html_tag.replace("<tr>", "</td></tr><tr>")
-    html_tag = html_tag[10:]
-    html_tag += "</td></tr>"
+    if html_tag.startswith('<thead>'):
+        html_tag = html_tag.replace("<thead></td></tr>", "<thead>")
+    else:
+        html_tag = html_tag[10:]
+    html_tag = html_tag.replace("<tbody></td></tr>", "</td></tr></thead><tbody>")
+    if html_tag.startswith('<thead>'):
+        html_tag += "</td></tr></tbody>"
+    else:
+        html_tag += "</td></tr>"
     html_tag = html_tag.replace("<td> ", "<td>")
     html_tag = span_regex.sub(r"\1", html_tag)
     return "<table>{}</table>".format(html_tag.replace(" </td>", "</td>"))
