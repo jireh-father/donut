@@ -20,7 +20,7 @@ def remove_html_tags(text):
 # https://huggingface.co/docs/transformers/main_classes/tokenizer#transformers.PreTrainedTokenizer
 # https://misconstructed.tistory.com/80
 
-def convert_ptn_item_to_simple_html(item, use_thead=False):
+def convert_ptn_item_to_simple_html(item):
     table_tag = []
 
     text_set = set()
@@ -87,7 +87,7 @@ def main(args):
             break
         item = json.loads(line)
         table_tag, tmp_total_texts, text_set, tmp_max_row_span, tmp_max_col_span, nums_row, nums_col = convert_ptn_item_to_simple_html(
-            item, args.use_thead)
+            item)
         file_name = item['filename']
         if item['split'] == "train":
             image_path = os.path.join(args.image_dir, "train", file_name)
