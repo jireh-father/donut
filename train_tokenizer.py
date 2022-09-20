@@ -61,8 +61,8 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--corpus_path', type=str,
-                        default="D:\dataset\\table_ocr\pubtabnet/total_corpus.txt")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_use_head")
+                        default="D:\dataset\\table_ocr\pubtabnet/train_corpus.txt")
+    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_use_head_train_corpus")
     parser.add_argument('--vocab_size', type=int, default=None)#100000)
     parser.add_argument('--use_thead', action='store_true', default=True)
 
