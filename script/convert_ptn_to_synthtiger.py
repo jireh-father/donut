@@ -78,7 +78,7 @@ def convert_ptn_item_to_simple_html(item, use_thead=False):
 
 def main(args):
     os.makedirs(args.output_dir, exist_ok=True)
-
+    image_dirs = args.image_dirs.split(",")
     max_row_span = 0
     max_col_span = 0
     for i, line in enumerate(open(args.label_path, encoding='utf-8')):
@@ -90,7 +90,11 @@ def main(args):
         table_tag, tmp_total_texts, text_set, tmp_max_row_span, tmp_max_col_span, nums_row, nums_col = convert_ptn_item_to_simple_html(
             item, args.use_thead)
         file_name = item['filename']
-        im = cv2.imread(os.path.join(args.image_dir, file_name))
+        if item['split'] == "train":
+            image_path = os.path.join(args.image_dir, "train", file_name)
+        else:
+            image_path = os.path.join(args.image_dir, "validation", file_name)
+        im = cv2.imread(image_path)
         height, width = im[:2]
 
         if max_row_span < tmp_max_row_span:
@@ -121,10 +125,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--label_path', type=str,
                         default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\PubTabNet_2.0.0.jsonl")
-    parser.add_argument('--image_dir', type=str, default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\ofa_dataset")
+    parser.add_argument('--image_dirs', type=str, default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\ofa_dataset")
     parser.add_argument('--output_dir', type=str, default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\ofa_dataset")
 
     parser.add_argument('--test_cnt', type=int, default=None)
-    parser.add_argument('--join_delimiter', type=str, default='')
-    parser.add_argument('--use_thead', action='store_true', default=False)
     main(parser.parse_args())
