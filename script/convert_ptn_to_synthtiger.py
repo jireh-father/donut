@@ -112,7 +112,6 @@ def main(args):
             "max_col_span": tmp_max_col_span,
             "max_row_span": tmp_max_row_span
         }
-        print(result_item)
 
         json.dump(result_item, open(os.path.join(args.output_dir, os.path.splitext(file_name)[0] + ".json"), "w+"))
 
