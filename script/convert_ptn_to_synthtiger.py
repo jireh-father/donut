@@ -78,7 +78,6 @@ def convert_ptn_item_to_simple_html(item, use_thead=False):
 
 def main(args):
     os.makedirs(args.output_dir, exist_ok=True)
-    image_dirs = args.image_dirs.split(",")
     max_row_span = 0
     max_col_span = 0
     for i, line in enumerate(open(args.label_path, encoding='utf-8')):
@@ -125,7 +124,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--label_path', type=str,
                         default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\PubTabNet_2.0.0.jsonl")
-    parser.add_argument('--image_dirs', type=str, default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\ofa_dataset")
+    parser.add_argument('--image_dir', type=str, default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\ofa_dataset")
     parser.add_argument('--output_dir', type=str, default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\ofa_dataset")
 
     parser.add_argument('--test_cnt', type=int, default=None)
