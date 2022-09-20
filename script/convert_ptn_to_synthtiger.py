@@ -94,7 +94,7 @@ def main(args):
         else:
             image_path = os.path.join(args.image_dir, "validation", file_name)
         im = cv2.imread(image_path)
-        height, width = im[:2]
+        height, width = im.shape[:2]
 
         if max_row_span < tmp_max_row_span:
             max_row_span = tmp_max_row_span
