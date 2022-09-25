@@ -54,7 +54,7 @@ def convert_ptn_item_to_simple_html(item):
                 if num_spans > max_row_span:
                     max_row_span = num_spans
 
-            tag += item['html']['structure']['tokens'][i].strip() + item['html']['structure']['tokens'][i + 1]
+            tag += item['html']['structure']['tokens'][i] + item['html']['structure']['tokens'][i + 1]
             i += 2
             tags.append(tag.strip())
             nums_col += num_spans
@@ -69,6 +69,7 @@ def convert_ptn_item_to_simple_html(item):
         if tag.startswith("<td"):
             text = remove_html_tags("".join(item['html']['cells'][i]['tokens'])).strip()
             if text:
+                text = "".join(item['html']['cells'][i]['tokens']).strip()
                 table_tag.append(text)
                 text_set.update(set(text))
                 total_texts.append(text)
