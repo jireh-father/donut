@@ -78,7 +78,6 @@ def convert_ptn_item_to_simple_html(item):
 
 
 def main(args):
-    os.makedirs(args.output_dir, exist_ok=True)
     max_row_span = 0
     max_col_span = 0
     for i, line in enumerate(open(args.label_path, encoding='utf-8')):
@@ -113,8 +112,9 @@ def main(args):
             "max_col_span": tmp_max_col_span,
             "max_row_span": tmp_max_row_span
         }
-
-        json.dump(result_item, open(os.path.join(args.output_dir, os.path.splitext(file_name)[0] + ".json"), "w+"))
+        output_dir = os.path.join(args.output_dir, item['split'])
+        os.makedirs(output_dir, exist_ok=True)
+        json.dump(result_item, open(os.path.join(output_dir, os.path.splitext(file_name)[0] + ".json"), "w+"))
 
     print("max_row_span", max_row_span)
     print("max_col_span", max_col_span)
