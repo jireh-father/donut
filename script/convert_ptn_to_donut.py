@@ -48,7 +48,8 @@ def convert_ptn_item_to_simple_html(item, use_thead=False):
                 if num_spans > max_row_span:
                     max_row_span = num_spans
 
-            tag += item['html']['structure']['tokens'][i].strip() + item['html']['structure']['tokens'][i + 1]
+            tag += item['html']['structure']['tokens'][i] + item['html']['structure']['tokens'][i + 1]
+            # tag += item['html']['structure']['tokens'][i].strip() + item['html']['structure']['tokens'][i + 1]
             i += 2
             tags.append(tag.strip())
         else:
