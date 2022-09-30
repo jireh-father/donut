@@ -104,7 +104,7 @@ def main(args):
         result_item = {
             'nums_col': nums_col,
             'nums_row': nums_row,
-            'html': "".join(table_tag),
+            'html': "".join("<table>{}</table>".format(table_tag)),
             'width': width,
             'height': height,
             "has_span": tmp_max_row_span > 1 or tmp_max_col_span > 1,
