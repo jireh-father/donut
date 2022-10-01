@@ -53,7 +53,8 @@ class SwinEncoder(nn.Module):
             vision_model_name='SwinTransformer',
             swin_pretrained_path='swin_base_patch4_window12_384_in22k',
             swin_model_size='base',
-            ape=False
+            ape=False,
+            swin_name_or_path=None
     ):
         super().__init__()
         self.input_size = input_size
@@ -99,26 +100,29 @@ class SwinEncoder(nn.Module):
             )
 
         # weight init with swin
-        if not name_or_path:
+        if not swin_name_or_path:
             swin_state_dict = timm.create_model(swin_pretrained_path, pretrained=True).state_dict()
-            new_swin_state_dict = self.model.state_dict()
-            for x in new_swin_state_dict:
-                if x.endswith("relative_position_index") or x.endswith("attn_mask"):
-                    pass
-                elif (
-                        x.endswith("relative_position_bias_table")
-                        and self.model.layers[0].blocks[0].attn.window_size[0] != 12
-                ):
-                    pos_bias = swin_state_dict[x].unsqueeze(0)[0]
-                    old_len = int(math.sqrt(len(pos_bias)))
-                    new_len = int(2 * window_size - 1)
-                    pos_bias = pos_bias.reshape(1, old_len, old_len, -1).permute(0, 3, 1, 2)
-                    pos_bias = F.interpolate(pos_bias, size=(new_len, new_len), mode="bicubic", align_corners=False)
-                    new_swin_state_dict[x] = pos_bias.permute(0, 2, 3, 1).reshape(1, new_len ** 2, -1).squeeze(0)
-                else:
-                    if x in swin_state_dict:
-                        new_swin_state_dict[x] = swin_state_dict[x]
-            self.model.load_state_dict(new_swin_state_dict)
+        else:
+            checkpoint_dict = torch.load(swin_name_or_path)
+            swin_state_dict = checkpoint_dict['state_dict']
+        new_swin_state_dict = self.model.state_dict()
+        for x in new_swin_state_dict:
+            if x.endswith("relative_position_index") or x.endswith("attn_mask"):
+                pass
+            elif (
+                    x.endswith("relative_position_bias_table")
+                    and self.model.layers[0].blocks[0].attn.window_size[0] != 12
+            ):
+                pos_bias = swin_state_dict[x].unsqueeze(0)[0]
+                old_len = int(math.sqrt(len(pos_bias)))
+                new_len = int(2 * window_size - 1)
+                pos_bias = pos_bias.reshape(1, old_len, old_len, -1).permute(0, 3, 1, 2)
+                pos_bias = F.interpolate(pos_bias, size=(new_len, new_len), mode="bicubic", align_corners=False)
+                new_swin_state_dict[x] = pos_bias.permute(0, 2, 3, 1).reshape(1, new_len ** 2, -1).squeeze(0)
+            else:
+                if x in swin_state_dict:
+                    new_swin_state_dict[x] = swin_state_dict[x]
+        self.model.load_state_dict(new_swin_state_dict)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -415,6 +419,7 @@ class DonutConfig(PretrainedConfig):
             special_tokens=None,
             swin_model_size='base',
             ape=False,
+            swin_name_or_path=None,
             **kwargs,
     ):
         super().__init__()
@@ -434,6 +439,7 @@ class DonutConfig(PretrainedConfig):
         self.special_tokens = special_tokens
         self.swin_pretrained_path = swin_pretrained_path
         self.swin_model_size = swin_model_size
+        self.swin_name_or_path = swin_name_or_path
 
 
 class DonutModel(PreTrainedModel):
@@ -458,7 +464,8 @@ class DonutModel(PreTrainedModel):
             vision_model_name=self.config.vision_model_name,
             swin_pretrained_path=self.config.swin_pretrained_path,
             swin_model_size=self.config.swin_model_size,
-            ape=self.config.ape
+            ape=self.config.ape,
+            swin_name_or_path=self.config.swin_name_or_path
         )
         self.decoder = BARTDecoder(
             max_position_embeddings=self.config.max_position_embeddings,
@@ -736,6 +743,7 @@ class DonutClipConfig(PretrainedConfig):
             d_model=1024,
             projection_dim=512,
             ape=False,
+            swin_name_or_path=None,
             **kwargs,
     ):
         super().__init__()
@@ -757,6 +765,7 @@ class DonutClipConfig(PretrainedConfig):
         self.swin_model_size = swin_model_size
         self.d_model = d_model
         self.projection_dim = projection_dim
+        self.swin_name_or_path=swin_name_or_path
 
 
 def contrastive_loss(logits: torch.Tensor) -> torch.Tensor:
@@ -791,7 +800,8 @@ class DonutClipModel(PreTrainedModel):
             vision_model_name=self.config.vision_model_name,
             swin_pretrained_path=self.config.swin_pretrained_path,
             swin_model_size=self.config.swin_model_size,
-            ape=self.config.ape
+            ape=self.config.ape,
+            swin_name_or_path=self.config.swin_name_or_path
         )
         self.visual_projection = nn.Linear(self.config.d_model, self.config.projection_dim, bias=False)
         self.post_layernorm = nn.LayerNorm(self.config.d_model)

@@ -31,3 +31,4 @@ swin_pretrained_path: swinv2_base_window12_192_22k
 window_size: 10
 swin_model_size: base
 ape: True
+swin_name_or_path: null

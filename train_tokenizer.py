@@ -21,7 +21,7 @@ def main(args):
     # print(old_xlmroberta_tokenizer)
     # old_mbart_tokenizer = MBartTokenizer.from_pretrained("hyunwoongko/asian-bart-en")
     # print(old_mbart_tokenizer)
-    new_tokens = ['<tr>', '<td>'] + ['<tdcolspan="{}">'.format(i) for i in range(10)] + ['<tdrowspan="{}">'.format(i) for i in range(10)]
+    new_tokens = ['<tr>', '<td>'] + ['<td colspan="{}">'.format(i) for i in range(10)] + ['<td rowspan="{}">'.format(i) for i in range(10)]
     if args.use_thead:
         new_tokens += ['<thead>', '<tbody>']
     # new_tokens += ['&gt;', '&lt;']
@@ -61,8 +61,8 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--corpus_path', type=str,
-                        default="D:\dataset\\table_ocr\pubtabnet/train_corpus.txt")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_use_head_train_corpus")
+                        default="D:\dataset\\table_ocr\pubtabnet/train_corpus_no_space_in_span.txt")
+    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_use_head_train_corpus_no_space_in_span")
     parser.add_argument('--vocab_size', type=int, default=None)#100000)
     parser.add_argument('--use_thead', action='store_true', default=True)
 
