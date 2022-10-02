@@ -193,7 +193,8 @@ class BARTDecoder(nn.Module):
 
     def __init__(
             self, decoder_layer: int, max_position_embeddings: int, name_or_path: Union[str, bytes, os.PathLike] = None,
-            use_fast_tokenizer=False, bart_prtrained_path="hyunwoongko/asian-bart-en", special_tokens=None
+            use_fast_tokenizer=False, bart_prtrained_path="hyunwoongko/asian-bart-en", special_tokens=None,
+            d_model=1024
     ):
         super().__init__()
         self.decoder_layer = decoder_layer
@@ -209,6 +210,7 @@ class BARTDecoder(nn.Module):
             )
         self.model = MBartForCausalLM(
             config=MBartConfig(
+                d_model=d_model,
                 is_decoder=True,
                 is_encoder_decoder=False,
                 add_cross_attention=True,
@@ -420,10 +422,12 @@ class DonutConfig(PretrainedConfig):
             swin_model_size='base',
             ape=False,
             swin_name_or_path=None,
+            d_model=1024,
             **kwargs,
     ):
         super().__init__()
         self.input_size = input_size
+        self.d_model=d_model
         self.align_long_axis = align_long_axis
         self.window_size = window_size
         self.encoder_layer = encoder_layer
@@ -468,6 +472,7 @@ class DonutModel(PreTrainedModel):
             swin_name_or_path=self.config.swin_name_or_path
         )
         self.decoder = BARTDecoder(
+            d_model=self.config.d_model,
             max_position_embeddings=self.config.max_position_embeddings,
             decoder_layer=self.config.decoder_layer,
             use_fast_tokenizer=self.config.use_fast_tokenizer,

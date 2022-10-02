@@ -33,3 +33,4 @@ swin_model_size: base
 ape: False
 swin_name_or_path: null
 swin_encoder_layer: [2, 2, 14, 2]
+d_model: 1024

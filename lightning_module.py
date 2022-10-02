@@ -63,7 +63,8 @@ class DonutModelPLModule(pl.LightningModule):
                 swin_model_size=self.config.swin_model_size,
                 ape=self.config.ape,
                 swin_name_or_path=self.config.swin_name_or_path,
-                encoder_layer=self.config.swin_encoder_layer
+                encoder_layer=self.config.swin_encoder_layer,
+                d_model=self.config.d_model
             )
         else:
             self.model = DonutModel(
@@ -81,7 +82,8 @@ class DonutModelPLModule(pl.LightningModule):
                     swin_model_size=self.config.swin_model_size,
                     ape=self.config.ape,
                     swin_name_or_path=self.config.swin_name_or_path,
-                    encoder_layer=self.config.swin_encoder_layer
+                    encoder_layer=self.config.swin_encoder_layer,
+                    d_model=self.config.d_model
                     # with DonutConfig, the architecture customization is available, e.g.,
                     # encoder_layer=[2,2,14,2], decoder_layer=4, ...
                 )
@@ -398,5 +400,6 @@ class DonutClipModelPLModule(pl.LightningModule):
         save_path = Path(self.config.result_path) / self.config.exp_name / self.config.exp_version
         self.model.save_pretrained(save_path)
         self.model.decoder.tokenizer.save_pretrained(save_path)
-        swin_save_path = Path(self.config.result_path) / self.config.exp_name / self.config.exp_version / "swin_best.pth"
+        swin_save_path = Path(
+            self.config.result_path) / self.config.exp_name / self.config.exp_version / "swin_best.pth"
         torch.save({'state_dict': self.model.encoder.model.state_dict()}, swin_save_path)
