@@ -62,7 +62,8 @@ class DonutModelPLModule(pl.LightningModule):
                 window_size=self.config.window_size,
                 swin_model_size=self.config.swin_model_size,
                 ape=self.config.ape,
-                swin_name_or_path=self.config.swin_name_or_path
+                swin_name_or_path=self.config.swin_name_or_path,
+                encoder_layer=self.config.swin_encoder_layer
             )
         else:
             self.model = DonutModel(
@@ -79,7 +80,8 @@ class DonutModelPLModule(pl.LightningModule):
                     window_size=self.config.window_size,
                     swin_model_size=self.config.swin_model_size,
                     ape=self.config.ape,
-                    swin_name_or_path=self.config.swin_name_or_path
+                    swin_name_or_path=self.config.swin_name_or_path,
+                    encoder_layer=self.config.swin_encoder_layer
                     # with DonutConfig, the architecture customization is available, e.g.,
                     # encoder_layer=[2,2,14,2], decoder_layer=4, ...
                 )
@@ -287,7 +289,8 @@ class DonutClipModelPLModule(pl.LightningModule):
                 window_size=self.config.window_size,
                 swin_model_size=self.config.swin_model_size,
                 swin_name_or_path=self.config.swin_name_or_path,
-                ape=self.config.ape
+                ape=self.config.ape,
+                swin_encoder_layer=self.config.swin_encoder_layer
             )
         else:
             self.model = DonutClipModel(
@@ -304,7 +307,8 @@ class DonutClipModelPLModule(pl.LightningModule):
                     window_size=self.config.window_size,
                     swin_model_size=self.config.swin_model_size,
                     swin_name_or_path=self.config.swin_name_or_path,
-                    ape=self.config.ape
+                    ape=self.config.ape,
+                    swin_encoder_layer=self.config.swin_encoder_layer
                     # with DonutConfig, the architecture customization is available, e.g.,
                     # encoder_layer=[2,2,14,2], decoder_layer=4, ...
                 )
