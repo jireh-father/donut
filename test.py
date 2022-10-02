@@ -79,7 +79,7 @@ def test(args, config):
 
     total_teds_all = []
     total_teds_struct = []
-    total_teds_content = []
+    # total_teds_content = []
 
     error_data = []
 
@@ -110,15 +110,15 @@ def test(args, config):
                 teds_struct_list = teds_metric_struct.batch(pred_list, gt_list)
                 pred_content_list = [convert(pred) for pred in pred_list]
                 gt_content_list = [convert(gt) for gt in gt_list]
-                teds_content_list = teds_metric.batch(pred_content_list, gt_content_list)
+                # teds_content_list = teds_metric.batch(pred_content_list, gt_content_list)
                 total_teds_all += teds_all_list
                 total_teds_struct += teds_struct_list
-                total_teds_content += teds_content_list
+                # total_teds_content += teds_content_list
 
                 for j, gt in enumerate(gt_list):
                     teds_all = teds_all_list[j]
                     teds_struct = teds_struct_list[j]
-                    teds_content = teds_content_list[j]
+                    # teds_content = teds_content_list[j]
                     pred = pred_list[j]
 
                     item = {
@@ -127,7 +127,7 @@ def test(args, config):
                         "pred": pred,
                         "teds_all": teds_all,
                         "teds_struct": teds_struct,
-                        "teds_content": teds_content,
+                        # "teds_content": teds_content,
                         "image_width": width,
                         "image_height": height
                     }
@@ -155,7 +155,7 @@ def test(args, config):
                         print("".join(tag_re.findall(pred)))
                         print("===== teds all", teds_all)
                         print("===== teds structure", teds_struct)
-                        print("===== teds content", teds_content)
+                        # print("===== teds content", teds_content)
                 gt_list = []
                 pred_list = []
                 file_list = []
@@ -163,7 +163,7 @@ def test(args, config):
     total_teds_mean = {
         "teds_all": np.mean(total_teds_all),
         "teds_structure": np.mean(total_teds_struct),
-        "teds_content": np.mean(total_teds_content)
+        # "teds_content": np.mean(total_teds_content)
     }
 
     if error_data:
