@@ -18,6 +18,7 @@ from PIL import ImageOps
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.models.swin_transformer import SwinTransformer
 from timm.models.swin_transformer_v2 import SwinTransformerV2
+from donut.swin_v2_with_vit import SwinV2WithVit
 # from donut.swin_transformer import SwinTransformer
 from torchvision import transforms
 from torchvision.transforms.functional import resize, rotate
@@ -54,7 +55,11 @@ class SwinEncoder(nn.Module):
             swin_pretrained_path='swin_base_patch4_window12_384_in22k',
             swin_model_size='base',
             ape=False,
-            swin_name_or_path=None
+            swin_name_or_path=None,
+            depth_last_block=2,
+            num_heads_last_block=8,  # must be "d_model / num_heads_last_block = 0"
+            drop_path_rate_last_block=0.1,  # or 0.0
+            init_values_last_block=None,  # or 1e-5
     ):
         super().__init__()
         self.input_size = input_size
@@ -97,6 +102,21 @@ class SwinEncoder(nn.Module):
                 num_heads=num_heads,
                 num_classes=0,
                 ape=ape
+            )
+        elif vision_model_name == "SwinV2WithVit":
+            self.model = SwinV2WithVit(
+                img_size=self.input_size,
+                depths=self.encoder_layer,
+                window_size=self.window_size,
+                patch_size=4,
+                embed_dim=embed_dim,
+                num_heads=num_heads,
+                num_classes=0,
+                ape=ape,
+                depth_last_block=depth_last_block,
+                num_heads_last_block=num_heads_last_block,  # must be "d_model / num_heads_last_block = 0"
+                drop_path_rate_last_block=drop_path_rate_last_block,  # or 0.1
+                init_values_last_block=init_values_last_block,  # or 1e-5
             )
 
         # weight init with swin
@@ -423,6 +443,10 @@ class DonutConfig(PretrainedConfig):
             ape=False,
             swin_name_or_path=None,
             d_model=1024,
+            swin_depth_last_block=2,
+            swin_num_heads_last_block=8,  # must be "d_model / num_heads_last_block = 0"
+            swin_drop_path_rate_last_block=0.,  # or 0.0
+            swin_init_values_last_block=None,  # or 1e-5
             **kwargs,
     ):
         super().__init__()
@@ -444,6 +468,10 @@ class DonutConfig(PretrainedConfig):
         self.swin_pretrained_path = swin_pretrained_path
         self.swin_model_size = swin_model_size
         self.swin_name_or_path = swin_name_or_path
+        self.swin_depth_last_block = swin_depth_last_block
+        self.swin_num_heads_last_block = swin_num_heads_last_block
+        self.swin_drop_path_rate_last_block = swin_drop_path_rate_last_block
+        self.swin_init_values_last_block = swin_init_values_last_block
 
 
 class DonutModel(PreTrainedModel):
@@ -469,7 +497,11 @@ class DonutModel(PreTrainedModel):
             swin_pretrained_path=self.config.swin_pretrained_path,
             swin_model_size=self.config.swin_model_size,
             ape=self.config.ape,
-            swin_name_or_path=self.config.swin_name_or_path
+            swin_name_or_path=self.config.swin_name_or_path,
+            depth_last_block=self.config.swin_depth_last_block,
+            num_heads_last_block=self.config.swin_num_heads_last_block,  # must be "d_model / num_heads_last_block = 0"
+            drop_path_rate_last_block=self.config.swin_drop_path_rate_last_block,  # or 0.0
+            init_values_last_block=self.config.swin_init_values_last_block,  # or 1e-5
         )
         self.decoder = BARTDecoder(
             d_model=self.config.d_model,
