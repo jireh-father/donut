@@ -154,7 +154,7 @@ class SwinEncoder(nn.Module):
         x = self.model.patch_embed(x)
         x = self.model.pos_drop(x)
         # print("patch embed", x.shape)
-        if self.vision_model_name == "SwinTransformerV2":
+        if self.vision_model_name in ["SwinTransformerV2", "SwinV2WithVit"]:
             for layer in self.model.layers:
                 x = layer(x)
         else:
