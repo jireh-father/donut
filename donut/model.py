@@ -60,6 +60,7 @@ class SwinEncoder(nn.Module):
             num_heads_last_block=8,  # must be "d_model / num_heads_last_block = 0"
             drop_path_rate_last_block=0.1,  # or 0.0
             init_values_last_block=None,  # or 1e-5
+            ape_last_block=False
     ):
         super().__init__()
         self.input_size = input_size
@@ -117,6 +118,7 @@ class SwinEncoder(nn.Module):
                 num_heads_last_block=num_heads_last_block,  # must be "d_model / num_heads_last_block = 0"
                 drop_path_rate_last_block=drop_path_rate_last_block,  # or 0.1
                 init_values_last_block=init_values_last_block,  # or 1e-5
+                ape_last_block=ape_last_block
             )
 
         # weight init with swin
@@ -447,6 +449,7 @@ class DonutConfig(PretrainedConfig):
             swin_num_heads_last_block=8,  # must be "d_model / num_heads_last_block = 0"
             swin_drop_path_rate_last_block=0.,  # or 0.0
             swin_init_values_last_block=None,  # or 1e-5
+            ape_last_block=False,
             **kwargs,
     ):
         super().__init__()
@@ -472,6 +475,7 @@ class DonutConfig(PretrainedConfig):
         self.swin_num_heads_last_block = swin_num_heads_last_block
         self.swin_drop_path_rate_last_block = swin_drop_path_rate_last_block
         self.swin_init_values_last_block = swin_init_values_last_block
+        self.ape_last_block = ape_last_block
 
 
 class DonutModel(PreTrainedModel):
@@ -502,6 +506,7 @@ class DonutModel(PreTrainedModel):
             num_heads_last_block=self.config.swin_num_heads_last_block,  # must be "d_model / num_heads_last_block = 0"
             drop_path_rate_last_block=self.config.swin_drop_path_rate_last_block,  # or 0.0
             init_values_last_block=self.config.swin_init_values_last_block,  # or 1e-5
+            ape_last_block=self.config.ape_last_block
         )
         self.decoder = BARTDecoder(
             d_model=self.config.d_model,

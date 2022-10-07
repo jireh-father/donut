@@ -68,7 +68,8 @@ class DonutModelPLModule(pl.LightningModule):
                 swin_depth_last_block=self.config.swin_depth_last_block,
                 swin_num_heads_last_block=self.config.swin_num_heads_last_block,
                 swin_drop_path_rate_last_block=self.config.swin_drop_path_rate_last_block,
-                swin_init_values_last_block=self.config.swin_init_values_last_block
+                swin_init_values_last_block=self.config.swin_init_values_last_block,
+                ape_last_block=self.config.ape_last_block
             )
         else:
             self.model = DonutModel(
@@ -91,7 +92,8 @@ class DonutModelPLModule(pl.LightningModule):
                     swin_depth_last_block=self.config.swin_depth_last_block,
                     swin_num_heads_last_block=self.config.swin_num_heads_last_block,
                     swin_drop_path_rate_last_block=self.config.swin_drop_path_rate_last_block,
-                    swin_init_values_last_block=self.config.swin_init_values_last_block
+                    swin_init_values_last_block=self.config.swin_init_values_last_block,
+                    ape_last_block=self.config.ape_last_block
                     # with DonutConfig, the architecture customization is available, e.g.,
                     # encoder_layer=[2,2,14,2], decoder_layer=4, ...
                 )

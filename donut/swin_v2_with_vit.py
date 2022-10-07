@@ -17,6 +17,7 @@ class SwinV2WithVit(SwinTransformerV2):
             num_heads_last_block=8,  # must be "d_model / num_heads_last_block = 0"
             drop_path_rate_last_block=0.,# or 0.1
             init_values_last_block=None,  # or 1e-5
+            ape_last_block=False,
             **kwargs):
         super().__init__(img_size, patch_size, in_chans, num_classes, global_pool,
                          embed_dim, depths, num_heads,
@@ -26,9 +27,10 @@ class SwinV2WithVit(SwinTransformerV2):
                          pretrained_window_sizes, **kwargs)
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate_last_block, depth_last_block)]  # stochastic depth decay rule
-
-        self.pos_embed = nn.Parameter(torch.randn(1, self.num_features, self.num_features) * .02)
-        self.pos_drop = nn.Dropout(p=drop_rate)
+        self.ape_last_block = ape_last_block
+        if ape_last_block:
+            self.pos_embed = nn.Parameter(torch.randn(1, self.num_features, self.num_features) * .02)
+            self.pos_drop = nn.Dropout(p=drop_rate)
 
         self.last_blocks = nn.Sequential(*[
             Block(
@@ -45,8 +47,9 @@ class SwinV2WithVit(SwinTransformerV2):
         for layer in self.layers:
             x = layer(x)
 
-        x = x + self.pos_embed
-        x = self.pos_drop(x)
+        if self.ape_last_block:
+            x = x + self.pos_embed
+            x = self.pos_drop(x)
 
         x = self.last_blocks(x)
         x = self.norm(x)  # B L C
