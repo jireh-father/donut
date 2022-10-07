@@ -26,6 +26,10 @@ class SwinV2WithVit(SwinTransformerV2):
                          pretrained_window_sizes, **kwargs)
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate_last_block, depth_last_block)]  # stochastic depth decay rule
+
+        self.pos_embed = nn.Parameter(torch.randn(1, self.num_features, self.num_features) * .02)
+        self.pos_drop = nn.Dropout(p=drop_rate)
+
         self.last_blocks = nn.Sequential(*[
             Block(
                 dim=self.num_features, num_heads=num_heads_last_block, mlp_ratio=mlp_ratio, qkv_bias=qkv_bias, init_values=init_values_last_block,
@@ -40,6 +44,9 @@ class SwinV2WithVit(SwinTransformerV2):
 
         for layer in self.layers:
             x = layer(x)
+
+        x = x + self.pos_embed
+        x = self.pos_drop(x)
 
         x = self.last_blocks(x)
         x = self.norm(x)  # B L C
