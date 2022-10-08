@@ -409,7 +409,7 @@ class DonutClipModelPLModule(pl.LightningModule):
     def on_save_checkpoint(self, checkpoint):
         save_path = Path(self.config.result_path) / self.config.exp_name / self.config.exp_version
         self.model.save_pretrained(save_path)
-        self.model.decoder.tokenizer.save_pretrained(save_path)
+        self.model.text_encoder.tokenizer.save_pretrained(save_path)
         swin_save_path = Path(
             self.config.result_path) / self.config.exp_name / self.config.exp_version / "swin_best.pth"
         torch.save({'state_dict': self.model.encoder.model.state_dict()}, swin_save_path)
