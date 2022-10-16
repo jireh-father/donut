@@ -920,7 +920,10 @@ class DonutClipModel(PreTrainedModel):
         """
         if type(obj) == dict:
             if len(obj) == 1 and "text_sequence" in obj:
-                return obj["text_sequence"]
+                text_sequence = obj["text_sequence"]
+                if text_sequence.startswith("<table>"):
+                    text_sequence = text_sequence[7:-8]
+                return text_sequence
             else:
                 output = ""
                 if sort_json_key:
