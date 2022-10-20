@@ -26,6 +26,7 @@ def search_files(root, names=None, exts=None):
 class PathSelector:
     def __init__(self, paths=(), weights=(), exts=None, use_sort=True):
         super().__init__()
+        print("init paths", paths)
         self.paths = paths
         self.weights = weights if weights else [1] * len(paths)
         self.exts = exts
