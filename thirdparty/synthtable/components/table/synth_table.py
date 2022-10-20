@@ -277,7 +277,7 @@ class SynthTable(Component):
                             real_cidx += 1
                     except Exception as e:
                         print(table_row_span_map.shape)
-                        print(ridx, real_cidx)
+                        print(ridx, cidx, real_cidx)
                         raise e
                     has_row_span = td_tag.has_attr('rowspan')
                     has_col_span = td_tag.has_attr('colspan')
