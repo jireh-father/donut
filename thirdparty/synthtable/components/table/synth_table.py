@@ -272,9 +272,13 @@ class SynthTable(Component):
             td_tags = tr_element.find_all("td")
             for cidx, td_tag in enumerate(td_tags):
                 if self.meta['span']:
-                    while table_row_span_map[ridx][real_cidx]:
-                        real_cidx += 1
-
+                    try:
+                        while table_row_span_map[ridx][real_cidx]:
+                            real_cidx += 1
+                    except Exception as e:
+                        print(table_row_span_map.shape)
+                        print(ridx, real_cidx)
+                        raise e
                     has_row_span = td_tag.has_attr('rowspan')
                     has_col_span = td_tag.has_attr('colspan')
                     if has_row_span and has_col_span:
