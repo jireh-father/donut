@@ -455,6 +455,7 @@ class OnlineSynthDonutDataset(Dataset):
         """
 
         data = self.synth_table.generate()
+
         im, table_html = self.synth_table.load(data)
 
         # sample = self.dataset[idx]

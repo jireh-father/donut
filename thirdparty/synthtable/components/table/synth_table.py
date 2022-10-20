@@ -416,9 +416,13 @@ class SynthTable(Component):
         # sample table style
         self._sample_global_table()
 
-        if self.meta['has_thead']:
-            self._sample_global_thead()
-        self._sample_global_tbody()
+        try:
+            if self.meta['has_thead']:
+                self._sample_global_thead()
+            self._sample_global_tbody()
+        except Exception as e:
+            print(self.meta)
+            raise e
 
         # local style
         self.sample_local_styles()
