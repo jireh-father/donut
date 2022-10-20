@@ -108,15 +108,6 @@ def main(args):
 
         if max_cols < nums_col:
             max_cols = nums_col
-        print("nums_row", nums_row)
-        print("nums_col", nums_col)
-        print("tmp_max_row_span", tmp_max_row_span)
-        print("tmp_max_col_span", tmp_max_col_span)
-
-        print("max_row_span", max_row_span)
-        print("max_col_span", max_col_span)
-        print("max_rows", max_rows)
-        print("max_cols", max_cols)
 
         result_item = {
             'nums_col': nums_col,
