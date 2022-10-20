@@ -81,9 +81,9 @@ def main(args):
         nums_row = len(trs)
         max_col = 0
         for tr in trs:
-            for tds in tr.find_all("td"):
-                if max_col < len(tds):
-                    max_col = len(tds)
+            tds = tr.find_all("td")
+            if max_col < len(tds):
+                max_col = len(tds)
         nums_col = max_col
 
         td_rowspans = bs.select('td[rowspan]')
