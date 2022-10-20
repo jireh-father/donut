@@ -3,6 +3,9 @@ result_path: "./result"
 #pretrained_model_name_or_path: "naver-clova-ix/donut-base" # loading a pre-trained model (from moldehub or path)
 pretrained_model_name_or_path: null
 dataset_name_or_paths: ["./dataset/pubtabnet"] # loading datasets (from moldehub or path)
+online_synth_dataset: False
+synth_dataset_length: 0
+synth_config_path: null
 sort_json_key: False # cord dataset is preprocessed, and publicly available at https://huggingface.co/datasets/naver-clova-ix/cord-v2
 train_batch_sizes: [2]
 val_batch_sizes: [1]

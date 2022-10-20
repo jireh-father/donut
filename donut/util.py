@@ -397,3 +397,90 @@ class JSONParseEvaluator:
             )
             ),
         )
+
+
+class OnlineSynthDonutDataset(Dataset):
+    """
+    DonutDataset which is saved in huggingface datasets format. (see details in https://huggingface.co/docs/datasets)
+    Each row, consists of image path(png/jpg/jpeg) and gt data (json/jsonl/txt),
+    and it will be converted into input_tensor(vectorized image) and input_ids(tokenized string).
+
+    Args:
+        dataset_name_or_path: name of dataset (available at huggingface.co/datasets) or the path containing image files and metadata.jsonl
+        ignore_id: ignore_index for torch.nn.CrossEntropyLoss
+        task_start_token: the special token to be fed to the decoder to conduct the target task
+    """
+
+    def __init__(
+            self,
+            donut_model: PreTrainedModel,
+            max_length: int,
+            ignore_id: int = -100,
+            task_start_token: str = "<s>",
+            prompt_end_token: str = None,
+            dataset_length: int = None,
+            synth_config_path: str = None,
+    ):
+        super().__init__()
+
+        self.donut_model = donut_model
+        self.max_length = max_length
+        self.ignore_id = ignore_id
+        self.task_start_token = task_start_token
+        self.prompt_end_token = prompt_end_token if prompt_end_token else task_start_token
+        self.gt_token_sequences = []
+
+        import synthtiger
+        import sys
+        sys.path.append('./thirdparty/synthtable')
+        from template import SynthTable
+        self.synth_table = SynthTable(synthtiger.read_config(synth_config_path))
+        self.dataset_length = dataset_length
+
+        self.donut_model.decoder.add_special_tokens([self.task_start_token, self.prompt_end_token])
+        self.prompt_end_token_id = self.donut_model.decoder.tokenizer.convert_tokens_to_ids(self.prompt_end_token)
+
+    def __len__(self) -> int:
+        return self.dataset_length
+
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Load image from image_path of given dataset_path and convert into input_tensor and labels
+        Convert gt data into input_ids (tokenized string)
+
+        Returns:
+            input_tensor : preprocessed image
+            input_ids : tokenized gt_data
+            labels : masked labels (model doesn't need to predict prompt and pad token)
+        """
+
+        data = self.synth_table.generate()
+        im, table_html = self.synth_table.load(data)
+
+        # sample = self.dataset[idx]
+        # im = Image.open(os.path.join(self.dataset_name_or_path, self.split, sample["file_name"]))
+        # input_tensor
+        # input_tensor = self.donut_model.encoder.prepare_input(sample["image"], random_padding=self.split == "train")
+        input_tensor = self.donut_model.encoder.prepare_input(im, random_padding=self.split == "train")
+
+        # input_ids
+        if table_html.startswith("<table>"):
+            table_html = table_html[7:-8]
+        processed_parse = self.task_start_token + table_html + self.donut_model.decoder.tokenizer.eos_token
+
+        input_ids = self.donut_model.decoder.tokenizer(
+            processed_parse,
+            add_special_tokens=False,
+            max_length=self.max_length,
+            padding="max_length",
+            truncation=True,
+            return_tensors="pt",
+        )["input_ids"].squeeze(0)
+
+        labels = input_ids.clone()
+        labels[
+            labels == self.donut_model.decoder.tokenizer.pad_token_id
+            ] = self.ignore_id  # model doesn't need to predict pad token
+        labels[: torch.nonzero(
+            labels == self.prompt_end_token_id).sum() + 1] = self.ignore_id  # model doesn't need to predict prompt (for VQA)
+        return input_tensor, input_ids, labels

@@ -18,6 +18,7 @@ from PIL import ImageOps
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.models.swin_transformer import SwinTransformer
 from timm.models.swin_transformer_v2 import SwinTransformerV2
+from timm.models.vision_transformer import VisionTransformer
 from donut.swin_v2_with_vit import SwinV2WithVit
 # from donut.swin_transformer import SwinTransformer
 from torchvision import transforms

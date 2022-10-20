@@ -1,0 +1,4 @@
+synthtiger
+bs4
+wand
+selenium
