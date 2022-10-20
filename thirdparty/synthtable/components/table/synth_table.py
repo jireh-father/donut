@@ -272,13 +272,9 @@ class SynthTable(Component):
             td_tags = tr_element.find_all("td")
             for cidx, td_tag in enumerate(td_tags):
                 if self.meta['span']:
-                    try:
-                        while real_cidx < len(td_tags) and table_row_span_map[ridx][real_cidx]:
-                            real_cidx += 1
-                    except Exception as e:
-                        print(table_row_span_map.shape)
-                        print(ridx, cidx, real_cidx)
-                        raise e
+                    while table_row_span_map[ridx][real_cidx]:
+                        real_cidx += 1
+
                     has_row_span = td_tag.has_attr('rowspan')
                     has_col_span = td_tag.has_attr('colspan')
                     if has_row_span and has_col_span:
@@ -421,16 +417,9 @@ class SynthTable(Component):
         # sample table style
         self._sample_global_table()
 
-        try:
-            if self.meta['has_thead']:
-                self._sample_global_thead()
-            self._sample_global_tbody()
-        except Exception as e:
-            import json
-            print(self.meta)
-            del self.meta['html_bs']
-            print(json.dumps(self.meta))
-            raise e
+        if self.meta['has_thead']:
+            self._sample_global_thead()
+        self._sample_global_tbody()
 
         # local style
         self.sample_local_styles()
