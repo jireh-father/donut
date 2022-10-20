@@ -26,7 +26,6 @@ def search_files(root, names=None, exts=None):
 class PathSelector:
     def __init__(self, paths=(), weights=(), exts=None, use_sort=True):
         super().__init__()
-        print("init paths", paths)
         self.paths = paths
         self.weights = weights if weights else [1] * len(paths)
         self.exts = exts
@@ -50,15 +49,12 @@ class PathSelector:
         self._counts = []
 
         for path in self.paths:
-            print("path", path)
             if not os.path.exists(path):
                 continue
 
             paths = [path]
-            print("path", path)
             if os.path.isdir(path):
                 paths = search_files(path, exts=self.exts)
-                print("paths", paths)
             if self.use_sort:
                 paths.sort()
             self._paths.append(paths)
