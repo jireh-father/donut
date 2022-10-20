@@ -424,6 +424,7 @@ class SynthTable(Component):
         except Exception as e:
             import json
             print(self.meta)
+            del self.meta['html_bs']
             print(json.dumps(self.meta))
             raise e
 
