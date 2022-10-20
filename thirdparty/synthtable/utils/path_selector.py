@@ -49,6 +49,7 @@ class PathSelector:
         self._counts = []
 
         for path in self.paths:
+            print("path", path)
             if not os.path.exists(path):
                 continue
 
