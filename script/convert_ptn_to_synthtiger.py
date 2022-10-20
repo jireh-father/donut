@@ -58,6 +58,8 @@ def convert_ptn_item_to_simple_html(item):
 def main(args):
     max_row_span = 0
     max_col_span = 0
+    max_rows = 0
+    max_cols = 0
     for i, line in enumerate(open(args.label_path, encoding='utf-8')):
         if i % 10 == 0:
             print(i)
@@ -101,6 +103,12 @@ def main(args):
         if max_col_span < tmp_max_col_span:
             max_col_span = tmp_max_col_span
 
+        if max_rows < nums_row:
+            max_rows = nums_row
+
+        if max_cols < nums_col:
+            max_cols = nums_col
+
         result_item = {
             'nums_col': nums_col,
             'nums_row': nums_row,
@@ -119,6 +127,8 @@ def main(args):
 
     print("max_row_span", max_row_span)
     print("max_col_span", max_col_span)
+    print("max_rows", max_rows)
+    print("max_cols", max_cols)
     print("done")
 
 
