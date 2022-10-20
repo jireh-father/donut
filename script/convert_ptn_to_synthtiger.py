@@ -87,14 +87,14 @@ def main(args):
         td_rowspans = bs.select('td[rowspan]')
         tmp_max_row_span = 0
         for td_rowspan in td_rowspans:
-            if tmp_max_row_span < td_rowspan['rowspan']:
-                tmp_max_row_span = td_rowspan['rowspan']
+            if tmp_max_row_span < int(td_rowspan['rowspan']):
+                tmp_max_row_span = int(td_rowspan['rowspan'])
 
         td_colspans = bs.select('td[colspan]')
         tmp_max_col_span = 0
         for td_colspan in td_colspans:
-            if tmp_max_col_span < td_colspan['colspan']:
-                tmp_max_col_span = td_colspan['colspan']
+            if tmp_max_col_span < int(td_colspan['colspan']):
+                tmp_max_col_span = int(td_colspan['colspan'])
 
         if max_row_span < tmp_max_row_span:
             max_row_span = tmp_max_row_span
