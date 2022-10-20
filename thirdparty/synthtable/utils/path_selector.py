@@ -53,8 +53,10 @@ class PathSelector:
                 continue
 
             paths = [path]
+            print("path", path)
             if os.path.isdir(path):
                 paths = search_files(path, exts=self.exts)
+                print("paths", paths)
             if self.use_sort:
                 paths.sort()
             self._paths.append(paths)
