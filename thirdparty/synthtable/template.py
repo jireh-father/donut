@@ -168,6 +168,12 @@ class SynthTable(templates.Template):
             json.dump(metadata, fp, ensure_ascii=False)
             fp.write("\n")
 
+    def load(self, data):
+        image = data["image"]
+        label = data["label"]
+        image = Image.fromarray(image[..., :3].astype(np.uint8))
+        return image, label
+
     def end_save(self, root):
         pass
 
