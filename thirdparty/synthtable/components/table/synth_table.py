@@ -266,7 +266,7 @@ class SynthTable(Component):
     def _set_inner_border_col(self, css_selector):
         tr_tags = self.meta['html_bs'].find(css_selector).find_all("tr")
         if self.meta['span']:
-            table_row_span_map = np.full((self.meta['nums_row'], self.meta['nums_col']), False)
+            table_row_span_map = np.full((len(tr_tags), self.meta['nums_col']), False)
         for ridx, tr_element in enumerate(tr_tags):
             real_cidx = 0
             td_tags = tr_element.find_all("td")
