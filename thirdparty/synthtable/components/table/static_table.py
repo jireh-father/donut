@@ -68,11 +68,11 @@ class StaticTable(Component):
     def apply(self, layers, meta=None):
         target_size = meta['size']
         while True:
-            try:
-                meta = self.sample(meta)
-            except Exception as e:
-                traceback.print_exc()
-                continue
+            # try:
+            meta = self.sample(meta)
+            # except Exception as e:
+            #     traceback.print_exc()
+            #     continue
 
             html_json_path = meta['html_path']
             html_json = json.load(open(html_json_path), encoding='utf-8')
