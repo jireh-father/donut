@@ -16,6 +16,7 @@ from torch.utils.data import Dataset
 from transformers.modeling_utils import PreTrainedModel
 from zss import Node
 from PIL import Image
+import traceback
 
 
 def save_json(write_path: Union[str, bytes, os.PathLike], save_obj: Any):
@@ -454,7 +455,12 @@ class OnlineSynthDonutDataset(Dataset):
             labels : masked labels (model doesn't need to predict prompt and pad token)
         """
 
-        data = self.synth_table.generate()
+        while True:
+            try:
+                data = self.synth_table.generate()
+                break
+            except:
+                traceback.print_exc()
 
         im, table_html = self.synth_table.load(data)
 

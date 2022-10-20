@@ -288,8 +288,9 @@ class SynthTable(Component):
                     real_cidx += int(td_tag['colspan']) if has_col_span else 1
 
                 if cidx == len(td_tags) - 1:
-                    if self.meta['span'] and real_cidx < self.meta['nums_col'] and all([table_row_span_map[ridx][inner_cidx] for inner_cidx in
-                                                                  range(real_cidx, self.meta['nums_col'])]):
+                    if self.meta['span'] and real_cidx < self.meta['nums_col'] and all(
+                            [table_row_span_map[ridx][inner_cidx] for inner_cidx in
+                             range(real_cidx, self.meta['nums_col'])]):
                         self._set_global_border(
                             '{} tr:nth-child({}) td:nth-child({})'.format(css_selector, ridx + 1, cidx + 1),
                             'right')
@@ -416,13 +417,9 @@ class SynthTable(Component):
         # sample table style
         self._sample_global_table()
 
-        try:
-            if self.meta['has_thead']:
-                self._sample_global_thead()
-            self._sample_global_tbody()
-        except Exception as e:
-            print(self.meta)
-            raise e
+        if self.meta['has_thead']:
+            self._sample_global_thead()
+        self._sample_global_tbody()
 
         # local style
         self.sample_local_styles()
