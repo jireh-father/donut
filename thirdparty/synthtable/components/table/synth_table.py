@@ -274,7 +274,7 @@ class SynthTable(Component):
             for cidx, td_tag in enumerate(td_tags):
                 if self.meta['span']:
                     try:
-                        while table_row_span_map[ridx][real_cidx]:
+                        while real_cidx < self.meta['nums_col'] and table_row_span_map[ridx][real_cidx]:
                             real_cidx += 1
                     except Exception as e:
                         del self.meta['html_bs']
