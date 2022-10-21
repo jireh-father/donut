@@ -1,6 +1,7 @@
 import os
 import math
 import json
+import traceback
 import uuid
 from synthtiger.components.component import Component
 from utils.path_selector import PathSelector
@@ -279,6 +280,7 @@ class SynthTable(Component):
                         del self.meta['html_bs']
                         print(self.meta)
                         print(json.dumps(self.meta))
+                        traceback.print_exc()
                         raise e
 
                     has_row_span = td_tag.has_attr('rowspan')
