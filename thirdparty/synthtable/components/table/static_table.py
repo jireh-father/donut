@@ -51,7 +51,10 @@ class StaticTable(Component):
         else:
             html_path = self.html_path_selector.get(0, self.html_file_idx)
             key = 0
-            self.html_file_idx += 1
+            if len(self.html_path_selector.paths[key]) <= self.html_file_idx + 1:
+                self.html_file_idx = 0
+            else:
+                self.html_file_idx += 1
         image_path = self._get_image_path(html_path, key)
         if not image_path:
             return self.sample(meta)
