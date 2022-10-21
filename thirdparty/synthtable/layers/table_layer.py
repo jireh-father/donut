@@ -187,9 +187,10 @@ class TableLayer(Layer):
                 self.global_style = meta['global_style']
                 options = webdriver.ChromeOptions()
                 options.add_argument('--headless')
-                # options.add_argument('--no-sandbox')
-                # options.add_argument('--disable-dev-shm-usage')
-                # options.add_argument('--detach_driver')
+                options.add_argument('--no-sandbox')
+                options.add_argument('--disable-dev-shm-usage')
+                options.add_argument('--detach_driver')
+                driver = None
                 driver = webdriver.Chrome('chromedriver', options=options)
                 self._render_table_selenium(html_path, image_path, paper, driver)
             except Exception as e:
