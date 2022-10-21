@@ -39,7 +39,7 @@ document:
       bold: 0
     layout:
       text_scale: [0.0334, 0.1]
-      max_row: 400
+      max_row: 90
       max_col: 3
       fill: [0.5, 1]
       full: 0.1

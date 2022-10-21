@@ -47,9 +47,9 @@ document:
           shuffle: False
 #          charset:
           min_row: 1
-          max_row: 400
+          max_row: 90
           min_col: 1
-          max_col: 400
+          max_col: 90
           has_span:
             prob: 0.5
           has_col_span:
@@ -106,9 +106,9 @@ document:
           shuffle: False
           charset: null
           min_row: 1
-          max_row: 400
+          max_row: 90
           min_col: 1
-          max_col: 400
+          max_col: 90
           has_span:
             prob: 0.5
           has_col_span:
@@ -602,7 +602,7 @@ document:
 #      bold: 0
 #    layout:
 #      text_scale: [0.0334, 0.1]
-#      max_row: 400
+#      max_row: 90
 #      max_col: 3
 #      fill: [0.5, 1]
 #      full: 0.1
