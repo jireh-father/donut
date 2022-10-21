@@ -201,8 +201,17 @@ class TableLayer(Layer):
                 raise e
             finally:
                 if driver and hasattr(driver, "close"):
-                    driver.close()
-                    driver.quit()
+                    try:
+                        driver.close()
+                    except:
+                        traceback.print_exc()
+                        pass
+                if driver and hasattr(driver, "quit"):
+                    try:
+                        driver.quit()
+                    except:
+                        traceback.print_exc()
+                        pass
 
             self.meta['css'] = self._convert_global_style_to_css()
             image = Image.open(image_path)
