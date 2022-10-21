@@ -282,6 +282,7 @@ class SynthTable(Component):
                         print(json.dumps(self.meta))
                         traceback.print_exc()
                         print(table_row_span_map)
+                        print("ridx", ridx, "cidx", cidx, "real_cidx", real_cidx)
                         raise e
 
                     has_row_span = td_tag.has_attr('rowspan')
