@@ -1,10 +1,18 @@
 import re
 from bs4 import BeautifulSoup
+from html import unescape
 
 close_tag_regex = re.compile('</.*?>')
 tag_regex = re.compile('<.*?>')
 close_thead_regex = re.compile('</thead>')
 thead_tbody_tag_regex = re.compile('(<tbody>|<thead>|</tbody>|</thead>)')
+multiple_space_regex = re.compile(' +')
+image_tag_regex = re.compile(r'\[\[\[img\]\]\]')
+new_line_regex = re.compile("\n")
+
+
+def remove_multiple_spaces(text):
+    return re.sub(multiple_space_regex, ' ', text)
 
 
 def remove_close_tags(text):
@@ -19,24 +27,133 @@ def remove_tags(text):
     return re.sub(tag_regex, '', text)
 
 
-def insert_tbody_tag(html):
-    if '<tbody>' not in html:
-        if '<thead>' in html[:15]:
-            html = close_thead_regex.sub('</thead><tbody>', html, 1)
+def insert_tbody_tag(bs):
+    tbody_tag = bs.new_tag("tbody")
+    children = list(bs.table.children)
+    bs.table.clear()
+    bs.table.append(tbody_tag)
+    for child in children:
+        tbody_tag.append(child)
+    return convert_bs_to_html_string(bs)
+
+
+BLOCK_TAGS = [
+    "p",
+    "div",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "textarea",
+    "li",
+    "figcaption",
+    "legend",
+    "blockquote",
+    "nav",
+    "dt",
+    "dd",
+    "pre",
+]
+
+NEW_LINE_TAGS = [
+    "br"
+]
+
+TABLE_TAGS = [
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+]
+
+
+#
+# A: 블록 태그안에 띄어쓰기 넣기 ( 해당되는 태그들 검색 )
+# 1. 태그안에 첫, 끝에 띄어쓰기 넣기
+# bs.find_all("li")[1].insert(0, " ")
+# bs.find_all("li")[1].append(" ")
+# 2. contents 돌면서 text일때만 앞뒤 띄어쓰기 넣기
+# bs.find_all("li")[1].contents[0].replace_with("hoho")
+# 3. br는 태그 자체를 " "로 변경
+# bs.find_all("li")[1].contents[0].replace_with("hoho")
+
+# B:
+# 1. table, thead, tbody, tr attr 다 지우기 =>
+
+# C: 태그 컨텐츠들 텍스트만 남기고 삭제(태그 삭제)
+# 0. <img> 태그는 남겨두고 삭제되도록
+# 1. <td> 돌면서 replace_with_childern
+# 2. td에서 colspan, rowspan 만 빼고 attr 다 삭제
+
+
+def _remove_tags(bs):
+    for block_tag_name in BLOCK_TAGS:
+        tags = bs.find_all(block_tag_name)
+        if not tags:
+            continue
+
+        for tag in tags:
+            tag.insert(0, " ")
+            tag.append(" ")
+            for child_tag in tag.contents:
+                if not child_tag.name:
+                    child_tag.replace_with(" {} ".join(child_tag.text))
+
+    for new_line_tag_name in NEW_LINE_TAGS:
+        tags = bs.find_all(new_line_tag_name)
+        if not tags:
+            continue
+
+        for tag in tags:
+            tag.replace_with(" ")
+
+    for table_tag_name in TABLE_TAGS:
+        tags = bs.find_all(table_tag_name)
+        for tag in tags:
+            tag.attrs = {}
+
+    for td in bs.find_all("td"):
+        img_tags = td.find_all("img")
+        for img_tag in img_tags:
+            img_tag.replace_with("[[[img]]]")
+        if img_tags:
+            text = re.sub(image_tag_regex, '<img>', td.text)
         else:
-            html = '<table><tbody>' + html[7:]
-        html = html[:-8] + '</tbody></table>'
-    return html
+            text = td.text
+
+        td.string = remove_multiple_spaces(text).strip()
+
+        if td.attrs:
+            keys = list(td.attrs.keys())
+            for k in keys:
+                if k not in ["colspan", "rowspan"]:
+                    del td.attrs[k]
 
 
 def remove_tag_in_table_cell(html, bs=None):
     if bs is None:
         bs = BeautifulSoup(html, 'html.parser')
-    for td in bs.find_all("td"):
-        content = "".join([str(tag) for tag in td.contents])
-        td.string = remove_tags(content).strip()
-    return str(bs)
+
+    _remove_tags(bs)
+
+    return convert_bs_to_html_string(bs)
 
 
 def remove_thead_tbody_tag(html):
     return thead_tbody_tag_regex.sub("", html)
+
+
+def convert_bs_to_html_string(bs):
+    text = bs.text
+    if "<" in text or ">" in text:
+        html = str(bs)
+        return unescape(html)
+    else:
+        return str(bs)
+
+
+def remove_new_line_and_multiple_spaces(html):
+    html = re.sub(new_line_regex, " ", html)
+    return remove_multiple_spaces(html).strip()

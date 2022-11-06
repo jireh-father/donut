@@ -79,12 +79,12 @@ def main(args):
         bs = BeautifulSoup(html, 'html.parser')
         trs = bs.find_all("tr")
         nums_row = len(trs)
-        max_col = 0
-        for tr in trs:
-            tds = tr.find_all("td")
-            if max_col < len(tds):
-                max_col = len(tds)
-        nums_col = max_col
+        nums_col = 0
+        for td in trs[0].find_all("td"):
+            if td.has_attr("colspan"):
+                nums_col += int(td["colspan"])
+            else:
+                nums_col += 1
 
         td_rowspans = bs.select('td[rowspan]')
         tmp_max_row_span = 0

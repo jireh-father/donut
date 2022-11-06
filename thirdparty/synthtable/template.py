@@ -65,6 +65,8 @@ class SynthTable(templates.Template):
         if self.html_output["remove_close_tag"]:
             html = html_util.remove_close_tags(html)
 
+        html = html_util.remove_new_line_and_multiple_spaces(html)
+
         return html
 
     def generate(self):

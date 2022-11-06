@@ -14,15 +14,8 @@ from synthtiger import components
 import random
 from utils.html_util import remove_tags
 from utils.charset import Charset
-from html import unescape
+from utils.html_util import convert_bs_to_html_string
 
-
-def convert_bs_to_html_string(bs):
-    if "<" in bs.text or ">" in bs.text:
-        html = str(bs)
-        return unescape(html)
-    else:
-        return str(bs)
 
 
 class SynthTable(Component):
@@ -273,17 +266,8 @@ class SynthTable(Component):
             td_tags = tr_element.find_all("td")
             for cidx, td_tag in enumerate(td_tags):
                 if self.meta['span']:
-                    try:
-                        while real_cidx < self.meta['nums_col'] and table_row_span_map[ridx][real_cidx]:
-                            real_cidx += 1
-                    except Exception as e:
-                        del self.meta['html_bs']
-                        print(self.meta)
-                        print(json.dumps(self.meta))
-                        traceback.print_exc()
-                        print(table_row_span_map)
-                        print("ridx", ridx, "cidx", cidx, "real_cidx", real_cidx)
-                        raise e
+                    while table_row_span_map[ridx][real_cidx]:
+                        real_cidx += 1
 
                     has_row_span = td_tag.has_attr('rowspan')
                     has_col_span = td_tag.has_attr('colspan')
@@ -731,11 +715,16 @@ class SynthTable(Component):
             # static html
             html_result = self._sample_html_path()
             html_path, html_json = html_result
+            if 'html_bs' not in self.meta:
+                bs = BeautifulSoup(html_json['html'], 'html.parser')
+                self.meta['html_bs'] = bs
+
             self.meta['html_path'] = html_path
             html = html_json['html'].strip()
             # insert tbody
-            html = html_util.insert_tbody_tag(html)
-            self.meta['has_thead'] = '<thead>' in html[:15]
+            if not self.meta['html_bs'].find("tbody"):
+                html = html_util.insert_tbody_tag(self.meta['html_bs'])
+            self.meta['has_thead'] = True if self.meta['html_bs'].find("thead") else False
             if self.meta['has_thead']:
                 if 'html_bs' not in self.meta:
                     self.meta['html_bs'] = BeautifulSoup(html_json['html'], 'html.parser')
@@ -747,7 +736,7 @@ class SynthTable(Component):
             self.meta['span'] = html_json['has_span']
 
         if 'html_bs' not in self.meta:
-            self.meta['html_bs'] = BeautifulSoup(meta['html'], 'html.parser')
+            self.meta['html_bs'] = BeautifulSoup(self.meta['html'], 'html.parser')
 
         # synth config
         synth_content = self.config_selectors['html']['synth_content'].on()
@@ -785,7 +774,10 @@ class SynthTable(Component):
                 html_json_path, _, _ = self.html_path_selector.select()
             else:
                 html_json_path = self.html_path_selector.get(0, self.html_file_idx)
-                self.html_file_idx += 1
+                if len(self.html_path_selector.paths[0]) <= self.html_file_idx + 1:
+                    self.html_file_idx = 0
+                else:
+                    self.html_file_idx += 1
 
             html_json = json.load(open(html_json_path), encoding='utf-8')
 
