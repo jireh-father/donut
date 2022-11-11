@@ -96,9 +96,7 @@ def test(args, config):
             sample_data = json.loads(sample["ground_truth"])
             im = Image.open(os.path.join(args.dataset_name_or_path, file_name))
             width, height = im.size
-            pred = model.inference(im, prompt=f"<s_tableocr>")["predictions"][0]
-            print("gt before", sample_data["gt_parse"]["text_sequence"])
-            print("pred before", pred['text_sequence'])
+            pred = model.inference(im, prompt=f"<s_tableocr>", return_json=False)["predictions"][0]
             gt = T.postprocess_html_tag(sample_data["gt_parse"]["text_sequence"])
             pred = T.postprocess_html_tag(pred['text_sequence'])
 
