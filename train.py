@@ -123,9 +123,10 @@ def train(config):
         monitor="val_metric",
         dirpath=Path(config.result_path) / config.exp_name / config.exp_version,
         filename="artifacts",
-        save_top_k=1,
+        save_top_k=-1,
         save_last=False,
-        mode="min",
+        mode="max",
+        every_n_epochs=1
     )
 
     custom_ckpt = CustomCheckpointIO()
