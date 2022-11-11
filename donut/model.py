@@ -605,6 +605,7 @@ class DonutModel(PreTrainedModel):
         )
 
         output = {"predictions": list()}
+        print(decoder_output.sequences)
         for seq in self.decoder.tokenizer.batch_decode(decoder_output.sequences):
             print("before", seq)
             seq = seq.replace(self.decoder.tokenizer.eos_token, "").replace(self.decoder.tokenizer.pad_token, "")
