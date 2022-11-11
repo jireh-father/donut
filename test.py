@@ -98,7 +98,7 @@ def test(args, config):
             width, height = im.size
             pred = model.inference(im, prompt=f"<s_tableocr>", return_json=False)["predictions"][0]
             gt = T.postprocess_html_tag(sample_data["gt_parse"]["text_sequence"])
-            print(pred['text_sequence'])
+            print(pred)
             pred = T.postprocess_html_tag(pred['text_sequence'])
 
             file_list.append(file_name)
