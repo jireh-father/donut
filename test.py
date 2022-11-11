@@ -69,7 +69,6 @@ def test(args, config):
 
     teds_metric_struct = T.TEDS(True, n_jobs=args.num_processes)
     teds_metric = T.TEDS(n_jobs=args.num_processes)
-    print(args.dataset_name_or_path)
     dataset = load_dataset(args.dataset_name_or_path, data_files='metadata.jsonl')['train']
 
     tag_re = re.compile(r'<[^>]+>')
