@@ -211,7 +211,12 @@ class SynthTable(Component):
                 self.global_style["thead tr:nth-child(even)"]["color"] = font_color
         elif self.meta['table_background_config'] == 'multi_color':
             font_color = self._sample_fg_color(color_mode)
-            for i in range(1, self.meta['nums_row'] - self.meta['nums_head_row'] + 1):
+            if self.meta['has_thead']:
+                max_row = self.meta['nums_row'] - self.meta['nums_head_row']
+            else:
+                max_row = self.meta['nums_row']
+            for i in range(1, max_row + 1):
+            # for i in range(1, self.meta['nums_row'] - self.meta['nums_head_row'] + 1):
                 self.global_style["tbody tr:nth-child({})".format(i)]["background-color"] = self._sample_bg_color(
                     color_mode)
                 self.global_style["tbody tr:nth-child({})".format(i)]["color"] = font_color
@@ -257,8 +262,11 @@ class SynthTable(Component):
         tr_elements = self.meta['html_bs'].find(css_selector).find_all("tr")
         for ridx in range(len(tr_elements) - 1):
             for cidx, td_element in enumerate(tr_elements[ridx].find_all("td")):
-                if td_element.has_attr('rowspan') and int(td_element['rowspan']) == self.meta['nums_head_row'] - (
-                        ridx):
+                tmp_ridx = ridx
+                if self.meta['has_thead']:
+                    tmp_ridx = self.meta['nums_head_row'] - ridx
+
+                if td_element.has_attr('rowspan') and int(td_element['rowspan']) == tmp_ridx:
                     continue
                 self._set_global_border('{} tr:nth-child({}) td:nth-child({})'.format(css_selector, ridx + 1, cidx + 1),
                                         'bottom')
@@ -784,7 +792,6 @@ class SynthTable(Component):
         self.meta['num_less_cell'] = self.num_less_cell
 
         self.meta['max_empty_cell_ratio'] = self.max_empty_cell_ratio
-
 
         return self.meta
 
