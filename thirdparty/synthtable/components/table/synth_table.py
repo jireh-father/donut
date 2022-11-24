@@ -220,10 +220,11 @@ class SynthTable(Component):
                 self.global_style["tbody tr:nth-child({})".format(i)]["background-color"] = self._sample_bg_color(
                     color_mode)
                 self.global_style["tbody tr:nth-child({})".format(i)]["color"] = font_color
-            for i in range(1, self.meta['nums_head_row'] + 1):
-                self.global_style["thead tr:nth-child({})".format(i)]["background-color"] = self._sample_bg_color(
-                    color_mode)
-                self.global_style["thead tr:nth-child({})".format(i)]["color"] = font_color
+            if self.meta['has_thead']:
+                for i in range(1, self.meta['nums_head_row'] + 1):
+                    self.global_style["thead tr:nth-child({})".format(i)]["background-color"] = self._sample_bg_color(
+                        color_mode)
+                    self.global_style["thead tr:nth-child({})".format(i)]["color"] = font_color
         elif self.meta['table_background_config'] == 'solid':
             self.global_style["table"]["background-color"] = self._sample_bg_color(color_mode)
             self.global_style["table"]["color"] = self._sample_fg_color(color_mode)
