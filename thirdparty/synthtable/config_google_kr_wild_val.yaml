@@ -39,7 +39,7 @@ document:
       static:
         weight: 1
         image:
-          paths: [ resources/table_image/google_kr_ori/val ]
+          paths: [ resources/table_image/google_kr/val ]
           min_image_size_ratio: [ 0.9 ]
         html:
           paths: [ resources/table_html/google_kr/val ]
