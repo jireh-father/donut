@@ -23,7 +23,7 @@ from donut.swin_v2_with_vit import SwinV2WithVit
 # from donut.swin_transformer import SwinTransformer
 from torchvision import transforms
 from torchvision.transforms.functional import resize, rotate
-from transformers import MBartConfig, MBartForCausalLM, AutoTokenizer, XLMRobertaTokenizer, MBartModel
+from transformers import MBartConfig, MBartForCausalLM, AutoTokenizer, XLMRobertaTokenizer, MBartModel, BertModel
 from transformers.models.mbart.modeling_mbart import MBartEncoder
 from transformers.file_utils import ModelOutput
 from transformers.modeling_utils import PretrainedConfig, PreTrainedModel

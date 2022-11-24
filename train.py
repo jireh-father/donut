@@ -71,42 +71,44 @@ def train(config):
             synth_config_path=config.synth_config_path
         )]
         for i, dataset_name_or_path in enumerate(config.dataset_name_or_paths):
-            datasets["validation"].append(
-                DonutDataset(
-                    dataset_name_or_path=dataset_name_or_path,
-                    donut_model=model_module.model,
-                    max_length=config.max_length,
-                    split="validation",
-                    task_start_token=config.task_start_tokens[i]
-                    if config.get("task_start_tokens", None)
-                    else f"<s_{config.task_name}>",
-                    prompt_end_token=f"<s_{config.task_name}>",
-                    sort_json_key=config.sort_json_key,
+            if os.path.isdir(os.path.join(dataset_name_or_path, "validation")):
+                datasets["validation"].append(
+                    DonutDataset(
+                        dataset_name_or_path=dataset_name_or_path,
+                        donut_model=model_module.model,
+                        max_length=config.max_length,
+                        split="validation",
+                        task_start_token=config.task_start_tokens[i]
+                        if config.get("task_start_tokens", None)
+                        else f"<s_{config.task_name}>",
+                        prompt_end_token=f"<s_{config.task_name}>",
+                        sort_json_key=config.sort_json_key,
+                    )
                 )
-            )
-            data_module.val_datasets = datasets["validation"]
+        data_module.val_datasets = datasets["validation"]
     else:
         for i, dataset_name_or_path in enumerate(config.dataset_name_or_paths):
             # task_name = os.path.basename(dataset_name_or_path)  # e.g., cord-v2, docvqa, rvlcdip, ...
 
             task_name = config.task_name
             for split in ["train", "validation"]:
-                datasets[split].append(
-                    DonutDataset(
-                        dataset_name_or_path=dataset_name_or_path,
-                        donut_model=model_module.model,
-                        max_length=config.max_length,
-                        split=split,
-                        task_start_token=config.task_start_tokens[i]
-                        if config.get("task_start_tokens", None)
-                        else f"<s_{task_name}>",
-                        prompt_end_token="<s_answer>" if "docvqa" in dataset_name_or_path else f"<s_{task_name}>",
-                        sort_json_key=config.sort_json_key,
+                if os.path.isdir(os.path.join(dataset_name_or_path, split)):
+                    datasets[split].append(
+                        DonutDataset(
+                            dataset_name_or_path=dataset_name_or_path,
+                            donut_model=model_module.model,
+                            max_length=config.max_length,
+                            split=split,
+                            task_start_token=config.task_start_tokens[i]
+                            if config.get("task_start_tokens", None)
+                            else f"<s_{task_name}>",
+                            prompt_end_token="<s_answer>" if "docvqa" in dataset_name_or_path else f"<s_{task_name}>",
+                            sort_json_key=config.sort_json_key,
+                        )
                     )
-                )
-                # prompt_end_token is used for ignoring a given prompt in a loss function
-                # for docvqa task, i.e., {"question": {used as a prompt}, "answer": {prediction target}},
-                # set prompt_end_token to "<s_answer>"
+                    # prompt_end_token is used for ignoring a given prompt in a loss function
+                    # for docvqa task, i.e., {"question": {used as a prompt}, "answer": {prediction target}},
+                    # set prompt_end_token to "<s_answer>"
         data_module.train_datasets = datasets["train"]
         data_module.val_datasets = datasets["validation"]
 

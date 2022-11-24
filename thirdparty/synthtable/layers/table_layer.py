@@ -95,7 +95,44 @@ class TableLayer(Layer):
         window_width = 6000
         window_height = 6000
         driver.set_window_size(window_width, window_height)
+
+        # todo: 예외 처리 추가
+        img_elements = driver.find_elements(By.TAG_NAME, 'img')
+        image_sizes = []
+        num_big_images = 0
+        for img_element in img_elements:
+            w = img_element.size['width']
+            h = img_element.size['height']
+            image_sizes.append([w, h])
+            if w > self.meta['max_image_width'] or h > self.meta['max_image_height']:
+                num_big_images += 1
+                driver.execute_script("""
+                var element = arguments[0];
+                element.parentNode.removeChild(element);
+                """, img_element)
+
+        if num_big_images > 0:
+            tds = driver.find_elements(By.TAG_NAME, 'td')
+            num_td = len(tds)
+
+            if num_big_images / num_td > self.meta['max_big_image_ratio']:
+                return False
+
+            if num_td <= self.meta['num_less_cell'] and num_big_images / num_td > self.meta[
+                'max_big_image_ratio_when_less_cells']:
+                return False
+
+            if self.meta['max_empty_cell_ratio']:
+                num_empty_tds = 0
+                for td in tds:
+                    if not td.text.strip():
+                        num_empty_tds += 1
+                if num_empty_tds / len(tds) > self.meta['max_empty_cell_ratio']:
+                    return False
+
         table_element = driver.find_element(By.TAG_NAME, 'table')
+        if num_big_images > 0:
+            self.html = table_element.get_attribute('outerHTML')
         table_width = table_element.size['width']
         table_height = table_element.size['height']
         if not self.meta['table_full_size']:
@@ -136,6 +173,7 @@ class TableLayer(Layer):
         # driver.set_window_size(int(image_width * 1.5), int(image_height * 1.5))
         div_element = driver.find_element(By.ID, 'table_wrapper')
         div_element.screenshot(image_path)
+        return True
 
     def effect(self, image):
         selectors = parse_config(self.meta["effect_config"])
@@ -192,13 +230,16 @@ class TableLayer(Layer):
                 options.add_argument('--detach_driver')
                 driver = None
                 driver = webdriver.Chrome('chromedriver', options=options)
-                self._render_table_selenium(html_path, image_path, paper, driver)
+                ret = self._render_table_selenium(html_path, image_path, paper, driver)
+                if not ret:
+                    return False
             except Exception as e:
                 if os.path.isfile(image_path):
                     os.unlink(image_path)
                 if os.path.isfile(html_path):
                     os.unlink(html_path)
-                raise e
+                # raise e
+                return False
             finally:
                 if driver and hasattr(driver, "close"):
                     try:
@@ -228,3 +269,5 @@ class TableLayer(Layer):
                 image.close()
             image = None
             os.unlink(image_path)
+
+        return True

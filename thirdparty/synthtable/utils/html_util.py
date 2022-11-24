@@ -6,9 +6,12 @@ close_tag_regex = re.compile('</.*?>')
 tag_regex = re.compile('<.*?>')
 close_thead_regex = re.compile('</thead>')
 thead_tbody_tag_regex = re.compile('(<tbody>|<thead>|</tbody>|</thead>)')
-multiple_space_regex = re.compile(' +')
+multiple_space_regex = re.compile('\s+')
 image_tag_regex = re.compile(r'\[\[\[img\]\]\]')
 new_line_regex = re.compile("\n")
+space_tr_tag_regex = re.compile(r"\s?<tr>\s?")
+space_td_tag_regex = re.compile(r"\s?<td>\s?")
+space_img_tag_regex = re.compile(r"\s?<img>\s?")
 
 
 def remove_multiple_spaces(text):
@@ -47,7 +50,7 @@ BLOCK_TAGS = [
     "h5",
     "h6",
     "textarea",
-    "li",
+    # "li",
     "figcaption",
     "legend",
     "blockquote",
@@ -87,6 +90,18 @@ TABLE_TAGS = [
 # 1. <td> 돌면서 replace_with_childern
 # 2. td에서 colspan, rowspan 만 빼고 attr 다 삭제
 
+def set_li_marker(li_tag, ol_type, idx):
+    if ol_type == "1":
+        li_tag.replace_with(" {}. {} ".format(idx + 1, li_tag.text))
+    elif ol_type == "a":
+        li_tag.replace_with(" {}. {} ".format(chr(idx + 97), li_tag.text))
+    elif ol_type == "A":
+        li_tag.replace_with(" {}. {} ".format(chr(idx + 65), li_tag.text))
+    elif ol_type == "i":
+        li_tag.replace_with(" {}. {} ".format(chr(idx + 8560), li_tag.text))
+    elif ol_type == "I":
+        li_tag.replace_with(" {}. {} ".format(chr(idx + 8544), li_tag.text))
+
 
 def _remove_tags(bs):
     for block_tag_name in BLOCK_TAGS:
@@ -97,9 +112,21 @@ def _remove_tags(bs):
         for tag in tags:
             tag.insert(0, " ")
             tag.append(" ")
-            for child_tag in tag.contents:
+            contents = tag.contents.copy()
+            for child_tag in contents:
                 if not child_tag.name:
-                    child_tag.replace_with(" {} ".join(child_tag.text))
+                    child_tag.replace_with(" {} ".format(child_tag.text))
+
+    for ol_tag in bs.find_all("ol"):
+        ol_type = "1"
+        if ol_tag.has_attr("type") and ol_tag["type"] in ["1", "a", "A", "i", "I"]:
+            ol_type = ol_tag["type"]
+        for idx, li_tag in enumerate(ol_tag.find_all("li").copy()):
+            set_li_marker(li_tag, ol_type, idx)
+
+    for ol_tag in bs.find_all("ul"):
+        for idx, li_tag in enumerate(ol_tag.find_all("li").copy()):
+            li_tag.replace_with(" {} {} ".format(chr(int('2022', 16)), li_tag.text))
 
     for new_line_tag_name in NEW_LINE_TAGS:
         tags = bs.find_all(new_line_tag_name)
@@ -130,6 +157,9 @@ def _remove_tags(bs):
             for k in keys:
                 if k not in ["colspan", "rowspan"]:
                     del td.attrs[k]
+                else:
+                    if td.attrs[k] == "1":
+                        del td.attrs[k]
 
 
 def remove_tag_in_table_cell(html, bs=None):
@@ -156,4 +186,8 @@ def convert_bs_to_html_string(bs):
 
 def remove_new_line_and_multiple_spaces(html):
     html = re.sub(new_line_regex, " ", html)
-    return remove_multiple_spaces(html).strip()
+    html = remove_multiple_spaces(html).strip()
+    html = re.sub(space_tr_tag_regex, "<tr>", html)
+    html = re.sub(space_td_tag_regex, "<td>", html)
+    html = re.sub(space_img_tag_regex, "<img>", html)
+    return html

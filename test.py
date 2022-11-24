@@ -22,6 +22,7 @@ from tqdm import tqdm
 from donut import DonutModel, JSONParseEvaluator, load_json, save_json, DonutConfig
 import teds as T
 from sconf import Config
+from collections import defaultdict
 
 
 def remove_html_tags(text):
@@ -69,7 +70,7 @@ def test(args, config):
 
     teds_metric_struct = T.TEDS(True, n_jobs=args.num_processes)
     teds_metric = T.TEDS(n_jobs=args.num_processes)
-    dataset = load_dataset(args.dataset_name_or_path, data_files='metadata.jsonl')['train']
+
 
     tag_re = re.compile(r'<[^>]+>')
     gt_list = []
@@ -78,93 +79,110 @@ def test(args, config):
 
     total_teds_all = []
     total_teds_struct = []
+    dataset_teds_all = defaultdict(list)
+    dataset_teds_struct = defaultdict(list)
     # total_teds_content = []
 
     error_data = []
 
     result_path = os.path.join(args.output_dir, "results.jsonl")
+    dataset_path_list = args.dataset_name_or_paths.split(",")
     with open(result_path, "w+", encoding="utf-8") as output:
-        for idx, sample in enumerate(dataset):
-            if args.start_index and args.start_index > idx:
-                if idx % 10 == 0:
-                    print("skip", idx)
-                continue
-            if args.test_cnt and args.test_cnt < idx:
-                break
-            file_name = sample["file_name"]
-            print("###", file_name, "{}/{}".format(idx, len(dataset)))
-            sample_data = json.loads(sample["ground_truth"])
-            im = Image.open(os.path.join(args.dataset_name_or_path, file_name))
-            width, height = im.size
-            pred = model.inference(im, prompt=f"<s_tableocr>")["predictions"][0]
-            gt = T.postprocess_html_tag(sample_data["gt_parse"]["text_sequence"])
-            pred = re.sub(r"(?:(?<=>) | (?=</s_))", "", pred['text_sequence'])
-            pred = T.postprocess_html_tag(pred)
+        for dataset_idx, dataset_name_or_path in enumerate(dataset_path_list):
+            dataset_name = os.path.basename(dataset_name_or_path)
+            dataset = load_dataset(dataset_name_or_path, data_files={"validation": "validation/metadata.jsonl"})["validation"]
 
-            file_list.append(file_name)
-            gt_list.append(gt)
-            pred_list.append(pred)
-            if len(gt_list) == args.num_processes:
-                teds_all_list = teds_metric.batch(pred_list, gt_list)
+            # dataset = load_dataset(args.dataset_name_or_path, data_files='metadata.jsonl')['train']
+            for idx, sample in enumerate(dataset):
+                if args.start_index and args.start_index > idx:
+                    if idx % 10 == 0:
+                        print("skip", idx)
+                    continue
+                if args.test_cnt and args.test_cnt < idx:
+                    break
+                file_name = sample["file_name"]
+                print("###{}/{}/{}".format(dataset_name, dataset_idx, len(dataset_path_list)), file_name, "{}/{}".format(idx, len(dataset)))
+                sample_data = json.loads(sample["ground_truth"])
+                im = Image.open(os.path.join(args.dataset_name_or_path, file_name))
+                width, height = im.size
+                pred = model.inference(im, prompt=f"<s_tableocr>")["predictions"][0]
+                gt = T.postprocess_html_tag(sample_data["gt_parse"]["text_sequence"])
+                pred = re.sub(r"(?:(?<=>) | (?=</s_))", "", pred['text_sequence'])
+                pred = T.postprocess_html_tag(pred)
 
-                teds_struct_list = teds_metric_struct.batch(pred_list, gt_list)
-                pred_content_list = [convert(pred) for pred in pred_list]
-                gt_content_list = [convert(gt) for gt in gt_list]
-                # teds_content_list = teds_metric.batch(pred_content_list, gt_content_list)
-                total_teds_all += teds_all_list
-                total_teds_struct += teds_struct_list
-                # total_teds_content += teds_content_list
+                file_list.append(file_name)
+                gt_list.append(gt)
+                pred_list.append(pred)
+                if len(gt_list) == args.num_processes:
+                    teds_all_list = teds_metric.batch(pred_list, gt_list)
 
-                for j, gt in enumerate(gt_list):
-                    teds_all = teds_all_list[j]
-                    teds_struct = teds_struct_list[j]
-                    # teds_content = teds_content_list[j]
-                    pred = pred_list[j]
+                    teds_struct_list = teds_metric_struct.batch(pred_list, gt_list)
+                    pred_content_list = [convert(pred) for pred in pred_list]
+                    gt_content_list = [convert(gt) for gt in gt_list]
+                    # teds_content_list = teds_metric.batch(pred_content_list, gt_content_list)
+                    total_teds_all += teds_all_list
+                    total_teds_struct += teds_struct_list
+                    if len(dataset_path_list) > 1:
+                        dataset_teds_all[dataset_name] += teds_all_list
+                        dataset_teds_struct[dataset_name] += teds_struct_list
+                    # total_teds_content += teds_content_list
 
-                    item = {
-                        "file_name": file_list[j],
-                        "gt": gt,
-                        "pred": pred,
-                        "teds_all": teds_all,
-                        "teds_struct": teds_struct,
-                        # "teds_content": teds_content,
-                        "image_width": width,
-                        "image_height": height
-                    }
-                    try:
-                        output.write("{}\n".format(json.dumps(item)))
-                    except:
-                        item['index'] = idx
-                        error_data.append(item)
-                        traceback.print_exc()
+                    for j, gt in enumerate(gt_list):
+                        teds_all = teds_all_list[j]
+                        teds_struct = teds_struct_list[j]
+                        # teds_content = teds_content_list[j]
+                        pred = pred_list[j]
 
-                    if args.verbose:
-                        print("")
-                        print("#####", file_list[j])
-                        print("===== gt")
-                        print(gt)
-                        print("===== pred")
-                        print(pred)
-                        print("===== gt contents")
-                        print(gt_content_list[j])
-                        print("===== pred contents")
-                        print(pred_content_list[j])
-                        print("===== gt structure")
-                        print("".join(tag_re.findall(gt)))
-                        print("===== pred structure")
-                        print("".join(tag_re.findall(pred)))
-                        print("===== teds all", teds_all)
-                        print("===== teds structure", teds_struct)
-                        # print("===== teds content", teds_content)
-                gt_list = []
-                pred_list = []
-                file_list = []
+                        item = {
+                            "file_name": file_list[j],
+                            "gt": gt,
+                            "pred": pred,
+                            "teds_all": teds_all,
+                            "teds_struct": teds_struct,
+                            # "teds_content": teds_content,
+                            "image_width": width,
+                            "image_height": height,
+                            "dataset_name": dataset_name
+                        }
+                        try:
+                            output.write("{}\n".format(json.dumps(item)))
+                        except:
+                            item['index'] = idx
+                            error_data.append(item)
+                            traceback.print_exc()
+
+                        if args.verbose:
+                            print("")
+                            print("#####", file_list[j])
+                            print("===== gt")
+                            print(gt)
+                            print("===== pred")
+                            print(pred)
+                            print("===== gt contents")
+                            print(gt_content_list[j])
+                            print("===== pred contents")
+                            print(pred_content_list[j])
+                            print("===== gt structure")
+                            print("".join(tag_re.findall(gt)))
+                            print("===== pred structure")
+                            print("".join(tag_re.findall(pred)))
+                            print("===== teds all", teds_all)
+                            print("===== teds structure", teds_struct)
+                            # print("===== teds content", teds_content)
+                    gt_list = []
+                    pred_list = []
+                    file_list = []
 
     total_teds_mean = {
         "teds_all": np.mean(total_teds_all),
         "teds_structure": np.mean(total_teds_struct),
         # "teds_content": np.mean(total_teds_content)
     }
+    if len(dataset_path_list) > 1:
+        for dataset_name in dataset_teds_all:
+            total_teds_mean["teds_all_{}".format(dataset_name)] = np.mean(dataset_teds_all[dataset_name])
+        for dataset_name in dataset_teds_struct:
+            total_teds_mean["teds_structure_{}".format(dataset_name)] = np.mean(dataset_teds_struct[dataset_name])
 
     if error_data:
         pickle.dump(error_data, open(os.path.join(args.output_dir, "errors.pickle"), "wb+"))

@@ -55,6 +55,7 @@ document:
             prob: 0.5
           has_row_span:
             prob: 0.5
+          max_empty_cell_ratio: 0.9
         effect:
           distort:
             prob: 0.5
@@ -113,6 +114,7 @@ document:
             prob: 0.5
           has_row_span:
             prob: 0.5
+          max_empty_cell_ratio: 0.9
           tmp_path: tmp
           structure:
             static_html:

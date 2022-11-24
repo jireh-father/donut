@@ -1,6 +1,7 @@
 import os.path
 import json
 import traceback
+from bs4 import BeautifulSoup
 
 from PIL import Image
 from utils import image_util
@@ -27,6 +28,9 @@ class StaticTable(Component):
         self.max_rows = config_selectors['html']['max_row'].select()
         self.min_cols = config_selectors['html']['min_col'].select()
         self.max_cols = config_selectors['html']['max_row'].select()
+        self.max_empty_cell_ratio = config_selectors['html']['max_empty_cell_ratio'].select()
+        self.max_image_width = config_selectors['html']['max_image_width'].select()
+        self.max_image_height = config_selectors['html']['max_image_height'].select()
 
         self.has_span = self.config_selectors['html']['has_span']
         self.has_col_span = self.config_selectors['html']['has_col_span']
@@ -65,6 +69,8 @@ class StaticTable(Component):
         meta['has_span'] = self.has_span.on()
         meta['has_row_span'] = self.has_row_span.on()
         meta['has_col_span'] = self.has_col_span.on()
+        meta['max_image_height'] = self.max_image_height
+        meta['max_image_width'] = self.max_image_width
 
         return meta
 
@@ -79,6 +85,16 @@ class StaticTable(Component):
 
             html_json_path = meta['html_path']
             html_json = json.load(open(html_json_path), encoding='utf-8')
+
+            if self.max_empty_cell_ratio:
+                bs = BeautifulSoup(html_json['html'], 'html.parser')
+                num_empty_tds = 0
+                tds = bs.find_all("td")
+                for td in tds:
+                    if not td.text.strip():
+                        num_empty_tds += 1
+                if num_empty_tds / len(tds) > self.max_empty_cell_ratio:
+                    continue
 
             if self.html_path_shuffle:
                 if self.min_cols > html_json['nums_col'] or self.max_cols < html_json['nums_col']:

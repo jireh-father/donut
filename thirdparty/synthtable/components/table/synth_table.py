@@ -17,7 +17,6 @@ from utils.charset import Charset
 from utils.html_util import convert_bs_to_html_string
 
 
-
 class SynthTable(Component):
     def __init__(self, config_selectors, config):
         super().__init__()
@@ -58,6 +57,13 @@ class SynthTable(Component):
         self.max_rows = config_selectors['html']['max_row'].select()
         self.min_cols = config_selectors['html']['min_col'].select()
         self.max_cols = config_selectors['html']['max_row'].select()
+        self.max_empty_cell_ratio = config_selectors['html']['max_empty_cell_ratio'].select()
+        self.max_image_width = config_selectors['html']['max_image_width'].select()
+        self.max_image_height = config_selectors['html']['max_image_height'].select()
+        self.max_big_image_ratio = config_selectors['html']['max_big_image_ratio'].select()
+        self.max_big_image_ratio_when_less_cells = config_selectors['html'][
+            'max_big_image_ratio_when_less_cells'].select()
+        self.num_less_cell = config_selectors['html']['num_less_cell'].select()
 
         self.has_span = config_selectors['html']['has_span']
         self.has_col_span = config_selectors['html']['has_col_span']
@@ -714,11 +720,12 @@ class SynthTable(Component):
         else:
             # static html
             html_result = self._sample_html_path()
+            if html_result is False:
+                return self.sample()
             html_path, html_json = html_result
             if 'html_bs' not in self.meta:
                 bs = BeautifulSoup(html_json['html'], 'html.parser')
                 self.meta['html_bs'] = bs
-
             self.meta['html_path'] = html_path
             html = html_json['html'].strip()
             # insert tbody
@@ -737,6 +744,15 @@ class SynthTable(Component):
 
         if 'html_bs' not in self.meta:
             self.meta['html_bs'] = BeautifulSoup(self.meta['html'], 'html.parser')
+
+        if self.max_empty_cell_ratio:
+            num_empty_tds = 0
+            tds = self.meta['html_bs'].find_all("td")
+            for td in tds:
+                if not td.text.strip():
+                    num_empty_tds += 1
+            if num_empty_tds / len(tds) > self.max_empty_cell_ratio:
+                return self.sample()
 
         # synth config
         synth_content = self.config_selectors['html']['synth_content'].on()
@@ -759,6 +775,16 @@ class SynthTable(Component):
 
         # etc
         self.meta['tmp_path'] = self.config_selectors['html']['tmp_path'].select()
+
+        self.meta['max_image_height'] = self.max_image_height
+        self.meta['max_image_width'] = self.max_image_width
+
+        self.meta['max_big_image_ratio'] = self.max_big_image_ratio
+        self.meta['max_big_image_ratio_when_less_cells'] = self.max_big_image_ratio_when_less_cells
+        self.meta['num_less_cell'] = self.num_less_cell
+
+        self.meta['max_empty_cell_ratio'] = self.max_empty_cell_ratio
+
 
         return self.meta
 
@@ -969,4 +995,6 @@ class SynthTable(Component):
         self.meta["effect_config"] = self.config['effect']
         for layer in layers:
             # rendering
-            layer.render_table(paper=paper, meta=self.meta)
+            ret = layer.render_table(paper=paper, meta=self.meta)
+            if not ret:
+                return self.apply(layers)

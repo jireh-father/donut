@@ -3,6 +3,7 @@ Donut
 Copyright (c) 2022-present NAVER Corp.
 MIT License
 """
+import glob
 import json
 import synthtiger
 import os
@@ -15,6 +16,24 @@ from synthtiger import components, layers, templates
 from utils import html_util
 from selenium import webdriver
 
+
+def format_metadata(image_filename: str, keys: List[str], values: List[Any]):
+    """
+    Fit gt_parse contents to huggingface dataset's format
+    keys and values, whose lengths are equal, are used to constrcut 'gt_parse' field in 'ground_truth' field
+    Args:
+        keys: List of task_name
+        values: List of actual gt data corresponding to each task_name
+    """
+    assert len(keys) == len(values), "Length does not match: keys({}), values({})".format(len(keys), len(values))
+
+    _gt_parse_v = dict()
+    for k, v in zip(keys, values):
+        _gt_parse_v[k] = v
+    gt_parse = {"gt_parse": _gt_parse_v}
+    gt_parse_str = json.dumps(gt_parse, ensure_ascii=False)
+    metadata = {"file_name": image_filename, "ground_truth": gt_parse_str}
+    return metadata
 
 class SynthTable(templates.Template):
     def __init__(self, config=None):
@@ -165,7 +184,7 @@ class SynthTable(templates.Template):
         metadata_filepath = os.path.join(output_dirpath, metadata_filename)
         os.makedirs(os.path.dirname(metadata_filepath), exist_ok=True)
 
-        metadata = self.format_metadata(image_filename=image_filename, keys=["text_sequence"], values=[label])
+        metadata = format_metadata(image_filename=image_filename, keys=["text_sequence"], values=[label])
         with open(metadata_filepath, "a", encoding='utf-8') as fp:
             json.dump(metadata, fp, ensure_ascii=False)
             fp.write("\n")
@@ -179,25 +198,6 @@ class SynthTable(templates.Template):
     def end_save(self, root):
         pass
 
-    def format_metadata(self, image_filename: str, keys: List[str], values: List[Any]):
-        """
-        Fit gt_parse contents to huggingface dataset's format
-        keys and values, whose lengths are equal, are used to constrcut 'gt_parse' field in 'ground_truth' field
-        Args:
-            keys: List of task_name
-            values: List of actual gt data corresponding to each task_name
-        """
-        assert len(keys) == len(values), "Length does not match: keys({}), values({})".format(len(keys), len(values))
-
-        _gt_parse_v = dict()
-        for k, v in zip(keys, values):
-            _gt_parse_v[k] = v
-        gt_parse = {"gt_parse": _gt_parse_v}
-        gt_parse_str = json.dumps(gt_parse, ensure_ascii=False)
-        metadata = {"file_name": image_filename, "ground_truth": gt_parse_str}
-        return metadata
-
-
 if __name__ == '__main__':
     # parser = argparse.ArgumentParser()
     #
@@ -208,7 +208,7 @@ if __name__ == '__main__':
     # parser.add_argument('--line_width', type=int, default=1)
     # parser.add_argument('--use_cuda', action='store_true', default=False)
 
-    synth_table = SynthTable(synthtiger.read_config("config_pc_test.yaml"))
+    synth_table = SynthTable(synthtiger.read_config("config_pc_test_crawling.yaml"))
     data = synth_table.generate()
     synth_table.save("./output", data, 1)
     data = synth_table.generate()

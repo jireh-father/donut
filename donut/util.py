@@ -62,8 +62,10 @@ class DonutDataset(Dataset):
         self.prompt_end_token = prompt_end_token if prompt_end_token else task_start_token
         self.sort_json_key = sort_json_key
         self.dataset_name_or_path = dataset_name_or_path
-        self.dataset = load_dataset(os.path.join(dataset_name_or_path, self.split), data_files='metadata.jsonl')[
-            'train']
+
+        self.dataset = load_dataset(dataset_name_or_path, data_files={split: "{}/metadata.jsonl".format(split)})[split]
+        # self.dataset = load_dataset(os.path.join(dataset_name_or_path, self.split), data_files='metadata.jsonl')[
+        #     'train']
         self.dataset_length = len(self.dataset)
         self.gt_token_sequences = []
 
