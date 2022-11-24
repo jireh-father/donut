@@ -1,0 +1,704 @@
+quality: [60, 95]
+
+save_meta: false
+
+html_output:
+  remove_close_tag: true
+  remove_thead_tbody: true
+  remove_tag_in_content: true
+
+background:
+  weights:
+    image: 1
+    color: 1
+  image:
+    paths: [resources/background/background,resources/background/deep_learning_paper,resources/background/document,resources/background/free_photo,resources/background/high_street,resources/background/random_image,resources/background/scholar_paper,resources/background/text]
+    weights: [1,1,1,1,1,1,1,1]
+    alpha: [ 0.8, 1.0 ]
+    grayscale: 0.5
+    crop: 0.5
+  color:
+    rgb: [[ 0, 255 ],[ 0, 255 ],[ 0, 255 ]]
+    alpha: [ 1, 1 ]
+    grayscale: 0.5
+  effect:
+    args:
+      # gaussian blur
+      - prob: 0.5
+        args:
+          sigma: [0, 10]
+
+document:
+  fullscreen: 0.5
+  landscape: 0.5
+  short_size: [720, 1024]
+  aspect_ratio: [1, 2]
+  margin: [0, 0.35]
+  content:
+    table:
+      static:
+        weight: 1
+        image:
+          paths: [ resources/table_image/danawa_kr/val ]
+          min_image_size_ratio: [ 0.9 ]
+        html:
+          paths: [ resources/table_html/danawa_kr/val ]
+          weights: [ 1 ]
+          shuffle: False
+#          charset:
+          min_row: 1
+          max_row: 200
+          min_col: 1
+          max_col: 200
+          has_span:
+            prob: 0.5
+          has_col_span:
+            prob: 0.5
+          has_row_span:
+            prob: 0.5
+          max_empty_cell_ratio: 0.9
+          max_image_width: 400
+          max_image_height: 400
+        effect:
+          distort:
+            prob: 0.5
+            arc:
+              weight: 0
+              angles: [ 3, 11 ]
+              reverse:
+                prob: 1.0
+              min_aspect_ratio: 0.82
+            polynomial:
+              weight: 0
+              dest_coord_ratios: [ 0.01, 0.04 ]
+              move_prob: 0.5
+            sylinder:
+              weight: 1
+              angle: [ 5, 50 ]
+          rotate:
+            prob: 0.5
+            angle: [ 1, 3 ]
+            ccw:
+              prob: 0.5
+      synth:
+        weight: 0
+        effect:
+          distort:
+            prob: 0.5
+            arc:
+              weight: 0
+              angles: [ 3, 11 ]
+              reverse:
+                prob: 1.0
+              min_aspect_ratio: 0.82
+            polynomial:
+              weight: 0
+              dest_coord_ratios: [ 0.01, 0.04 ]
+              move_prob: 0.5
+            sylinder:
+              weight: 1
+              angle: [ 5, 50 ]
+          rotate:
+            prob: 0.5
+            angle: [1, 3]
+            ccw:
+              prob: 0.5
+        html:
+          paths: [ resources/table_html/danawa_kr/val ]
+          weights: [1]
+          shuffle: False
+          charset: null
+          min_row: 1
+          max_row: 200
+          min_col: 1
+          max_col: 200
+          has_span:
+            prob: 0.5
+          has_col_span:
+            prob: 0.5
+          has_row_span:
+            prob: 0.5
+          max_empty_cell_ratio: 0.9
+          max_image_width: 400
+          max_image_height: 400
+          max_big_image_ratio: 0.6
+          max_big_image_ratio_when_less_cells: 0.4
+          num_less_cell: 6
+          tmp_path: tmp
+          structure:
+            static_html:
+              weight: 1
+            synth_structure:
+              weight: 0
+              nums_row: [2, 10]
+              nums_col: [2, 10]
+              thead:
+                prob: 0.5
+                rows: [1, 3]
+              span:
+                prob: 0.5
+                row_span:
+                  prob: 0.1
+                col_span:
+                  prob: 0.1
+#            change_structure:
+#              weight: 1
+#              portion: [0.1, 0.7]
+          synth_content:
+            prob: 0.0
+            corpus:
+              mix_thead_tbody:
+                prob: 0.2
+              thead:
+                length_augmentable:
+                  weight: 1
+                  paths: [ resources/corpus/mjsynth.txt, resources/corpus/synthtext.txt ]
+                  weights: [ 1, 1 ]
+                  min_length: 1
+                  max_length: 5211
+                  textcase: [ lower, upper, capitalize ]
+                  augmentation: 0.1
+                  augmentation_length: [ 1, 25 ]
+#                char_augmentable:
+#                  weight: 1
+#                  paths: [ resources/corpus/val_thead_corpus.txt ]
+#                  weights: [ 1 ]
+#                  min_length: 1
+#                  max_length: 5211
+#                  textcase: [ lower, upper, capitalize ]
+#                  augmentation: 0.1
+#                  augmentation_charset: resources/charset/alphanum_special.txt
+                base:
+                  weight: 1
+                  paths: [ resources/corpus/pubtabnet/train_thead_corpus.txt ]
+                  weights: [ 1 ]
+                  min_length: 1
+                  max_length: 5211
+                  textcase: [ lower, upper, capitalize ]
+              tbody:
+                length_augmentable:
+                  weight: 1
+                  paths: [ resources/corpus/mjsynth.txt, resources/corpus/synthtext.txt ]
+                  weights: [ 1, 1 ]
+                  min_length: 1
+                  max_length: 5211
+                  textcase: [ lower, upper, capitalize ]
+                  augmentation: 0.1
+                  augmentation_length: [ 1, 25 ]
+#                char_augmentable:
+#                  weight: 1
+#                  paths: [ resources/corpus/pubtabnet/train_tbody_corpus.txt ]
+#                  weights: [ 1 ]
+#                  min_length: 1
+#                  max_length: 5211
+#                  textcase: [ lower, upper, capitalize ]
+#                  augmentation: 0.1
+#                  augmentation_charset: resources/charset/alphanum_special.txt
+                base:
+                  weight: 1
+                  paths: [ resources/corpus/pubtabnet/train_tbody_corpus.txt ]
+                  weights: [ 1 ]
+                  min_length: 1
+                  max_length: 5211
+                  textcase: [ lower, upper, capitalize ]
+            #                charset: resources/charset/en
+            empty_cell:
+              prob: 0.1
+            synth_cell:
+              prob: 0.5
+            thead_bold:
+              prob: 0.7
+            shuffle_cells:
+              prob: 0.7
+              portion: [0.2, 0.8]
+        style:
+          font:
+            paths: [ resources/fonts ]
+            weights: [ 1 ]
+          color_set:
+            dark: [ MediumVioletRed, blue, darkmagenta, darkblue, forestgreen, blueviolet, mediumblue, darkslateblue, darkred, darkviolet, purple, dimgray, firebrick, maroon, darkorchid, brown, navy, crimson, indigo, darkcyan, red, green, black, chocolate, darkgreen, darkslategray, MidnightBlue,Navy,OrangeRed,Purple,RebeccaPurple,RoyalBlue,SaddleBrown ]
+            light: [ Linen, bisque, beige, antiquewhite, chartreuse, greenyellow, lemonchiffon, honeydew, gold, floralwhite, aliceblue, linen, lavender, cornsilk, azure, lightyellow, white, gainsboro, lightgoldenrodyellow, cyan, lavenderblush, ivory, lightcyan, aquamarine, aqua, ghostwhite, blanchedalmond, SeaShell,MintCream,MistyRose,Moccasin,OldLace,PaleGoldenRod,PapayaWhip,Snow,SpringGreen ]
+          global:
+            absolute:
+              table_wrapper:
+                background:
+                  paper:
+                    weight: 2
+                    paths: [ resources/background/paper_background ]
+                    weights: [ 1 ]
+                    alpha: [ 0.1, 0.3 ]
+                    grayscale: 0.5
+                    crop: 0.5
+                  gradient:
+                    weight: 1
+                    type: [ linear, radial, conic, repeating-linear ]
+                    angle: [ 0, 359 ]
+                    num_colors: [ 2, 5 ]
+                    random_stop_position:
+                      prob: 0.3
+                  empty:
+                    weight: 1
+                  solid:
+                    weight: 1
+              table:
+                background:
+                  empty:
+                    weight: 1
+                  solid:
+                    weight: 3
+                  striped:
+                    weight: 1
+                    dark_line: [ odd, even ]
+                    thead:
+                      prob: 0.5
+                  striped_same_color_mode:
+                    weight: 1
+                    thead:
+                      prob: 0.5
+                  multi_color:
+                    weight: 1
+                    thead:
+                      prob: 0.5
+                color_mode: [ dark, light ]
+                full_size:
+                  prob: 0.5
+                border_width:
+                  values: [ 1,4 ]
+                  postfix: px
+                border_style:
+                  weights: [10,0,0]
+                  values: [solid, dotted, dashed]
+                aspect_ratio: [0.285, 3.5]
+                font:
+                  prob: 0.9
+                outline: [ empty, all, top_bottom ]
+              thead:
+                outline: [empty, all, top_bottom, bottom]
+                inner_border:
+                  values: [ empty, all, col ]
+                  weights: [2, 1, 1]
+              tbody:
+                inner_border:
+                  values: [ empty, all, row, col ]
+                  weights: [3,1,1,1]
+            relative:
+              table:
+                width_scale: [ 0.7, 1.2 ]
+                height_scale: [ 0.7, 1.2 ]
+            css:
+              table:
+                margin:
+                  prob: 0.5
+                  values: [ 1, 50 ]
+                  postfix: "px"
+                font-size:
+                  values: [12, 20]
+                  postfix: "px"
+  #              text-align: [left, right, center]
+                text-align: [left, center]
+                vertical-align:
+                  values: [top, middle, bottom]
+                  weights: [1,1,1]
+  #              font-weight: [lighter, bold, normal]
+                font-weight:
+                  values: [lighter, normal, bold]
+                  weights: [1, 1, 1]
+                font-style:
+                  values: [normal, italic]
+                  weights: [1, 1]
+#                text-decoration:
+#  #                values: [ none, underline, line-through ]
+#                  values: [ none, underline ]
+#                  weights: [ 10, 1 ]
+                letter-spacing:
+                  values: [0, 5]
+                  postfix: "px"
+                word-spacing:
+                  values: [ 0, 5 ]
+                  postfix: "px"
+                border-collapse: [collapse]#, separate]
+                #text-shadow
+                #text-shadow: 4px 4px 5px red;
+                #text-shadow: 1px 1px 1px red, 2px 2px 1px red;
+              td:
+                padding: [2, 20]
+
+#              width: []
+#              height: [ ]
+            #table 템플릿 몇개 정하기
+            # bg 템플릿
+            # 라인 템플릿
+            # bg & fg 컬러 템플릿
+          local:
+            prob: 0.5
+            absolute:
+              thead:
+                prob: 0.5
+                color_mode:
+                  prob: 0.5
+                  values: [ dark, light ]
+                font:
+                  prob: 0.5
+                border_width:
+                  values: [ 1, 4 ]
+                  postfix: "px"
+                  prob: 0.5
+                border_style:
+                  weights: [ 1, 0,0 ]
+                  values: [ solid, dotted, dashed ]
+                  prob: 0.5
+              tbody:
+                prob: 0.5
+                color_mode:
+                  prob: 0.5
+                  values: [ dark, light ]
+                font:
+                  prob: 0.5
+                border_width:
+                  values: [ 1,3 ]
+                  postfix: "px"
+                  prob: 0.5
+                border_style:
+                  weights: [ 1, 0,0 ]
+                  values: [ solid, dotted, dashed ]
+                  prob: 0.5
+              tr:
+                prob: 0.1
+                color_mode:
+                  prob: 0.5
+                  values: [ dark, light ]
+                same_color:
+                  prob: 0.5
+                font:
+                  prob: 0.5
+              td:
+                prob: 0.2
+                color_mode:
+                  prob: 0.5
+                  values: [ dark, light ]
+                same_color:
+                  prob: 0.5
+                font:
+                  prob: 0.5
+                text_vertical:
+                  prob: 0.0
+                  max_text_length: 7
+                  ignore_number:
+                    prob: 1.0
+                text:
+                  prob: 0.2
+                  word:
+                    weight: 1
+                    words: [0.2, 0.8]
+                    fg_color_change:
+                      prob: 0.5
+                    bg_color_change:
+                      prob: 0.5
+                    font:
+                      prob: 0.0
+                  char:
+                    weight: 1
+                    length: [0.1, 0.9]
+                    fg_color_change:
+                      prob: 0.5
+                    bg_color_change:
+                      prob: 0.5
+                    font:
+                      prob: 0.0
+            relative:
+              thead:
+                font_size:
+                  values: [1.0, 2.0]
+                  prob: 0.3
+              tbody:
+                font_size:
+                  values: [ 0.8, 1.2 ]
+                  prob: 0.3
+              tr:
+                font_size:
+                  values: [ 0.8, 1.2 ]
+                  prob: 0.3
+              td:
+                font_size:
+                  values: [ 0.8, 1.2 ]
+                  prob: 0.3
+                text:
+                  font_size:
+                    values: [ 0.9, 1.1 ]
+                    prob: 0.3
+            css:
+              thead:
+                font-weight:
+                  values: [ bold, normal ]
+                  prob: 0.1
+                text-align:
+                  values: [ left, center ]
+                  prob: 0.1
+                font-style:
+                  values: [ normal, italic ]
+                  prob: 0.1
+                text-decoration:
+                  values: [ none, underline ]
+                  weights: [ 10, 5 ]
+                  prob: 0.1
+                letter-spacing:
+                  values: [ 0, 5 ]
+                  postfix: "px"
+                  prob: 0.1
+                word-spacing:
+                  values: [ 0, 5 ]
+                  postfix: "px"
+                  prob: 0.1
+              tbody:
+                font-weight:
+                  values: [ bold, normal ]
+                  prob: 0.1
+                text-align:
+                  values: [ left, center ]
+                  prob: 0.1
+                font-style:
+                  values: [ normal, italic ]
+                  prob: 0.1
+                text-decoration:
+                  values: [ none, underline ]
+                  weights: [ 10, 5 ]
+                  prob: 0.1
+                letter-spacing:
+                  values: [ 0, 5 ]
+                  postfix: "px"
+                  prob: 0.1
+                word-spacing:
+                  values: [ 0, 5 ]
+                  postfix: "px"
+                  prob: 0.1
+              tr:
+                #              color: [] # font color
+                #              font: []
+#                text-align:
+#                  values: [ left, center ]
+#                  prob: 0.1
+#                vertical-align: [top, middle, bottom]
+                #              font-weight: [lighter, bold, normal]
+                font-weight:
+                  values: [ lighter, normal ]
+                font-style:
+                  values: [ normal, italic ]
+                text-decoration:
+                  #                values: [ none, underline, line-through ]
+                  values: [ none, underline ]
+                  weights: [ 10, 5 ]
+                letter-spacing:
+                  values: [ 1, 5 ]
+                  postfix: "px"
+                  prob: 0.1
+                word-spacing:
+                  values: [ 1, 5 ]
+                  postfix: "px"
+                  prob: 0.1
+                border-width:
+                  values: [ 1, 4 ]
+                  postfix: "px"
+                  prob: 0.1
+                border-style:
+                  values: [solid]
+                  prob: 0.1
+#                border-top-width:
+#                  values: [ 1, 4 ]
+#                  postfix: "px"
+#                  prob: 0.1
+#                border-top-style:
+#                  values: [ none, solid, dotted, dashed ]
+#                  prob: 0.1
+#                border-left-width:
+#                  values: [ 1, 4 ]
+#                  postfix: "px"
+#                  prob: 0.1
+#                border-left-style:
+#                  values: [ none, solid, dotted, dashed ]
+#                  prob: 0.1
+#                border-right-width:
+#                  values: [ 1, 4 ]
+#                  postfix: "px"
+#                  prob: 0.1
+#                border-right-style:
+#                  values: [ none, solid, dotted, dashed ]
+#                  prob: 0.1
+#                border-bottom-width:
+#                  values: [ 1, 4 ]
+#                  postfix: "px"
+#                  prob: 0.1
+#                border-bottom-style:
+#                  values: [ none, solid, dotted, dashed ]
+#                  prob: 0.1
+                #text-shadow
+                #text-shadow: 4px 4px 5px red;
+                #text-shadow: 1px 1px 1px red, 2px 2px 1px red;
+              td:
+                #              color: [] # font color
+                #              font: []
+#                text-align: [ left, center ]
+#                vertical-align: [top, middle, bottom]
+                font-weight:
+                  values: [lighter, bold, normal]
+                  prob: 0.1
+                font-style:
+                  values: [ normal, italic ]
+                  prob: 0.1
+                text-decoration:
+                  values: [ none, underline, line-through ]
+                  weights: [ 10, 1, 1 ]
+                letter-spacing:
+                  values: [ 0, 5 ]
+                  postfix: "px"
+                word-spacing:
+                  values: [ 0, 5 ]
+                  postfix: "px"
+                border-width:
+                  values: [ 1, 4 ]
+                  postfix: "px"
+                  prob: 0.1
+                border-style:
+                  values: [ solid ] #, dotted, dashed ]
+                  prob: 0.1
+#                border-top-width:
+#                  values: [ 1, 4 ]
+#                  postfix: "px"
+#                  prob: 0.1
+#                border-top-style:
+#                  values: [ none, solid, dotted, dashed ]
+#                  prob: 0.1
+#                border-left-width:
+#                  values: [ 1, 4 ]
+#                  postfix: "px"
+#                  prob: 0.1
+#                border-left-style:
+#                  values: [ none, solid, dotted, dashed ]
+#                  prob: 0.1
+#                border-right-width:
+#                  values: [ 1, 4 ]
+#                  postfix: "px"
+#                  prob: 0.1
+#                border-right-style:
+#                  values: [ none, solid, dotted, dashed ]
+#                  prob: 0.1
+#                border-bottom-width:
+#                  values: [ 1, 4 ]
+#                  postfix: "px"
+#                  prob: 0.1
+#                border-bottom-style:
+#                  values: [ none, solid, dotted, dashed ]
+#                  prob: 0.1
+                #text-shadow
+                #text-shadow: 4px 4px 5px red;
+                #text-shadow: 1px 1px 1px red, 2px 2px 1px red;
+                #              width: []
+                #              height: [ ]
+              text:
+                font-weight:
+                  values: [ lighter, bold, normal ]
+                  prob: 0.1
+                font-style:
+                  values: [ normal, italic ]
+                  prob: 0.1
+                text-decoration:
+                  values: [ none, underline, line-through ]
+                  weights: [ 10, 1, 1 ]
+#    text:
+#      path: resources/corpus/kowiki.txt
+#    font:
+#      paths: [resources/font/ko]
+#      weights: [1]
+#      bold: 0
+#    layout:
+#      text_scale: [0.0334, 0.1]
+#      max_row: 90
+#      max_col: 3
+#      fill: [0.5, 1]
+#      full: 0.1
+#      align: [left, right, center]
+#      stack_spacing: [0.0334, 0.0334]
+#      stack_fill: [0.5, 1]
+#      stack_full: 0.1
+#    textbox:
+#      fill: [0.5, 1]
+#    textbox_color:
+#      prob: 0.2
+#      args:
+#        gray: [0, 64]
+#        colorize: 1
+#    content_color:
+#      prob: 0.2
+#      args:
+#        gray: [0, 64]
+#        colorize: 1
+
+  effect:
+    args:
+      # elastic distortion
+      - prob: 1
+        args:
+#          alpha: [ 0, 1 ]
+#            sigma: [ 0, 0.5 ]
+          alpha: [0, 0.4]
+          sigma: [0, 0.25]
+      # gaussian noise
+      - prob: 1
+        args:
+          scale: [0, 6]
+          per_channel: 0
+      # perspective
+      - prob: 0.5
+        args:
+          weights: [750, 50, 50, 25, 25, 25, 25, 50]
+          args:
+#            - percents: [[0.97, 1], [0.97, 1], [0.97, 1], [0.97, 1]]
+            - percents: [[0.97, 1], [0.97, 1], [0.97, 1], [0.97, 1]]
+#            - percents: [[0.97, 1], [1, 1], [0.97, 1], [1, 1]]
+            - percents: [[0.97, 1], [1, 1], [0.97, 1], [1, 1]]
+#            - percents: [[1, 1], [0.97, 1], [1, 1], [0.97, 1]]
+            - percents: [[1, 1], [0.97, 1], [1, 1], [0.97, 1]]
+#            - percents: [[0.97, 1], [1, 1], [1, 1], [1, 1]]
+            - percents: [[0.97, 1], [1, 1], [1, 1], [1, 1]]
+#            - percents: [[1, 1], [0.97, 1], [1, 1], [1, 1]]
+            - percents: [[1, 1], [0.97, 1], [1, 1], [1, 1]]
+#            - percents: [[1, 1], [1, 1], [0.97, 1], [1, 1]]
+            - percents: [[1, 1], [1, 1], [0.97, 1], [1, 1]]
+#            - percents: [[1, 1], [1, 1], [1, 1], [0.97, 1]]
+            - percents: [[1, 1], [1, 1], [1, 1], [0.97, 1]]
+            - percents: [[1, 1], [1, 1], [1, 1], [1, 1]]
+
+effect:
+  args:
+    # color
+    - prob: 0.2
+      args:
+        rgb: [[0, 255], [0, 255], [0, 255]]
+        alpha: [0, 0.2]
+    # shadow
+    - prob: 0.7
+      args:
+#        intensity: [0, 160]
+        intensity: [0, 105]
+        amount: [0, 1]
+        smoothing: [0.5, 1]
+#        bidirectional: 0
+        bidirectional: 0.5
+    # contrast
+    - prob: 1
+      args:
+        alpha: [1, 1.5]
+    # brightness
+    - prob: 1
+      args:
+        beta: [-48, 0]
+    # motion blur
+    - prob: 0.5
+      args:
+        k: [3, 3]
+        angle: [0, 360]
+    # gaussian blur
+    - prob: 0.5
+      args:
+#        sigma: [0, 1.5]
+        sigma: [0, 0.75]
+
