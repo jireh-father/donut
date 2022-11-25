@@ -22,6 +22,7 @@ class SynthTable(Component):
         super().__init__()
         self.meta = None
         self.global_style = None
+        self.content_text = None
         self.config = config
         self.config_selectors = config_selectors
         self.html_path_selector = PathSelector(config_selectors['html']['paths'].values,
@@ -316,7 +317,7 @@ class SynthTable(Component):
         self._sample_global_inner_border("tbody")
 
     def _sample_font(self, selector):
-        font_path = os.path.abspath(self.font.sample()["path"])
+        font_path = os.path.abspath(self.font.sample({"text": self.content_text})["path"])
         font_family = str(uuid.uuid4())
         font_face = {
             'font-family': font_family,
@@ -754,6 +755,8 @@ class SynthTable(Component):
 
         if 'html_bs' not in self.meta:
             self.meta['html_bs'] = BeautifulSoup(self.meta['html'], 'html.parser')
+
+        self.content_text = "".join(set(html_util.remove_white_spaces(self.meta['html_bs'].get_text())))
 
         if self.max_empty_cell_ratio:
             num_empty_tds = 0

@@ -9,6 +9,7 @@ thead_tbody_tag_regex = re.compile('(<tbody>|<thead>|</tbody>|</thead>)')
 multiple_space_regex = re.compile('\s+')
 image_tag_regex = re.compile(r'\[\[\[img\]\]\]')
 new_line_regex = re.compile("\n")
+white_space_regex = re.compile('\s+')
 space_tr_tag_regex = re.compile(r"\s?<tr>\s?")
 space_td_tag_regex = re.compile(r"\s?<td>\s?")
 space_img_tag_regex = re.compile(r"\s?<img>\s?")
@@ -182,6 +183,10 @@ def convert_bs_to_html_string(bs):
         return unescape(html)
     else:
         return str(bs)
+
+
+def remove_white_spaces(html):
+    return white_space_regex.sub("", html)
 
 
 def remove_new_line_and_multiple_spaces(html):
