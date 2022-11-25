@@ -1,6 +1,6 @@
 quality: [60, 95]
 
-save_meta: false
+save_meta: true
 
 html_output:
   remove_close_tag: true
