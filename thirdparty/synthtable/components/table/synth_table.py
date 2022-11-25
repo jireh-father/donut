@@ -756,8 +756,6 @@ class SynthTable(Component):
         if 'html_bs' not in self.meta:
             self.meta['html_bs'] = BeautifulSoup(self.meta['html'], 'html.parser')
 
-        self.content_text = "".join(set(html_util.remove_white_spaces(self.meta['html_bs'].get_text())))
-
         if self.max_empty_cell_ratio:
             num_empty_tds = 0
             tds = self.meta['html_bs'].find_all("td")
@@ -774,6 +772,8 @@ class SynthTable(Component):
             self.meta['shuffle_cells'] = self.shuffle_cells_switch.on()
             self.meta['mix_thead_tbody'] = self.mix_thead_tbody_switch.on()
             self._synth_content()
+
+        self.content_text = "".join(set(html_util.remove_white_spaces(self.meta['html_bs'].get_text())))
 
         # styling
         self.meta['global_style'] = self.sample_styles()
