@@ -411,6 +411,7 @@ class SynthTable(Component):
     def sample_styles(self):
         # static style
         self.global_style = defaultdict(dict)
+        self.global_style['a']['color'] = 'inherit'
         self.global_style['#table_wrapper']["display"] = "inline-block"
 
         # sample global vars
