@@ -318,6 +318,7 @@ class SynthTable(Component):
 
     def _sample_font(self, selector):
         font_path = os.path.abspath(self.font.sample({"text": self.content_text})["path"])
+        print(self.content_text, font_path)
         font_family = str(uuid.uuid4())
         font_face = {
             'font-family': font_family,
