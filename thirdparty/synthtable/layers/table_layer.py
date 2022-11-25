@@ -47,6 +47,7 @@ class TableLayer(Layer):
         <head>
             <meta charset="UTF-8">
              <style>
+             a { color: inherit; } 
              {}
             </style>
         </head>
