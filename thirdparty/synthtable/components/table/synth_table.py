@@ -708,6 +708,33 @@ class SynthTable(Component):
 
         self.meta['html'] = convert_bs_to_html_string(self.meta['html_bs'])
 
+    def _remove_html_tag_attrs_recur(self, tags):
+        for tag in tags:
+            if tag.name:
+                if tag.name == "td":
+                    attrs = tag.attrs
+                    tag.attrs = {}
+                    if 'colspan' in attrs and attrs['colspan'].strip():
+                        tag['colspan'] = attrs['colspan']
+                    if 'rowspan' in attrs and attrs['rowspan'].strip():
+                        tag['rowspan'] = attrs['rowspan']
+                elif tag.name == "ol":
+                    attrs = tag.attrs
+                    tag.attrs = {}
+                    if 'type' in attrs and attrs['type'].strip():
+                        tag['type'] = attrs['type']
+                elif tag.name == "img":
+                    pass
+                else:
+                    tag.attrs = {}
+
+                if hasattr(tag, "contents"):
+                    self._remove_html_tag_attrs_recur(tag.contents)
+
+    def _remove_html_tag_attrs(self):
+        self._remove_html_tag_attrs_recur(self.meta['html_bs'].find("table").contents)
+
+
     def sample(self, meta=None):
         # synth structure config
         structure_config = self.config_selectors['html']['structure'].select()
@@ -737,11 +764,15 @@ class SynthTable(Component):
             if 'html_bs' not in self.meta:
                 bs = BeautifulSoup(html_json['html'], 'html.parser')
                 self.meta['html_bs'] = bs
+            # remove html tag's attrs except img's src, td'colspan, td'rowspan and ol's type
+            self._remove_html_tag_attrs()
+
             self.meta['html_path'] = html_path
-            html = html_json['html'].strip()
             # insert tbody
             if not self.meta['html_bs'].find("tbody"):
                 html = html_util.insert_tbody_tag(self.meta['html_bs'])
+            else:
+                html = convert_bs_to_html_string(self.meta['html_bs'])
             self.meta['has_thead'] = True if self.meta['html_bs'].find("thead") else False
             if self.meta['has_thead']:
                 if 'html_bs' not in self.meta:

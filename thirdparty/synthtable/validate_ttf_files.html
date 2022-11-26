@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+</head>
+<body>
+<input type="file" id="file-selector" multiple accept=".ttf, .TTF">
+<script>
+function download(content, fileName, contentType) {
+    var a = document.createElement("a");
+    var file = new Blob([content], {type: contentType});
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    a.click();
+}
+    var fileSelector = document.getElementById('file-selector');
+    fileSelector.addEventListener('change', (event) => {
+    const fileList = event.target.files;
+    console.log(fileList);
+    window.normalFontList = []
+    for(var i in fileList){
+        console.log(fileList[i].name);
+        new FontFace(fileList[i].name, 'url('+ fileList[i].name +')').load().then(function(loadedFont) {
+            window.normalFontList.push(loadedFont.family);
+        }).catch(function(error) {
+
+        })
+    }
+  });
+//const jsonData = JSON.stringify(window.normalFontList,  null, 4);
+//download(jsonData, 'json.txt', 'text/plain');
+
+    </script>
+</body>
+</html>
