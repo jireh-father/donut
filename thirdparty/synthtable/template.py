@@ -209,11 +209,6 @@ if __name__ == '__main__':
     # parser.add_argument('--use_cuda', action='store_true', default=False)
 
     synth_table = SynthTable(synthtiger.read_config("config_pc_test_crawling.yaml"))
-    data = synth_table.generate()
-    synth_table.save("./output", data, 1)
-    data = synth_table.generate()
-    synth_table.save("./output", data, 2)
-    data = synth_table.generate()
-    synth_table.save("./output", data, 3)
-    data = synth_table.generate()
-    synth_table.save("./output", data, 4)
+
+    for i in range(10):
+        synth_table.save("./output", synth_table.generate(), i)

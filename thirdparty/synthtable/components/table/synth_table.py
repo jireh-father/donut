@@ -732,7 +732,7 @@ class SynthTable(Component):
                     self._remove_html_tag_attrs_recur(tag.contents)
 
     def _remove_html_tag_attrs(self):
-        self._remove_html_tag_attrs_recur(self.meta['html_bs'].find("table").contents)
+        self._remove_html_tag_attrs_recur([self.meta['html_bs'].find("table")])
 
 
     def sample(self, meta=None):
@@ -843,6 +843,7 @@ class SynthTable(Component):
                 html_json_path, _, _ = self.html_path_selector.select()
             else:
                 html_json_path = self.html_path_selector.get(0, self.html_file_idx)
+
                 if len(self.html_path_selector.paths[0]) <= self.html_file_idx + 1:
                     self.html_file_idx = 0
                 else:
