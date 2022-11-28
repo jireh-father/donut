@@ -1,6 +1,6 @@
 quality: [ 60, 95 ]
 
-save_meta: false
+save_meta: true
 
 html_output:
   remove_close_tag: true
@@ -20,36 +20,36 @@ background:
   color:
     rgb: [ [ 0, 255 ],[ 0, 255 ],[ 0, 255 ] ]
     alpha: [ 1, 1 ]
-    grayscale: 0
+    grayscale: 0.5
   effect:
     args:
       # gaussian blur
-      - prob: 0.7
+      - prob: 0.5
         args:
           sigma: [ 0, 10 ]
 
 document:
   fullscreen: 0.5
   landscape: 0.5
-  short_size: [ 720, 1024 ]
-  aspect_ratio: [ 1, 2 ]
-  margin: [ 0, 0.17 ]
+  short_size: [720, 1024]
+  aspect_ratio: [1, 2]
+  margin: [0, 0.35]
   content:
     table:
       static:
         weight: 0
         image:
-          paths: [ resources/table_image ]
+          paths: [ D:/dataset/table_ocr/crawling_val_donut_image_and_meta/wiki_en_or_test ]
           min_image_size_ratio: [ 0.9 ]
         html:
-          paths: [ resources/table_html/ ]
+          paths: [ D:/dataset/table_ocr/crawling_val_synthtiger_html_json/wiki_en_test ]
           weights: [ 1 ]
-          shuffle: False
-          #          charset:
-          min_row: 2
-          max_row: 90
-          min_col: 2
-          max_col: 90
+          shuffle: True
+#          charset:
+          min_row: 1
+          max_row: 200
+          min_col: 1
+          max_col: 200
           has_span:
             prob: 0.5
           has_col_span:
@@ -63,7 +63,7 @@ document:
           distort:
             prob: 0.5
             arc:
-              weight: 1
+              weight: 0
               angles: [ 3, 11 ]
               reverse:
                 prob: 1.0
@@ -72,6 +72,9 @@ document:
               weight: 1
               dest_coord_ratios: [ 0.01, 0.04 ]
               move_prob: 0.5
+            sylinder:
+              weight: 1
+              angle: [ 5, 50 ]
           rotate:
             prob: 0.5
             angle: [ 1, 3 ]
@@ -83,7 +86,7 @@ document:
           distort:
             prob: 0.5
             arc:
-              weight: 1
+              weight: 0
               angles: [ 3, 11 ]
               reverse:
                 prob: 1.0
@@ -92,19 +95,23 @@ document:
               weight: 1
               dest_coord_ratios: [ 0.01, 0.04 ]
               move_prob: 0.5
+            sylinder:
+              weight: 1
+              angle: [ 5, 50 ]
           rotate:
             prob: 0.5
             angle: [ 1, 3 ]
             ccw:
               prob: 0.5
         html:
-          paths: [ D:/dataset/table_ocr/crawling_filtered_test/test ]
-          weights: [ 1 ]
+          paths: [ D:/dataset/table_ocr/crawling_val_synthtiger_html_json/wiki_en_test ]
+          weights: [1]
+          shuffle: True
           charset: null
           min_row: 1
-          max_row: 90
+          max_row: 200
           min_col: 1
-          max_col: 90
+          max_col: 200
           has_span:
             prob: 0.5
           has_col_span:
@@ -206,7 +213,7 @@ document:
               portion: [ 0.2, 0.8 ]
         style:
           font:
-            paths: [ resources/fonts ]
+            paths: [ E:/dataset/ocr/fonts/fonts_supported_by_chrome_with_glyphs_txt ]
             weights: [ 1 ]
           color_set:
             dark: [ MediumVioletRed, blue, darkmagenta, darkblue, forestgreen, blueviolet, mediumblue, darkslateblue, darkred, darkviolet, purple, dimgray, firebrick, maroon, darkorchid, brown, navy, crimson, indigo, darkcyan, red, green, black, chocolate, darkgreen, darkslategray, MidnightBlue,Navy,OrangeRed,Purple,RebeccaPurple,RoyalBlue,SaddleBrown ]
@@ -238,7 +245,7 @@ document:
                   empty:
                     weight: 1
                   solid:
-                    weight: 1
+                    weight: 3
                   striped:
                     weight: 1
                     dark_line: [ odd, even ]
@@ -259,17 +266,21 @@ document:
                   values: [ 1,4 ]
                   postfix: px
                 border_style:
-                  weights: [ 10,1,1 ]
-                  values: [ solid, dotted, dashed ]
-                aspect_ratio: [ 0.285, 3.5 ]
+                  weights: [10,0,0]
+                  values: [solid, dotted, dashed]
+                aspect_ratio: [0.285, 3.5]
                 font:
-                  prob: 0.6
+                  prob: 0.9
                 outline: [ empty, all, top_bottom ]
               thead:
-                outline: [ empty, all, top_bottom, bottom ]
-                inner_border: [ empty, all, col ]
+                outline: [empty, all, top_bottom, bottom]
+                inner_border:
+                  values: [ empty, all, col ]
+                  weights: [2, 1, 1]
               tbody:
-                inner_border: [ all ] #empty, all, row, col ]
+                inner_border:
+                  values: [ empty, all, row, col ]
+                  weights: [3,1,1,1]
             relative:
               table:
                 width_scale: [ 0.7, 1.2 ]
@@ -299,31 +310,31 @@ document:
                 #                  values: [ 1, 50 ]
                 #                  postfix: "px"
                 font-size:
-                  values: [ 12, 30 ]
+                  values: [12, 20]
                   postfix: "px"
                 #              text-align: [left, right, center]
                 text-align: [ left, center ]
                 vertical-align:
-                  values: [ top, middle, bottom ]
-                  weights: [ 1,10,1 ]
-                #              font-weight: [lighter, bold, normal]
+                  values: [top, middle, bottom]
+                  weights: [1,1,1]
+  #              font-weight: [lighter, bold, normal]
                 font-weight:
-                  values: [ lighter, normal, bold ]
-                  weights: [ 10, 10, 5 ]
+                  values: [lighter, normal, bold]
+                  weights: [1, 1, 1]
                 font-style:
-                  values: [ normal, italic ]
-                  weights: [ 9, 1 ]
-                #                text-decoration:
-                #  #                values: [ none, underline, line-through ]
-                #                  values: [ none, underline ]
-                #                  weights: [ 10, 1 ]
+                  values: [normal, italic]
+                  weights: [1, 1]
+#                text-decoration:
+#  #                values: [ none, underline, line-through ]
+#                  values: [ none, underline ]
+#                  weights: [ 10, 1 ]
                 letter-spacing:
                   values: [ 0, 5 ]
                   postfix: "px"
                 word-spacing:
                   values: [ 0, 5 ]
                   postfix: "px"
-                border-collapse: [ collapse ] #, separate]
+                border-collapse: [collapse]#, separate]
                 #text-shadow
                 #text-shadow: 4px 4px 5px red;
                 #text-shadow: 1px 1px 1px red, 2px 2px 1px red;
@@ -345,50 +356,50 @@ document:
                   prob: 0.5
                   values: [ dark, light ]
                 font:
-                  prob: 0.3
+                  prob: 0.5
                 border_width:
                   values: [ 1, 4 ]
                   postfix: "px"
                   prob: 0.5
                 border_style:
-                  weights: [ 10, 1,1 ]
+                  weights: [ 1, 0,0 ]
                   values: [ solid, dotted, dashed ]
                   prob: 0.5
               tbody:
-                prob: 0.3
+                prob: 0.5
                 color_mode:
                   prob: 0.5
                   values: [ dark, light ]
                 font:
-                  prob: 0.3
+                  prob: 0.5
                 border_width:
                   values: [ 1,3 ]
                   postfix: "px"
-                  prob: 0.3
+                  prob: 0.5
                 border_style:
-                  weights: [ 1, 1,10 ]
+                  weights: [ 1, 0,0 ]
                   values: [ solid, dotted, dashed ]
-                  prob: 0.3
+                  prob: 0.5
               tr:
+                prob: 0.1
+                color_mode:
+                  prob: 0.5
+                  values: [ dark, light ]
+                same_color:
+                  prob: 0.5
+                font:
+                  prob: 0.5
+              td:
                 prob: 0.2
                 color_mode:
-                  prob: 1.0
+                  prob: 0.5
                   values: [ dark, light ]
                 same_color:
                   prob: 0.5
                 font:
-                  prob: 0.1
-              td:
-                prob: 0.3
-                color_mode:
-                  prob: 1.0
-                  values: [ dark, light ]
-                same_color:
                   prob: 0.5
-                font:
-                  prob: 0.1
                 text_vertical:
-                  prob: 0.1
+                  prob: 0.0
                   max_text_length: 7
                   ignore_number:
                     prob: 1.0
@@ -398,64 +409,64 @@ document:
                     weight: 1
                     words: [ 0.2, 0.8 ]
                     fg_color_change:
-                      prob: 0.3
+                      prob: 0.5
                     bg_color_change:
-                      prob: 0.3
+                      prob: 0.5
                     font:
-                      prob: 0.1
+                      prob: 0.0
                   char:
                     weight: 1
                     length: [ 0.1, 0.9 ]
                     fg_color_change:
-                      prob: 0.3
+                      prob: 0.5
                     bg_color_change:
-                      prob: 0.3
+                      prob: 0.5
                     font:
-                      prob: 0.1
+                      prob: 0.0
             relative:
               thead:
                 font_size:
-                  values: [ 1.0, 2.0 ]
-                  prob: 0.4
+                  values: [1.0, 2.0]
+                  prob: 0.3
               tbody:
                 font_size:
                   values: [ 0.8, 1.2 ]
-                  prob: 0.4
+                  prob: 0.3
               tr:
                 font_size:
                   values: [ 0.8, 1.2 ]
-                  prob: 0.4
+                  prob: 0.3
               td:
                 font_size:
                   values: [ 0.8, 1.2 ]
-                  prob: 0.4
+                  prob: 0.3
                 text:
                   font_size:
-                    values: [ 0.8, 1.2 ]
-                    prob: 0.4
+                    values: [ 0.9, 1.1 ]
+                    prob: 0.3
             css:
               thead:
                 font-weight:
                   values: [ bold, normal ]
-                  prob: 0.5
+                  prob: 0.1
                 text-align:
                   values: [ left, center ]
-                  prob: 0.5
+                  prob: 0.1
                 font-style:
                   values: [ normal, italic ]
-                  prob: 0.5
+                  prob: 0.1
                 text-decoration:
                   values: [ none, underline ]
                   weights: [ 10, 5 ]
-                  prob: 0.5
+                  prob: 0.1
                 letter-spacing:
                   values: [ 0, 5 ]
                   postfix: "px"
-                  prob: 0.5
+                  prob: 0.1
                 word-spacing:
                   values: [ 0, 5 ]
                   postfix: "px"
-                  prob: 0.5
+                  prob: 0.1
               tbody:
                 font-weight:
                   values: [ bold, normal ]
@@ -497,17 +508,17 @@ document:
                 letter-spacing:
                   values: [ 1, 5 ]
                   postfix: "px"
-                  prob: 0.3
+                  prob: 0.1
                 word-spacing:
                   values: [ 1, 5 ]
                   postfix: "px"
-                  prob: 0.3
+                  prob: 0.1
                 border-width:
                   values: [ 1, 4 ]
                   postfix: "px"
                   prob: 0.1
                 border-style:
-                  values: [ none, solid, dotted, dashed ]
+                  values: [solid]
                   prob: 0.1
                 #                border-top-width:
                 #                  values: [ 1, 4 ]
@@ -546,11 +557,11 @@ document:
                 #                text-align: [ left, center ]
                 #                vertical-align: [top, middle, bottom]
                 font-weight:
-                  values: [ lighter, bold, normal ]
-                  prob: 0.4
+                  values: [lighter, bold, normal]
+                  prob: 0.1
                 font-style:
                   values: [ normal, italic ]
-                  prob: 0.4
+                  prob: 0.1
                 text-decoration:
                   values: [ none, underline, line-through ]
                   weights: [ 10, 1, 1 ]
@@ -565,7 +576,7 @@ document:
                   postfix: "px"
                   prob: 0.1
                 border-style:
-                  values: [ none, solid, dotted, dashed ]
+                  values: [ solid ] #, dotted, dashed ]
                   prob: 0.1
                 #                border-top-width:
                 #                  values: [ 1, 4 ]
@@ -644,14 +655,14 @@ document:
       # elastic distortion
       - prob: 1
         args:
-          #          alpha: [ 0, 1 ]
-          #            sigma: [ 0, 0.5 ]
-          alpha: [ 0, 0.58 ]
-          sigma: [ 0, 0.3 ]
+#          alpha: [ 0, 1 ]
+#            sigma: [ 0, 0.5 ]
+          alpha: [0, 0.4]
+          sigma: [0, 0.25]
       # gaussian noise
       - prob: 1
         args:
-          scale: [ 0, 8 ]
+          scale: [0, 6]
           per_channel: 0
       # perspective
       - prob: 0.5
