@@ -98,7 +98,7 @@ class SynthTable(Component):
                     corpus_dict[thead_or_tbody][corpus_type] = corpus
             self.corpus_dict = corpus_dict
 
-            if "thead" not in config["html"]["synth_content"]["corpus"]:
+            if "thead" in config["html"]["synth_content"]["corpus"]:
                 self.thead_corpus_selector = config_selectors['html']['synth_content'].get()['corpus']['thead']
             self.tbody_corpus_selector = config_selectors['html']['synth_content'].get()['corpus']['tbody']
             self.empty_cell_switch = config_selectors['html']['synth_content'].get()['empty_cell']
