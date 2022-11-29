@@ -133,7 +133,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_root', type=str, default="D:\dataset\\table_ocr\crawling_filtered_val")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset\\table_ocr\crawling_val_synthtiger_html_json")
+    parser.add_argument('--dataset_root', type=str, default="D:\dataset\\table_ocr\crawling_train")
+    parser.add_argument('--output_dir', type=str, default="D:\dataset\\table_ocr\crawling_train_synthtiger_html_json")
 
     main(parser.parse_args())

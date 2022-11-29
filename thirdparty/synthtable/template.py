@@ -76,7 +76,7 @@ class SynthTable(templates.Template):
 
     def _filter_html(self, html, bs=None):
         if self.html_output["remove_tag_in_content"]:
-            html = html_util.remove_tag_in_table_cell(html, bs)
+            html, _ = html_util.remove_tag_in_table_cell(html, bs)
 
         if self.html_output["remove_thead_tbody"]:
             html = html_util.remove_thead_tbody_tag(html)

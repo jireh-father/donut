@@ -82,6 +82,8 @@ class SynthTable(Component):
             self.synth_structure_config = None
             corpus_dict = defaultdict(dict)
             for thead_or_tbody in ["thead", "tbody"]:
+                if thead_or_tbody not in config["html"]["synth_content"]["corpus"]:
+                    continue
                 for corpus_type in config["html"]["synth_content"]["corpus"][thead_or_tbody].keys():
                     corpus_config = config["html"]["synth_content"]["corpus"][thead_or_tbody][corpus_type]
                     if corpus_type == "length_augmentable":

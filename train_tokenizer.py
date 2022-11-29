@@ -2,7 +2,7 @@
 from transformers import AutoTokenizer, XLMRobertaTokenizer, MBartTokenizer
 import argparse
 import os
-
+import glob
 
 def get_training_corpus(corpus_lines):
     for start_idx in range(0, len(corpus_lines), 1000):
@@ -11,7 +11,17 @@ def get_training_corpus(corpus_lines):
 
 
 def main(args):
-    corpus_lines = open(args.corpus_path, encoding='utf-8').readlines()
+    corpus_paths = glob.glob(args.corpus_paths)
+    if not corpus_paths:
+        corpus_paths = args.corpus_paths.split(",")
+    corpus_lines = []
+    for corpus_path in corpus_paths:
+        with open(corpus_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            if not lines[-1].strip():
+                del lines[-1]
+            corpus_lines.extend(lines)
+    # corpus_lines = open(args.corpus_path, encoding='utf-8').readlines()
 
     training_corpus = get_training_corpus(corpus_lines)
 
@@ -21,9 +31,11 @@ def main(args):
     # print(old_xlmroberta_tokenizer)
     # old_mbart_tokenizer = MBartTokenizer.from_pretrained("hyunwoongko/asian-bart-en")
     # print(old_mbart_tokenizer)
-    new_tokens = ['<tr>', '<td>'] + ['<td colspan="{}">'.format(i) for i in range(10)] + ['<td rowspan="{}">'.format(i) for i in range(10)]
+    new_tokens = ['<tr>', '<td>'] + ['<td colspan="{}">'.format(i) for i in range(args.max_col_span)] + ['<td rowspan="{}">'.format(i) for i in range(args.max_row_span)]
     if args.use_thead:
         new_tokens += ['<thead>', '<tbody>']
+    if args.use_image_tag:
+        new_tokens += ['<img>']
     # new_tokens += ['&gt;', '&lt;']
     # old_tokenizer.add_tokens(new_tokens)
     # print("added tokens", old_tokenizer)
@@ -33,10 +45,9 @@ def main(args):
     if args.vocab_size:
         vocab_size = args.vocab_size
     else:
-        if args.use_thead:
-            vocab_size = old_tokenizer.vocab_size + 24
-        else:
-            vocab_size = old_tokenizer.vocab_size + 26
+        vocab_size = old_tokenizer.vocab_size
+        vocab_size += len(new_tokens)
+
     print("vocab_size", vocab_size)
     # tokenizer = old_tokenizer.train_new_from_iterator(training_corpus, old_tokenizer.vocab_size + 22, new_special_tokens=new_tokens)  # 52000)
     tokenizer = old_tokenizer.train_new_from_iterator(training_corpus, vocab_size,
@@ -60,10 +71,14 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--corpus_path', type=str,
-                        default="D:\dataset\\table_ocr\pubtabnet/train_corpus_no_space_in_span.txt")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_use_head_train_corpus_no_space_in_span")
+    parser.add_argument('--corpus_paths', type=str,
+                        default="D:\dataset\\table_ocr\crawling_train_corpus\*.txt")
+    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet/tokenizer_crawled_with_imgtag_no_theadtag_span30")
     parser.add_argument('--vocab_size', type=int, default=None)#100000)
-    parser.add_argument('--use_thead', action='store_true', default=True)
+    parser.add_argument('--max_row_span', type=int, default=30)  # 100000)
+    parser.add_argument('--max_col_span', type=int, default=30)  # 100000)
+
+    parser.add_argument('--use_thead', action='store_true', default=False)
+    parser.add_argument('--use_image_tag', action='store_true', default=True)
 
     main(parser.parse_args())

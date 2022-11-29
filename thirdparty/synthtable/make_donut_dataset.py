@@ -14,7 +14,7 @@ import argparse
 
 def filter_html(html, remove_tag_in_content, remove_thead_tbody, remove_close_tag):
     if remove_tag_in_content:
-        html = html_util.remove_tag_in_table_cell(html)
+        html, _ = html_util.remove_tag_in_table_cell(html)
     if remove_thead_tbody:
         html = html_util.remove_thead_tbody_tag(html)
     if remove_close_tag:

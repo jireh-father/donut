@@ -169,7 +169,7 @@ def remove_tag_in_table_cell(html, bs=None):
 
     _remove_tags(bs)
 
-    return convert_bs_to_html_string(bs)
+    return convert_bs_to_html_string(bs), bs
 
 
 def remove_thead_tbody_tag(html):
