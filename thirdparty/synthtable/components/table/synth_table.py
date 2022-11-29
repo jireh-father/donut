@@ -98,6 +98,7 @@ class SynthTable(Component):
                     corpus_dict[thead_or_tbody][corpus_type] = corpus
             self.corpus_dict = corpus_dict
 
+            self.thead_corpus_selector = None
             if "thead" in config["html"]["synth_content"]["corpus"]:
                 self.thead_corpus_selector = config_selectors['html']['synth_content'].get()['corpus']['thead']
             self.tbody_corpus_selector = config_selectors['html']['synth_content'].get()['corpus']['tbody']
@@ -112,6 +113,8 @@ class SynthTable(Component):
     def _sample_cell_text(self, thead_or_tbody='tbody', mix_thead_tbody=False):
         if mix_thead_tbody:
             thead_or_tbody = ["tbody", "thead"][np.random.randint(0, 2)]
+        if not self.thead_corpus_selector:
+            thead_or_tbody = "tbody"
         if thead_or_tbody == "tbody":
             corpus_type = self.tbody_corpus_selector.select()['name']
         else:
