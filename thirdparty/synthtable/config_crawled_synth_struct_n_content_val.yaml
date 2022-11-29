@@ -130,8 +130,8 @@ document:
               weight: 0
             synth_structure:
               weight: 1
-              nums_row: [2, 10]
-              nums_col: [2, 10]
+              nums_row: [1, 10]
+              nums_col: [1, 10]
               thead:
                 prob: 0.0
                 rows: [1, 3]
