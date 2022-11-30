@@ -31,7 +31,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--corpus_paths', type=str,
-                        default="D:\dataset\\table_ocr\crawling_train_corpus\*_cell_text_corpus.txt")
-    parser.add_argument('--output_path', type=str, default="D:\dataset/table_ocr/crawling_train_corpus/total_cell_text_corpus.txt")
+                        default="D:\dataset\\table_ocr\crawling_train_corpus_without_except_chars\*_cell_text_corpus.txt")
+    parser.add_argument('--output_path', type=str, default="D:\dataset/table_ocr/crawling_train_corpus_without_except_chars/total_cell_text_corpus.txt")
 
     main(parser.parse_args())
