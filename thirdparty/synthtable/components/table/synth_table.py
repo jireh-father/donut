@@ -777,6 +777,7 @@ class SynthTable(Component):
         synth_structure = structure_config['name'] == 'synth_structure'
         self.meta['structure_type'] = structure_config['name']
         if synth_structure:
+            print("synth")
             # synth structure
             synth_structure_config = structure_config['config']
             self.synth_structure_config = synth_structure_config
@@ -792,6 +793,7 @@ class SynthTable(Component):
             self.meta['mix_thead_tbody'] = self.mix_thead_tbody_switch.on()
             self._synth_structure_and_content()
         else:
+            print("static")
             # static html
             html_result = self._sample_html_path()
             if html_result is False:
@@ -840,6 +842,9 @@ class SynthTable(Component):
             self.meta['mix_thead_tbody'] = self.mix_thead_tbody_switch.on()
             self._synth_content()
 
+
+        if re.search(except_regex, str(self.meta['html'])):
+            print("searched except in html")
         if re.search(except_regex, str(self.meta['html_bs'])):
             print("searched except regex after")
         self.content_text = "".join(set(html_util.remove_white_spaces(self.meta['html_bs'].get_text())))
