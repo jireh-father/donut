@@ -43,7 +43,7 @@ def main(args):
     for dir_idx, json_dir in enumerate(json_dirs):
         print(json_dir)
         dataset_dir = os.path.basename(json_dir)
-        output_path = os.path.join(args.output_dir, dataset_names[dir_idx] if dataset_names else dataset_dir + "_tokenizer_corpus.txt")
+        output_path = os.path.join(args.output_dir, (dataset_names[dir_idx] if dataset_names else dataset_dir) + "_tokenizer_corpus.txt")
         with open(output_path, "w+", encoding="utf-8") as f:
             json_files = glob.glob(os.path.join(json_dir, "*.json"))
             cell_text_set = set()
@@ -88,7 +88,7 @@ def main(args):
             cell_text_list = list(cell_text_set)
             cell_text_list.sort()
             with open(os.path.join(args.output_dir,
-                                   dataset_names[dir_idx] if dataset_names else dataset_dir + "_cell_text_corpus.txt"),
+                                   (dataset_names[dir_idx] if dataset_names else dataset_dir) + "_cell_text_corpus.txt"),
                       "w+",
                       encoding="utf-8") as cf:
                 for j, cell_text in enumerate(cell_text_list):

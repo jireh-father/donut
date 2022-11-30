@@ -50,6 +50,8 @@ document:
           max_row: 200
           min_col: 1
           max_col: 200
+          max_col_span: 30
+          max_row_span: 30
           has_span:
             prob: 0.5
           has_col_span:
@@ -112,6 +114,8 @@ document:
           max_row: 200
           min_col: 1
           max_col: 200
+          max_col_span: 30
+          max_row_span: 30
           has_span:
             prob: 0.5
           has_col_span:

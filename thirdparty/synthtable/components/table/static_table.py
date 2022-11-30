@@ -28,6 +28,10 @@ class StaticTable(Component):
         self.max_rows = config_selectors['html']['max_row'].select()
         self.min_cols = config_selectors['html']['min_col'].select()
         self.max_cols = config_selectors['html']['max_row'].select()
+        self.max_col_span = config_selectors['html']['max_col_span'].select() if 'max_col_span' in config_selectors[
+            'html'] else None
+        self.max_row_span = config_selectors['html']['max_row_span'].select() if 'max_row_span' in config_selectors[
+            'html'] else None
         self.max_empty_cell_ratio = config_selectors['html']['max_empty_cell_ratio'].select()
         self.max_image_width = config_selectors['html']['max_image_width'].select()
         self.max_image_height = config_selectors['html']['max_image_height'].select()
@@ -100,6 +104,12 @@ class StaticTable(Component):
                 if self.min_cols > html_json['nums_col'] or self.max_cols < html_json['nums_col']:
                     continue
                 if self.min_rows > html_json['nums_row'] or self.max_rows < html_json['nums_row']:
+                    continue
+
+                if self.max_col_span and html_json['max_col_span'] > self.max_col_span:
+                    continue
+
+                if self.max_row_span and html_json['max_row_span'] > self.max_row_span:
                     continue
 
                 if meta['has_span'] != html_json['has_span']:

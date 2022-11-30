@@ -17,7 +17,6 @@ from utils.charset import Charset
 from utils.html_util import convert_bs_to_html_string
 import re
 
-
 korean_regex = re.compile(r'[\uAC00-\uD7A3\u1100-\u11FF\u3131-\u318F]')
 japanese_regex = re.compile(r'[\u3040-\u309F\u30A0-\u30FF\u31F0-\u31FF]')
 chinese_regex = re.compile(
@@ -28,6 +27,7 @@ latin_number_regex = re.compile(
     r'[\u0030-\u0039\u0041-\u005A\u0061-\u007A]')
 except_korean_english_regex = re.compile(
     r'[^\u0000-\u007E\u00A1-\u00BF\u2160-\u216B\u2170-\u217B\u2190-\u2199\u2200-\u22FF\u2460-\u2473\u24B6-\u24E9\uAC00-\uD7A3\u1100-\u11FF\u3131-\u318F\u0030-\u0039\u0041-\u005A\u0061-\u007A\u00D7\u00F7\u203B\u2022]')
+
 
 class SynthTable(Component):
     def __init__(self, config_selectors, config):
@@ -69,7 +69,9 @@ class SynthTable(Component):
         self.min_rows = config_selectors['html']['min_row'].select()
         self.max_rows = config_selectors['html']['max_row'].select()
         self.min_cols = config_selectors['html']['min_col'].select()
-        self.max_cols = config_selectors['html']['max_row'].select()
+        self.max_cols = config_selectors['html']['max_col'].select()
+        self.max_col_span = config_selectors['html']['max_col_span'].select() if 'max_col_span' in config_selectors['html'] else None
+        self.max_row_span = config_selectors['html']['max_row_span'].select() if 'max_row_span' in config_selectors['html'] else None
         self.max_empty_cell_ratio = config_selectors['html']['max_empty_cell_ratio'].select()
         self.max_image_width = config_selectors['html']['max_image_width'].select()
         self.max_image_height = config_selectors['html']['max_image_height'].select()
@@ -891,6 +893,13 @@ class SynthTable(Component):
                     continue
                 if self.min_rows > html_json['nums_row'] or self.max_rows < html_json['nums_row']:
                     continue
+
+                if self.max_col_span and html_json['max_col_span'] > self.max_col_span:
+                    continue
+
+                if self.max_row_span and html_json['max_row_span'] > self.max_row_span:
+                    continue
+
                 has_span = self.has_span.on()
                 if has_span != html_json['has_span']:
                     continue
