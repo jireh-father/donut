@@ -408,6 +408,7 @@ class SynthTable(Component):
             try:
                 self._sample_font('table')
             except:
+                print(self.meta['html_bs'])
                 print("Failed to sample font for table")
                 pass
 
