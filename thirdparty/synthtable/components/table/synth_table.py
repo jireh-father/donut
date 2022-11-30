@@ -45,7 +45,7 @@ class SynthTable(Component):
 
         self.html_charset = None
         if 'charset' in config_selectors['html'] and config_selectors['html']['charset']:
-            self.html_charset = Charset(config_selectors['html']['charset'])
+            self.html_charset = Charset(config_selectors['html']['charset'].select())
 
         # styles
         for background_config in config_selectors['style']['global']['absolute']['table_wrapper']['background'].values:

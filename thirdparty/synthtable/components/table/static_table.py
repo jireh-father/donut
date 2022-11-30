@@ -20,6 +20,10 @@ class StaticTable(Component):
                                                 exts=['.jpg', '.png'])
         self.html_path_shuffle = config["html"]["shuffle"] if "shuffle" in config["html"] else True
         self.html_file_idx = 0
+
+        self.html_charset = None
+        if 'charset' in config_selectors['html'] and config_selectors['html']['charset']:
+            self.html_charset = Charset(config_selectors['html']['charset'].select())
         self.min_image_size_ratio = config_selectors['image']['min_image_size_ratio'].values
 
         self.config_selectors = config_selectors
@@ -90,6 +94,7 @@ class StaticTable(Component):
             html_json_path = meta['html_path']
             html_json = json.load(open(html_json_path), encoding='utf-8')
 
+            bs = None
             if self.max_empty_cell_ratio:
                 bs = BeautifulSoup(html_json['html'], 'html.parser')
                 num_empty_tds = 0
@@ -101,6 +106,12 @@ class StaticTable(Component):
                     continue
 
             if self.html_path_shuffle:
+                if self.html_charset:
+                    if not bs:
+                        bs = BeautifulSoup(html_json['html'], 'html.parser')
+                    if not self.html_charset.check_charset(bs.text):
+                        continue
+
                 if self.min_cols > html_json['nums_col'] or self.max_cols < html_json['nums_col']:
                     continue
                 if self.min_rows > html_json['nums_row'] or self.max_rows < html_json['nums_row']:
