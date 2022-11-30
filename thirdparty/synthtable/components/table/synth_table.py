@@ -840,7 +840,7 @@ class SynthTable(Component):
             self.meta['mix_thead_tbody'] = self.mix_thead_tbody_switch.on()
             self._synth_content()
 
-        if re.search(except_regex, str(self.meta)):
+        if re.search(except_regex, str(self.meta['html_bs'])):
             print("searched except regex after")
         self.content_text = "".join(set(html_util.remove_white_spaces(self.meta['html_bs'].get_text())))
         if re.search(except_regex, self.content_text):
