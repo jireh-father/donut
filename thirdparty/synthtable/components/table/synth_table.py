@@ -386,7 +386,10 @@ class SynthTable(Component):
         # global font
         self.meta['table_font'] = self.config_selectors['style']['global']['absolute']['table']['font'].on()
         if self.meta['table_font']:
-            self._sample_font('table')
+            try:
+                self._sample_font('table')
+            except:
+                print(self.meta['html_bs'])
 
         # table image full size
         self.meta['table_full_size'] = self.config_selectors['style']['global']['absolute']['table']['full_size'].on()
