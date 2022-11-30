@@ -15,7 +15,19 @@ import random
 from utils.html_util import remove_tags
 from utils.charset import Charset
 from utils.html_util import convert_bs_to_html_string
+import re
 
+
+korean_regex = re.compile(r'[\uAC00-\uD7A3\u1100-\u11FF\u3131-\u318F]')
+japanese_regex = re.compile(r'[\u3040-\u309F\u30A0-\u30FF\u31F0-\u31FF]')
+chinese_regex = re.compile(
+    r'[\u2E80-\u2EFF\u3400-\u4DBF\u4E00-\u9FBF\uF900-\uFAFF\U00020000-\U0002A6DF\U0002F800-\U0002FA1F]')
+english_regex = re.compile(
+    r'[\u0000-\u007E\u00A1-\u00BF\u2160-\u216B\u2170-\u217B\u2190-\u2199\u2200-\u22FF\u2460-\u2473\u24B6-\u24E9\u00D7\u00F7\u203B\u2022]')
+latin_number_regex = re.compile(
+    r'[\u0030-\u0039\u0041-\u005A\u0061-\u007A]')
+except_korean_english_regex = re.compile(
+    r'[^\u0000-\u007E\u00A1-\u00BF\u2160-\u216B\u2170-\u217B\u2190-\u2199\u2200-\u22FF\u2460-\u2473\u24B6-\u24E9\uAC00-\uD7A3\u1100-\u11FF\u3131-\u318F\u0030-\u0039\u0041-\u005A\u0061-\u007A\u00D7\u00F7\u203B\u2022]')
 
 class SynthTable(Component):
     def __init__(self, config_selectors, config):
@@ -120,7 +132,8 @@ class SynthTable(Component):
         else:
             corpus_type = self.thead_corpus_selector.select()['name']
         corpus = self.corpus_dict[thead_or_tbody][corpus_type]
-        return corpus.sample()['text']
+        text = corpus.sample()['text']
+        return text
 
     def _sample_global_color_mode(self):
         return self.global_color_mode.select()
@@ -223,7 +236,7 @@ class SynthTable(Component):
             else:
                 max_row = self.meta['nums_row']
             for i in range(1, max_row + 1):
-            # for i in range(1, self.meta['nums_row'] - self.meta['nums_head_row'] + 1):
+                # for i in range(1, self.meta['nums_row'] - self.meta['nums_head_row'] + 1):
                 self.global_style["tbody tr:nth-child({})".format(i)]["background-color"] = self._sample_bg_color(
                     color_mode)
                 self.global_style["tbody tr:nth-child({})".format(i)]["color"] = font_color
@@ -389,7 +402,8 @@ class SynthTable(Component):
             try:
                 self._sample_font('table')
             except:
-                print(self.meta['html_bs'])
+                print("Failed to sample font for table")
+                pass
 
         # table image full size
         self.meta['table_full_size'] = self.config_selectors['style']['global']['absolute']['table']['full_size'].on()
@@ -484,7 +498,11 @@ class SynthTable(Component):
 
         # font
         if text_config['config']['font']:
-            self._sample_font(global_style_key)
+            try:
+                self._sample_font(global_style_key)
+            except:
+                print("Failed to sample font for text")
+                pass
 
         # font-size
         font_size_scale = local_config['relative']['td']['text']['font_size'].select()
@@ -629,7 +647,11 @@ class SynthTable(Component):
             if 'font' in absolute_config:
                 self.meta[css_selector_name + "_font"] = absolute_config['font'].on()
                 if self.meta[css_selector_name + "_font"]:
-                    self._sample_font(css_selector_name)
+                    try:
+                        self._sample_font(css_selector_name)
+                    except:
+                        print("Error: cannot sample font for {}".format(css_selector_name))
+                        pass
 
             # td: text vertical
             if config_key == "td" and absolute_config['text_vertical'].on():
@@ -742,7 +764,6 @@ class SynthTable(Component):
 
     def _remove_html_tag_attrs(self):
         self._remove_html_tag_attrs_recur([self.meta['html_bs'].find("table")])
-
 
     def sample(self, meta=None):
         # synth structure config

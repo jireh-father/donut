@@ -107,7 +107,7 @@ document:
           paths: [ resources/table_html/danawa_kr/val ]
           weights: [1]
           shuffle: False
-          charset: null
+          charset: resources/charset/alphanum_special_korean.txt
           min_row: 1
           max_row: 200
           min_col: 1
@@ -201,7 +201,7 @@ document:
                   min_length: 1
 #                  max_length: 5211
                   textcase: [ lower, upper, capitalize ]
-            #                charset: resources/charset/en
+                  charset: resources/charset/alphanum_special_korean.txt
             empty_cell:
               prob: 0.1
             synth_cell:
