@@ -848,6 +848,7 @@ class SynthTable(Component):
         if re.search(except_regex, str(self.meta['html_bs'])):
             print("searched except regex after")
         self.content_text = "".join(set(html_util.remove_white_spaces(self.meta['html_bs'].get_text())))
+        self.content_text = re.sub(except_regex, "", self.content_text)
         if re.search(except_regex, self.content_text):
             print("searched except regex after2 ")
 
