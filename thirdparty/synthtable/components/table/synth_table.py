@@ -135,6 +135,7 @@ class SynthTable(Component):
             corpus_type = self.thead_corpus_selector.select()['name']
         corpus = self.corpus_dict[thead_or_tbody][corpus_type]
         text = corpus.sample()['text']
+        print(text)
         return text
 
     def _sample_global_color_mode(self):
