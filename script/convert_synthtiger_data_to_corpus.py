@@ -44,15 +44,17 @@ def main(args):
         print(json_dir)
         dataset_dir = os.path.basename(json_dir)
         output_path = os.path.join(args.output_dir, (dataset_names[dir_idx] if dataset_names else dataset_dir) + "_tokenizer_corpus.txt")
-        with open(output_path, "w+", encoding="utf-8") as f:
-            json_files = glob.glob(os.path.join(json_dir, "*.json"))
-            cell_text_set = set()
-            for i, json_file in enumerate(json_files):
-                # if i % 100 == 0:
-                #     print(i, len(json_files), json_file)
-                data = json.load(open(json_file, "r", encoding="utf-8"))
-                html = data['html']
-                _, bs = html_util.remove_tag_in_table_cell(html)
+        if args.save_tokenizer_corpus:
+            tokenizer_fp = open(output_path, "w+", encoding="utf-8")
+        json_files = glob.glob(os.path.join(json_dir, "*.json"))
+        cell_text_set = set()
+        for i, json_file in enumerate(json_files):
+            # if i % 100 == 0:
+            #     print(i, len(json_files), json_file)
+            data = json.load(open(json_file, "r", encoding="utf-8"))
+            html = data['html']
+            if args.save_cell_text_corpus:
+                _, bs = html_util.remove_tag_in_table_cell(html, remove_img_tag=True)
 
                 _pad_text_side_with_spaces(bs.contents)
 
@@ -74,6 +76,10 @@ def main(args):
                 if not skip_cell_text:
                     cell_text_set.update(tmp_cell_text_set)
 
+            if args.save_tokenizer_corpus:
+                _, bs = html_util.remove_tag_in_table_cell(html, remove_img_tag=False)
+
+                _pad_text_side_with_spaces(bs.contents)
                 text = bs.text
                 text = re.sub(html_util.new_line_regex, " ", text)
                 text = re.sub(empty_char_regex, "", text)
@@ -83,8 +89,12 @@ def main(args):
                 text = html_util.remove_multiple_spaces(text).strip()
                 # print(text)
                 if i > 0:
-                    f.write("\n")
-                f.write(text)
+                    tokenizer_fp.write("\n")
+                tokenizer_fp.write(text)
+        if args.save_tokenizer_corpus:
+            tokenizer_fp.close()
+
+        if args.save_cell_text_corpus:
             cell_text_list = list(cell_text_set)
             cell_text_list.sort()
             with open(os.path.join(args.output_dir,
@@ -106,6 +116,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset_names', type=str,
                         default="auction_kr,danawa_kr,gmarket_kr,google_en,google_kr,wiki_en,wiki_kr")
     parser.add_argument('--output_dir', type=str,
-                        default="D:\dataset\\table_ocr\crawling_train_corpus_without_except_chars")
-
+                        default="D:\dataset\\table_ocr\crawling_train_corpus_without_except_chars_and_img_tags")
+    parser.add_argument('--save_tokenizer_corpus', action='store_true', default=False)
+    parser.add_argument('--save_cell_text_corpus', action='store_true', default=True)
     main(parser.parse_args())

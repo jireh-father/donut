@@ -104,7 +104,7 @@ def set_li_marker(li_tag, ol_type, idx):
         li_tag.replace_with(" {}. {} ".format(chr(idx + 8544), li_tag.text))
 
 
-def _remove_tags(bs):
+def _remove_tags(bs, remove_img_tag=False):
     for block_tag_name in BLOCK_TAGS:
         tags = bs.find_all(block_tag_name)
         if not tags:
@@ -143,13 +143,19 @@ def _remove_tags(bs):
             tag.attrs = {}
 
     for td in bs.find_all("td"):
-        img_tags = td.find_all("img")
-        for img_tag in img_tags:
-            img_tag.replace_with("[[[img]]]")
-        if img_tags:
-            text = re.sub(image_tag_regex, '<img>', td.text)
-        else:
+        if remove_img_tag:
+            img_tags = td.find_all("img")
+            for img_tag in img_tags:
+                img_tag.replace_with(" ")
             text = td.text
+        else:
+            img_tags = td.find_all("img")
+            for img_tag in img_tags:
+                img_tag.replace_with("[[[img]]]")
+            if img_tags:
+                text = re.sub(image_tag_regex, '<img>', td.text)
+            else:
+                text = td.text
 
         td.string = remove_multiple_spaces(text).strip()
 
@@ -163,11 +169,11 @@ def _remove_tags(bs):
                         del td.attrs[k]
 
 
-def remove_tag_in_table_cell(html, bs=None):
+def remove_tag_in_table_cell(html, bs=None, remove_img_tag=False):
     if bs is None:
         bs = BeautifulSoup(html, 'html.parser')
 
-    _remove_tags(bs)
+    _remove_tags(bs, remove_img_tag)
 
     return convert_bs_to_html_string(bs), bs
 

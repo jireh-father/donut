@@ -76,7 +76,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/tokenizer_crawled_ko_with_imgtag_no_theadtag_span30")
     parser.add_argument('--pretrained_name', type=str, default="hyunwoongko/asian-bart-ko")
 
-    parser.add_argument('--vocab_size', type=int, default=None)#100000)
+    parser.add_argument('--vocab_size', type=int, default=None)  # 100000)
     parser.add_argument('--max_row_span', type=int, default=30)  # 100000)
     parser.add_argument('--max_col_span', type=int, default=30)  # 100000)
 
