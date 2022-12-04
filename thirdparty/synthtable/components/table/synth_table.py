@@ -851,11 +851,21 @@ class SynthTable(Component):
         if re.search(except_regex, str(self.meta['html_bs'])):
             print("searched except regex after")
 
+        def get_text_recur(tags):
+            text_list = []
+            for tag in tags:
+                if tag.name:
+                    if hasattr(tag, "contents"):
+                        get_text_recur(tag.contents)
+                else:
+                    text_list.append(tag.text)
+            return text_list
+
         char_thr = int('e000', 16)
-        for c in str(self.meta['html_bs']):
+        for c in get_text_recur(self.meta['html_bs'].contents):
             if ord(c) >= char_thr:
                 print("synthed html contains non-ascii char after get text")
-        self.content_text = "".join(set(html_util.remove_white_spaces(str(self.meta['html_bs']))))
+        self.content_text = "".join(set(html_util.remove_white_spaces(get_text_recur(self.meta['html_bs'].contents))))
         for c in self.content_text:
             if ord(c) >= char_thr:
                 print("synthed html contains non-ascii char after remove shite spaces")
