@@ -116,10 +116,12 @@ class TableLayer(Layer):
             num_td = len(tds)
 
             if num_big_images / num_td > self.meta['max_big_image_ratio']:
+                print("max_big_image_ratio")
                 return False
 
             if num_td <= self.meta['num_less_cell'] and num_big_images / num_td > self.meta[
                 'max_big_image_ratio_when_less_cells']:
+                print("max_big_image_ratio_when_less_cells")
                 return False
 
             if self.meta['max_empty_cell_ratio']:
@@ -128,6 +130,7 @@ class TableLayer(Layer):
                     if not td.text.strip():
                         num_empty_tds += 1
                 if num_empty_tds / len(tds) > self.meta['max_empty_cell_ratio']:
+                    print("max_empty_cell_ratio")
                     return False
 
         table_element = driver.find_element(By.TAG_NAME, 'table')
