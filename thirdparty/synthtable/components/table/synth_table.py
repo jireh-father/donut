@@ -862,10 +862,10 @@ class SynthTable(Component):
             return text_list
 
         char_thr = int('e000', 16)
-        for c in get_text_recur(self.meta['html_bs'].contents):
+        for c in "".join(get_text_recur(self.meta['html_bs'].contents)):
             if ord(c) >= char_thr:
                 print("synthed html contains non-ascii char after get text")
-        self.content_text = "".join(set(html_util.remove_white_spaces(get_text_recur(self.meta['html_bs'].contents))))
+        self.content_text = "".join(set(html_util.remove_white_spaces("".join(get_text_recur(self.meta['html_bs'].contents)))))
         for c in self.content_text:
             if ord(c) >= char_thr:
                 print("synthed html contains non-ascii char after remove shite spaces")
