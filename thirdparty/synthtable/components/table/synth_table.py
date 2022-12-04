@@ -823,6 +823,10 @@ class SynthTable(Component):
             self.meta['span'] = html_json['has_span']
 
         if 'html_bs' not in self.meta:
+            char_thr = int('e000', 16)
+            for c in self.meta['html']:
+                if ord(c) >= char_thr:
+                    print("synthed html contains non-ascii char")
             self.meta['html_bs'] = BeautifulSoup(self.meta['html'], 'html.parser')
 
         if self.max_empty_cell_ratio:
@@ -847,8 +851,17 @@ class SynthTable(Component):
             print("searched except in html")
         if re.search(except_regex, str(self.meta['html_bs'])):
             print("searched except regex after")
+
+        char_thr = int('e000', 16)
         self.content_text = "".join(set(html_util.remove_white_spaces(self.meta['html_bs'].get_text())))
+        for c in self.content_text:
+            if ord(c) >= char_thr:
+                print("synthed html contains non-ascii char after remove shite spaces")
+
         self.content_text = re.sub(except_regex, "", self.content_text)
+        for c in self.content_text:
+            if ord(c) >= char_thr:
+                print("synthed html contains non-ascii char after remove except regex")
         if re.search(except_regex, self.content_text):
             print("searched except regex after2 ")
 
