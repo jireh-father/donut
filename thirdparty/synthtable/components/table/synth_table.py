@@ -852,10 +852,10 @@ class SynthTable(Component):
             print("searched except regex after")
 
         char_thr = int('e000', 16)
-        for c in self.meta['html_bs'].text:
+        for c in str(self.meta['html_bs']):
             if ord(c) >= char_thr:
                 print("synthed html contains non-ascii char after get text")
-        self.content_text = "".join(set(html_util.remove_white_spaces(self.meta['html_bs'].text)))
+        self.content_text = "".join(set(html_util.remove_white_spaces(str(self.meta['html_bs']))))
         for c in self.content_text:
             if ord(c) >= char_thr:
                 print("synthed html contains non-ascii char after remove shite spaces")
