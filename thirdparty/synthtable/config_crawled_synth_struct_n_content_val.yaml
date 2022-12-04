@@ -215,6 +215,10 @@ document:
             shuffle_cells:
               prob: 0.0
               portion: [0.2, 0.8]
+            cell_text_lengths:
+              5: 30
+              10: 20
+              15: 10
         style:
           font:
             paths: [ resources/fonts ]

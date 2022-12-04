@@ -125,8 +125,12 @@ class SynthTable(Component):
             self.shuffle_cells_portion_selector = \
                 config_selectors['html']['synth_content'].get()['shuffle_cells'].get()["portion"]
             self.mix_thead_tbody_switch = config_selectors['html']['synth_content'].get()['corpus']['mix_thead_tbody']
+            self.cell_text_lengths = None
+            if 'cell_text_lengths' in config['html']['synth_content']:
+                self.cell_text_lengths = config['html']['synth_content']['cell_text_lengths']
 
-    def _sample_cell_text(self, thead_or_tbody='tbody', mix_thead_tbody=False):
+
+    def _sample_cell_text(self, thead_or_tbody='tbody', mix_thead_tbody=False, max_text_len=None):
         if mix_thead_tbody:
             thead_or_tbody = ["tbody", "thead"][np.random.randint(0, 2)]
         if not self.thead_corpus_selector:
@@ -137,6 +141,8 @@ class SynthTable(Component):
             corpus_type = self.thead_corpus_selector.select()['name']
         corpus = self.corpus_dict[thead_or_tbody][corpus_type]
         text = corpus.sample()['text']
+        while max_text_len and len(text) > max_text_len:
+            text = corpus.sample()['text']
         if re.search(except_regex, text):
             print("searched except regex")
         return text
@@ -953,6 +959,12 @@ class SynthTable(Component):
     def _synth_structure_and_content(self):
         if self.meta['span']:
             span_table = np.full((self.meta['nums_row'], self.meta['nums_col']), False)
+        max_cell_cnt = max(self.meta['nums_row'], self.meta['nums_col'])
+
+        max_text_len = 1000000000
+        for cell_cnt in self.cell_text_lengths:
+            if max_cell_cnt > cell_cnt:
+                max_text_len = self.cell_text_lengths[cell_cnt]
 
         tags = ["<table>"]
         add_thead = self.meta['add_thead']
@@ -1010,7 +1022,7 @@ class SynthTable(Component):
                 else:
                     tags.append("<td>")
                 if not self.empty_cell_switch.on():
-                    tags.append(self._sample_cell_text("thead" if is_head else "tbody", self.meta['mix_thead_tbody']))
+                    tags.append(self._sample_cell_text("thead" if is_head else "tbody", self.meta['mix_thead_tbody']), max_text_len)
                 tags.append("</td>")
             tags.append("</tr>")
             if add_thead and thead_rows == row + 1:
