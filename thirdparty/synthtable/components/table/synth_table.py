@@ -1022,7 +1022,7 @@ class SynthTable(Component):
                 else:
                     tags.append("<td>")
                 if not self.empty_cell_switch.on():
-                    tags.append(self._sample_cell_text("thead" if is_head else "tbody", self.meta['mix_thead_tbody']), max_text_len)
+                    tags.append(self._sample_cell_text("thead" if is_head else "tbody", self.meta['mix_thead_tbody'], max_text_len))
                 tags.append("</td>")
             tags.append("</tr>")
             if add_thead and thead_rows == row + 1:
@@ -1093,6 +1093,13 @@ class SynthTable(Component):
                 if tbody_element:
                     self._shuffle_cells(bs, tbody_element)
         else:
+            max_cell_cnt = max(self.meta['nums_row'], self.meta['nums_col'])
+
+            max_text_len = 1000000000
+            for cell_cnt in self.cell_text_lengths:
+                if max_cell_cnt > cell_cnt:
+                    max_text_len = self.cell_text_lengths[cell_cnt]
+
             thead_bold = self.thead_bold_switch.on()
             self.meta['synth_content_thead_bold'] = thead_bold
             for thead_or_tbody in ["thead", "tbody"]:
@@ -1104,7 +1111,7 @@ class SynthTable(Component):
                         if self.empty_cell_switch.on():
                             td.string = ""
                         else:
-                            cell_text = self._sample_cell_text(thead_or_tbody, self.meta['mix_thead_tbody'])
+                            cell_text = self._sample_cell_text(thead_or_tbody, self.meta['mix_thead_tbody'], max_text_len)
                             if thead_or_tbody == "thead" and thead_bold:
                                 btag = bs.new_tag("b")
                                 btag.string = cell_text
