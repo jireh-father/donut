@@ -134,7 +134,7 @@ document:
               weight: 0
             synth_structure:
               weight: 1
-              nums_row: [1, 20]
+              nums_row: [1, 10]
               nums_col: [1, 20]
               thead:
                 prob: 0.0

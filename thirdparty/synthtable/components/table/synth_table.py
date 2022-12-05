@@ -72,8 +72,10 @@ class SynthTable(Component):
         self.max_rows = config_selectors['html']['max_row'].select()
         self.min_cols = config_selectors['html']['min_col'].select()
         self.max_cols = config_selectors['html']['max_col'].select()
-        self.max_col_span = config_selectors['html']['max_col_span'].select() if 'max_col_span' in config_selectors['html'] else None
-        self.max_row_span = config_selectors['html']['max_row_span'].select() if 'max_row_span' in config_selectors['html'] else None
+        self.max_col_span = config_selectors['html']['max_col_span'].select() if 'max_col_span' in config_selectors[
+            'html'] else None
+        self.max_row_span = config_selectors['html']['max_row_span'].select() if 'max_row_span' in config_selectors[
+            'html'] else None
         self.max_empty_cell_ratio = config_selectors['html']['max_empty_cell_ratio'].select()
         self.max_image_width = config_selectors['html']['max_image_width'].select()
         self.max_image_height = config_selectors['html']['max_image_height'].select()
@@ -129,7 +131,6 @@ class SynthTable(Component):
             if 'cell_text_lengths' in config['html']['synth_content']:
                 self.cell_text_lengths = config['html']['synth_content']['cell_text_lengths']
 
-
     def _sample_cell_text(self, thead_or_tbody='tbody', mix_thead_tbody=False, max_text_len=None):
         if mix_thead_tbody:
             thead_or_tbody = ["tbody", "thead"][np.random.randint(0, 2)]
@@ -143,8 +144,8 @@ class SynthTable(Component):
         text = corpus.sample()['text']
         while max_text_len and len(text) > max_text_len:
             text = corpus.sample()['text']
-        if re.search(except_regex, text):
-            print("searched except regex")
+        # if re.search(except_regex, text):
+        #     print("searched except regex")
         return text
 
     def _sample_global_color_mode(self):
@@ -783,7 +784,6 @@ class SynthTable(Component):
         synth_structure = structure_config['name'] == 'synth_structure'
         self.meta['structure_type'] = structure_config['name']
         if synth_structure:
-            print("synth")
             # synth structure
             synth_structure_config = structure_config['config']
             self.synth_structure_config = synth_structure_config
@@ -798,15 +798,11 @@ class SynthTable(Component):
             self.meta['has_thead'] = self.meta['add_thead']
             self.meta['mix_thead_tbody'] = self.mix_thead_tbody_switch.on()
             self._synth_structure_and_content()
-            char_thr = int('e000', 16)
-            for c in self.meta['html']:
-                if ord(c) >= char_thr:
-                    print("synthed html contains non-ascii char")
         else:
-            print("static")
             # static html
             html_result = self._sample_html_path()
             if html_result is False:
+                print("Failed to sample html. do resample!")
                 return self.sample()
             html_path, html_json = html_result
             if 'html_bs' not in self.meta:
@@ -842,7 +838,7 @@ class SynthTable(Component):
                 if not td.text.strip():
                     num_empty_tds += 1
             if num_empty_tds / len(tds) > self.max_empty_cell_ratio:
-                print("max_empty_cell_ratio")
+                print("max_empty_cell_ratio, do resampling")
                 return self.sample()
 
         # synth config
@@ -853,36 +849,13 @@ class SynthTable(Component):
             self.meta['mix_thead_tbody'] = self.mix_thead_tbody_switch.on()
             self._synth_content()
 
-        if re.search(except_regex, str(self.meta['html'])):
-            print("searched except in html")
-        if re.search(except_regex, str(self.meta['html_bs'])):
-            print("searched except regex after")
-
-        def get_text_recur(tags):
-            text_list = []
-            for tag in tags:
-                if tag.name:
-                    if hasattr(tag, "contents"):
-                        get_text_recur(tag.contents)
-                else:
-                    text_list.append(tag.text)
-            return text_list
-
-        char_thr = int('e000', 16)
-        for c in self.meta['html_bs'].text:
-            if ord(c) >= char_thr:
-                print("synthed html contains non-ascii char after get text")
-        self.content_text = "".join(set(html_util.remove_white_spaces("".join(get_text_recur(self.meta['html_bs'].contents)))))
-        for c in self.content_text:
-            if ord(c) >= char_thr:
-                print("synthed html contains non-ascii char after remove shite spaces")
-
-        self.content_text = re.sub(except_regex, "", self.content_text)
-        for c in self.content_text:
-            if ord(c) >= char_thr:
-                print("synthed html contains non-ascii char after remove except regex")
-        if re.search(except_regex, self.content_text):
-            print("searched except regex after2 ")
+        # char_thr = int('e000', 16)
+        # for c in self.meta['html_bs'].text:
+        #     if ord(c) >= char_thr:
+        #         print("synthed html contains non-ascii char after get text")
+        self.content_text = "".join(
+            set(html_util.remove_white_spaces("".join(html_util.get_text_recur(self.meta['html_bs'].contents)))))
+        # self.content_text = re.sub(except_regex, "", self.content_text)
 
         # styling
         self.meta['global_style'] = self.sample_styles()
@@ -1023,7 +996,8 @@ class SynthTable(Component):
                 else:
                     tags.append("<td>")
                 if not self.empty_cell_switch.on():
-                    tags.append(self._sample_cell_text("thead" if is_head else "tbody", self.meta['mix_thead_tbody'], max_text_len))
+                    tags.append(self._sample_cell_text("thead" if is_head else "tbody", self.meta['mix_thead_tbody'],
+                                                       max_text_len))
                 tags.append("</td>")
             tags.append("</tr>")
             if add_thead and thead_rows == row + 1:
@@ -1112,7 +1086,8 @@ class SynthTable(Component):
                         if self.empty_cell_switch.on():
                             td.string = ""
                         else:
-                            cell_text = self._sample_cell_text(thead_or_tbody, self.meta['mix_thead_tbody'], max_text_len)
+                            cell_text = self._sample_cell_text(thead_or_tbody, self.meta['mix_thead_tbody'],
+                                                               max_text_len)
                             if thead_or_tbody == "thead" and thead_bold:
                                 btag = bs.new_tag("b")
                                 btag.string = cell_text

@@ -103,6 +103,15 @@ def set_li_marker(li_tag, ol_type, idx):
     elif ol_type == "I":
         li_tag.replace_with(" {}. {} ".format(chr(idx + 8544), li_tag.text))
 
+def get_text_recur(tags):
+    text_list = []
+    for tag in tags:
+        if tag.name:
+            if hasattr(tag, "contents"):
+                get_text_recur(tag.contents)
+        else:
+            text_list.append(tag.text)
+    return text_list
 
 def _remove_tags(bs, remove_img_tag=False):
     for block_tag_name in BLOCK_TAGS:
