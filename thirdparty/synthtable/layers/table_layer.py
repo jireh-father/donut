@@ -147,8 +147,8 @@ class TableLayer(Layer):
         elif self.meta['table_aspect_ratio'][1] < ar:
             table_width = int(table_height * self.meta['table_aspect_ratio'][1])
         # driver.close()
-        # self.global_style['table']['width'] = str(table_width) + "px"
-        # self.global_style['table']['height'] = str(table_height) + "px"
+        self.global_style['table']['width'] = str(table_width) + "px"
+        self.global_style['table']['height'] = str(table_height) + "px"
         #
         # self._write_html_file(html_path)
         # driver.get("file:///{}".format(os.path.abspath(html_path)))
