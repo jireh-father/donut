@@ -1077,9 +1077,7 @@ class SynthTable(Component):
 
             thead_bold = self.thead_bold_switch.on()
             self.meta['synth_content_thead_bold'] = thead_bold
-            for thead_or_tbody in ["thead", "tbody"]:
-                if not thead_or_tbody:
-                    continue
+            for thead_or_tbody in ["thead", "tbody"] if self.meta['has_thead'] else ["tbody"]:
                 thead_or_tbody_tag = bs.find(thead_or_tbody)
                 for td in thead_or_tbody_tag.find_all("td"):
                     if self.synth_cell_switch.on():
