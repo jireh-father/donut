@@ -139,8 +139,10 @@ class TableLayer(Layer):
         table_width = table_element.size['width']
         table_height = table_element.size['height']
         if not self.meta['table_full_size']:
-            table_width = int(table_element.size['width'] * self.meta['relative_style']['table']['width_scale'])
-            table_height = int(table_element.size['height'] * self.meta['relative_style']['table']['height_scale'])
+            if np.random.rand() < 0.5:
+                table_width = int(table_element.size['width'] * self.meta['relative_style']['table']['width_scale'])
+            else:
+                table_height = int(table_element.size['height'] * self.meta['relative_style']['table']['height_scale'])
         ar = table_width / table_height
         if self.meta['table_aspect_ratio'][0] > ar:
             table_height = int(table_width / self.meta['table_aspect_ratio'][0])
