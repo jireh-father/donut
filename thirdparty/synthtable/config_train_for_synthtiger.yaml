@@ -106,9 +106,15 @@ document:
             ccw:
               prob: 0.5
         html:
-          paths: [ resources/table_html/danawa_kr/val ]
-          weights: [1]
-          shuffle: False
+          paths: [ resources/table_html/auction_kr/train,
+                   resources/table_html/gmarket_kr/train,
+                   resources/table_html/google_kr/train,
+                   resources/table_html/wiki_en/train,
+                   resources/table_html/danawa_kr/train,
+                   resources/table_html/google_en/train,
+                   resources/table_html/wiki_kr/train ]
+          weights: [2752,11378,11609,72961,49527,35640,45593]
+          shuffle: True
           charset: resources/charset/alphanum_special_korean.txt
           min_row: 1
           max_row: 200
@@ -131,9 +137,9 @@ document:
           tmp_path: tmp
           structure:
             static_html:
-              weight: 0
-            synth_structure:
               weight: 1
+            synth_structure:
+              weight: 4
               nums_row: [1, 20]
               nums_col: [1, 10]
               thead:
@@ -149,7 +155,7 @@ document:
 #              weight: 1
 #              portion: [0.1, 0.7]
           synth_content:
-            prob: 0.0
+            prob: 0.5
             corpus:
               mix_thead_tbody:
                 prob: 0.0
