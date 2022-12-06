@@ -90,7 +90,7 @@ class SynthTable(Component):
 
         self.min_font_size = self.config['style']['global']['css']['table']['font-size']['values'][0]
         self.max_font_size = self.config['style']['global']['css']['table']['font-size']['values'][1]
-
+        self.static_structure_config = None
         tmp_path = config_selectors['html']['tmp_path'].select()
         os.makedirs(tmp_path, exist_ok=True)
 
@@ -800,6 +800,9 @@ class SynthTable(Component):
             self._synth_structure_and_content()
         else:
             # static html
+            static_structure_config = structure_config['config']
+            self.static_structure_config = static_structure_config
+
             html_result = self._sample_html_path()
             if html_result is False:
                 print("Failed to sample html. do resample!")
@@ -902,7 +905,7 @@ class SynthTable(Component):
 
             html_json = json.load(open(html_json_path), encoding='utf-8')
 
-            if self.html_path_shuffle:
+            if not self.static_structure_config['skip_verify'].select() and self.html_path_shuffle:
                 if self.html_charset:
                     bs = BeautifulSoup(html_json['html'], 'html.parser')
                     self.meta['html_bs'] = bs
