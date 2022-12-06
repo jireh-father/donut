@@ -787,10 +787,13 @@ class SynthTable(Component):
             # synth structure
             synth_structure_config = structure_config['config']
             self.synth_structure_config = synth_structure_config
+            self.meta['skip_1x1'] = synth_structure_config['skip_1x1'].select()
             self.meta['nums_row'] = synth_structure_config['nums_row'].select()
             self.meta['nums_col'] = synth_structure_config['nums_col'].select()
+            while self.meta['skip_1x1'] and self.meta['nums_row'] == 1 and self.meta['nums_col'] == 1:
+                self.meta['nums_row'] = synth_structure_config['nums_row'].select()
+                self.meta['nums_col'] = synth_structure_config['nums_col'].select()
 
-            print("synth", self.meta['nums_row'], self.meta['nums_col'])
             self.meta['span'] = synth_structure_config['span'].on()
             self.meta['add_thead'] = synth_structure_config['thead'].on()
             if self.meta['add_thead']:
@@ -843,9 +846,6 @@ class SynthTable(Component):
                 if not td.text.strip():
                     num_empty_tds += 1
             if num_empty_tds / len(tds) > self.max_empty_cell_ratio:
-                print("empty tds {}, tds {}".format(num_empty_tds, len(tds)))
-                print(self.meta['nums_col'], self.meta['nums_row'], self.meta['html'])
-                print("max_empty_cell_ratio, do resampling")
                 return self.sample()
 
         # synth config

@@ -143,6 +143,7 @@ document:
               weight: 4
               nums_row: [1, 20]
               nums_col: [1, 10]
+              skip_1x1: True
               thead:
                 prob: 0.0
                 rows: [1, 3]
