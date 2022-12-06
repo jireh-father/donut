@@ -462,6 +462,7 @@ class OnlineSynthDonutDataset(Dataset):
                 data = self.synth_table.generate()
                 break
             except:
+                print("in dataloader, synthtable error")
                 traceback.print_exc()
 
         im, table_html = self.synth_table.load(data)
