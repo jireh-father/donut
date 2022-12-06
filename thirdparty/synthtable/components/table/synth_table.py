@@ -787,12 +787,14 @@ class SynthTable(Component):
             # synth structure
             synth_structure_config = structure_config['config']
             self.synth_structure_config = synth_structure_config
-            self.meta['skip_1x1'] = synth_structure_config['skip_1x1'].select()
+
             self.meta['nums_row'] = synth_structure_config['nums_row'].select()
             self.meta['nums_col'] = synth_structure_config['nums_col'].select()
-            while self.meta['skip_1x1'] and self.meta['nums_row'] == 1 and self.meta['nums_col'] == 1:
-                self.meta['nums_row'] = synth_structure_config['nums_row'].select()
-                self.meta['nums_col'] = synth_structure_config['nums_col'].select()
+            if 'skip_1x1' in synth_structure_config:
+                self.meta['skip_1x1'] = synth_structure_config['skip_1x1'].select()
+                while self.meta['skip_1x1'] and self.meta['nums_row'] == 1 and self.meta['nums_col'] == 1:
+                    self.meta['nums_row'] = synth_structure_config['nums_row'].select()
+                    self.meta['nums_col'] = synth_structure_config['nums_col'].select()
 
             self.meta['span'] = synth_structure_config['span'].on()
             self.meta['add_thead'] = synth_structure_config['thead'].on()
