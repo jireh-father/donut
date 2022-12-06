@@ -776,11 +776,7 @@ class SynthTable(Component):
                     self._remove_html_tag_attrs_recur(tag.contents)
 
     def _remove_html_tag_attrs(self):
-        try:
-            self._remove_html_tag_attrs_recur(self.meta['html_bs'].find("table").contents)
-        except:
-            print("resur error", self.meta['html_path'])
-            print(self.meta['html'])
+        self._remove_html_tag_attrs_recur(self.meta['html_bs'].find("table").contents)
 
     def sample(self, meta=None):
         # synth structure config
@@ -850,6 +846,7 @@ class SynthTable(Component):
                 if not td.text.strip():
                     num_empty_tds += 1
             if num_empty_tds / len(tds) > self.max_empty_cell_ratio:
+                print("max_empty_cell_ratio")
                 return self.sample()
 
         # synth config
@@ -1123,4 +1120,5 @@ class SynthTable(Component):
             # rendering
             ret = layer.render_table(paper=paper, meta=self.meta)
             if not ret:
+                print("Failed to render table by table layer")
                 return self.apply(layers)
