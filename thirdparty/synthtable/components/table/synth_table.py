@@ -293,7 +293,10 @@ class SynthTable(Component):
                 self._set_inner_border_row("thead")
 
     def _set_inner_border_row(self, css_selector):
-        tr_elements = self.meta['html_bs'].find(css_selector).find_all("tr")
+        try:
+            tr_elements = self.meta['html_bs'].find(css_selector).find_all("tr")
+        except:
+            print("exception css_selector", css_selector)
         for ridx in range(len(tr_elements) - 1):
             for cidx, td_element in enumerate(tr_elements[ridx].find_all("td")):
                 tmp_ridx = ridx
