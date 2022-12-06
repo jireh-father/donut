@@ -886,7 +886,7 @@ class SynthTable(Component):
         try_cnt = 0
         while True:
             try_cnt += 1
-            if try_cnt >= 100:
+            if try_cnt >= 10:
                 print("Failed to find the html file with that condition.")
                 return False
 
