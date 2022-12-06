@@ -776,7 +776,11 @@ class SynthTable(Component):
                     self._remove_html_tag_attrs_recur(tag.contents)
 
     def _remove_html_tag_attrs(self):
-        self._remove_html_tag_attrs_recur([self.meta['html_bs'].find("table")])
+        try:
+            self._remove_html_tag_attrs_recur([self.meta['html_bs'].find("table")])
+        except:
+            print("resur error", self.meta['html_path'])
+            print(self.meta['html'])
 
     def sample(self, meta=None):
         # synth structure config
