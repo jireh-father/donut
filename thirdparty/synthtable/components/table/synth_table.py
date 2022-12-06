@@ -790,6 +790,7 @@ class SynthTable(Component):
             self.meta['nums_row'] = synth_structure_config['nums_row'].select()
             self.meta['nums_col'] = synth_structure_config['nums_col'].select()
 
+            print("synth", self.meta['nums_row'], self.meta['nums_col'])
             self.meta['span'] = synth_structure_config['span'].on()
             self.meta['add_thead'] = synth_structure_config['thead'].on()
             if self.meta['add_thead']:
@@ -829,6 +830,7 @@ class SynthTable(Component):
             self.meta['original_html'] = html
             self.meta['nums_col'] = html_json['nums_col']
             self.meta['nums_row'] = html_json['nums_row']
+
             self.meta['span'] = html_json['has_span']
 
         if 'html_bs' not in self.meta:
@@ -842,10 +844,8 @@ class SynthTable(Component):
                     num_empty_tds += 1
             if num_empty_tds / len(tds) > self.max_empty_cell_ratio:
                 print("empty tds {}, tds {}".format(num_empty_tds, len(tds)))
-                print(self.meta['nums_col'])
-                print(self.meta['nums_row'])
-                print(self.meta['html'])
-                print("max_empty_cell_ratio, do resampling", html_path)
+                print(self.meta['nums_col'], self.meta['nums_row'], self.meta['html'])
+                print("max_empty_cell_ratio, do resampling")
                 return self.sample()
 
         # synth config
