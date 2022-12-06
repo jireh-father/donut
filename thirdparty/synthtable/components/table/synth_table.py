@@ -806,8 +806,8 @@ class SynthTable(Component):
             self._synth_structure_and_content()
         else:
             # static html
-            static_structure_config = structure_config['config']
-            self.static_structure_config = static_structure_config
+            if 'config' in structure_config:
+                self.static_structure_config = structure_config['config']
 
             html_result = self._sample_html_path()
             if html_result is False:
@@ -912,7 +912,10 @@ class SynthTable(Component):
 
             html_json = json.load(open(html_json_path), encoding='utf-8')
 
-            if not self.static_structure_config['skip_verify'].select() and self.html_path_shuffle:
+            skip_verify = False
+            if self.static_structure_config and self.static_structure_config['skip_verify'].select():
+                skip_verify = True
+            if self.html_path_shuffle and not skip_verify:
                 if self.html_charset:
                     bs = BeautifulSoup(html_json['html'], 'html.parser')
                     self.meta['html_bs'] = bs
