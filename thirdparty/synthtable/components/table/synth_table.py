@@ -856,6 +856,7 @@ class SynthTable(Component):
             if num_empty_tds / len(tds) > self.max_empty_cell_ratio:
                 print("max_empty_cell_ratio", num_empty_tds, len(tds), self.meta['nums_col'], self.meta['nums_row'],
                       synth_structure)
+                print(self.meta)
                 self.meta = self.ori_meta
                 return self.sample()
 
