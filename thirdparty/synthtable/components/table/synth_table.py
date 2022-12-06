@@ -848,7 +848,7 @@ class SynthTable(Component):
                 if not td.text.strip():
                     num_empty_tds += 1
             if num_empty_tds / len(tds) > self.max_empty_cell_ratio:
-                print("max_empty_cell_ratio")
+                print("max_empty_cell_ratio", num_empty_tds, len(tds), self.meta['nums_col'], self.meta['nums_row'])
                 return self.sample()
 
         # synth config
