@@ -37,6 +37,7 @@ class SynthTable(Component):
         self.meta = None
         self.global_style = None
         self.content_text = None
+        self.ori_meta = None
         self.config = config
         self.config_selectors = config_selectors
         self.html_path_selector = PathSelector(config_selectors['html']['paths'].values,
@@ -815,6 +816,7 @@ class SynthTable(Component):
             html_result = self._sample_html_path()
             if html_result is False:
                 print("Failed to sample html. do resample!")
+                self.meta = self.ori_meta
                 return self.sample()
             html_path, html_json = html_result
             if 'html_bs' not in self.meta:
@@ -851,7 +853,9 @@ class SynthTable(Component):
                 if not td.text.strip():
                     num_empty_tds += 1
             if num_empty_tds / len(tds) > self.max_empty_cell_ratio:
-                print("max_empty_cell_ratio", num_empty_tds, len(tds), self.meta['nums_col'], self.meta['nums_row'])
+                print("max_empty_cell_ratio", num_empty_tds, len(tds), self.meta['nums_col'], self.meta['nums_row'],
+                      synth_structure)
+                self.meta = self.ori_meta
                 return self.sample()
 
         # synth config
@@ -1114,6 +1118,7 @@ class SynthTable(Component):
     def apply(self, layers, meta=None):
         if meta is None:
             meta = {}
+        self.ori_meta = meta
         self.meta = meta
         self.sample()
 
