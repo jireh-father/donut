@@ -913,7 +913,7 @@ class SynthTable(Component):
             html_json = json.load(open(html_json_path), encoding='utf-8')
 
             skip_verify = False
-            if self.static_structure_config and self.static_structure_config['skip_verify'].select():
+            if self.static_structure_config and self.static_structure_config['skip_verify']:
                 skip_verify = True
             if self.html_path_shuffle and not skip_verify:
                 if self.html_charset:
