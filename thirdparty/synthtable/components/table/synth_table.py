@@ -298,6 +298,7 @@ class SynthTable(Component):
             tr_elements = self.meta['html_bs'].find(css_selector).find_all("tr")
         except:
             print("exception css_selector", css_selector)
+            print(self.meta)
         for ridx in range(len(tr_elements) - 1):
             for cidx, td_element in enumerate(tr_elements[ridx].find_all("td")):
                 tmp_ridx = ridx
@@ -815,7 +816,7 @@ class SynthTable(Component):
 
             html_result = self._sample_html_path()
             if html_result is False:
-                print("Failed to sample html. do resample!")
+                # print("Failed to sample html. do resample!")
                 self.meta = self.ori_meta
                 return self.sample()
             html_path, html_json = html_result
@@ -904,7 +905,7 @@ class SynthTable(Component):
         while True:
             try_cnt += 1
             if try_cnt >= 10:
-                print("Failed to find the html file with that condition.")
+                # print("Failed to find the html file with that condition.")
                 return False
 
             if self.html_path_shuffle:
