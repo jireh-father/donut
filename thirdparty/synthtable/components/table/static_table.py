@@ -36,7 +36,10 @@ class StaticTable(Component):
             'html'] else None
         self.max_row_span = config_selectors['html']['max_row_span'].select() if 'max_row_span' in config_selectors[
             'html'] else None
-        self.max_empty_cell_ratio = config_selectors['html']['max_empty_cell_ratio'].select()
+        if 'max_empty_cell_ratio' in config_selectors['html']:
+            self.max_empty_cell_ratio = config_selectors['html']['max_empty_cell_ratio'].select()
+        else:
+            self.max_empty_cell_ratio = None
         self.max_image_width = config_selectors['html']['max_image_width'].select()
         self.max_image_height = config_selectors['html']['max_image_height'].select()
 
