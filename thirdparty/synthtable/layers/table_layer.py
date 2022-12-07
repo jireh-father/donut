@@ -254,13 +254,13 @@ class TableLayer(Layer):
                         driver.close()
                     except:
                         traceback.print_exc()
-                        pass
+                        return False
                 if driver and hasattr(driver, "quit"):
                     try:
                         driver.quit()
                     except:
                         traceback.print_exc()
-                        pass
+                        return False
 
             image = Image.open(image_path)
             os.unlink(html_path)
