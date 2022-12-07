@@ -818,7 +818,8 @@ class SynthTable(Component):
             if html_result is False:
                 # print("Failed to sample html. do resample!")
                 self.meta = self.ori_meta
-                return self.sample()
+                raise Exception("Failed to sample html. do resample!")
+                # return self.sample()
             html_path, html_json = html_result
             if 'html_bs' not in self.meta:
                 bs = BeautifulSoup(html_json['html'], 'html.parser')
@@ -858,7 +859,8 @@ class SynthTable(Component):
                       synth_structure)
                 print(self.meta)
                 self.meta = self.ori_meta
-                return self.sample()
+                raise Exception("max_empty_cell_ratio")
+                # return self.sample()
 
         # synth config
         synth_content = self.config_selectors['html']['synth_content'].on()
@@ -1136,4 +1138,4 @@ class SynthTable(Component):
             ret = layer.render_table(paper=paper, meta=self.meta)
             if not ret:
                 print("Failed to render table by table layer")
-                return self.apply(layers)
+                raise Exception("Failed to render table by table layer")
