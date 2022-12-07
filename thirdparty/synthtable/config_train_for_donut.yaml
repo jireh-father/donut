@@ -138,7 +138,7 @@ document:
           structure:
             static_html:
               weight: 1
-              skip_verify: False
+              skip_verify: True
             synth_structure:
               weight: 4
               nums_row: [1, 20]

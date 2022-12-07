@@ -817,8 +817,8 @@ class SynthTable(Component):
             html_result = self._sample_html_path()
             if html_result is False:
                 # print("Failed to sample html. do resample!")
-                self.meta = self.ori_meta
                 raise Exception("Failed to sample html. do resample!")
+                # self.meta = self.ori_meta
                 # return self.sample()
             html_path, html_json = html_result
             if 'html_bs' not in self.meta:
