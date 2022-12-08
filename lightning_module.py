@@ -141,13 +141,13 @@ class DonutModelPLModule(pl.LightningModule):
             else:
                 scores.append(edit_distance(pred, answer) / max(len(pred), len(answer)))
 
-            if self.config.get("verbose", False) and len(scores) == 1:
-                self.print(f"Prediction: {pred}")
-                self.print(f"    Answer: {answer}")
-                if self.validation_metric.startswith("teds"):
-                    self.print(f" TEDS: {scores[0]}")
-                else:
-                    self.print(f" Normed ED: {scores[0]}")
+            # if self.config.get("verbose", False) and len(scores) == 1:
+            #     self.print(f"Prediction: {pred}")
+            #     self.print(f"    Answer: {answer}")
+            #     if self.validation_metric.startswith("teds"):
+            #         self.print(f" TEDS: {scores[0]}")
+            #     else:
+            #         self.print(f" Normed ED: {scores[0]}")
 
         return scores
 
