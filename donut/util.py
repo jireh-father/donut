@@ -69,6 +69,8 @@ class DonutDataset(Dataset):
         self.dataset_length = len(self.dataset)
         self.gt_token_sequences = []
 
+        print("self.dataset_length", self.dataset_length, dataset_name_or_path)
+
         for sample in self.dataset:
             ground_truth = json.loads(sample["ground_truth"])
             if "gt_parses" in ground_truth:  # when multiple ground truths are available, e.g., docvqa
