@@ -118,6 +118,7 @@ class DonutModelPLModule(pl.LightningModule):
             [input_id[: end_idx + 1] for input_id, end_idx in zip(decoder_input_ids, prompt_end_idxs)],
             batch_first=True,
         )
+        print("image_tensors len", len(image_tensors))
 
         preds = self.model.inference(
             image_tensors=image_tensors,
@@ -152,6 +153,7 @@ class DonutModelPLModule(pl.LightningModule):
         num_of_loaders = len(self.config.dataset_name_or_paths)
         if num_of_loaders == 1:
             validation_step_outputs = [validation_step_outputs]
+        print(validation_step_outputs)
         print("len validation_step_outputs", len(validation_step_outputs))
         print("num_of_loaders", num_of_loaders)
         assert len(validation_step_outputs) == num_of_loaders
