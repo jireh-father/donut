@@ -157,7 +157,9 @@ class DonutModelPLModule(pl.LightningModule):
         total_metric = [0] * num_of_loaders
         val_metric = [0] * num_of_loaders
         for i, results in enumerate(validation_step_outputs):
+            print("results len", len(results))
             for scores in results:
+                print("scores len", len(scores))
                 cnt[i] += len(scores)
                 total_metric[i] += np.sum(scores)
             val_metric[i] = total_metric[i] / cnt[i]
