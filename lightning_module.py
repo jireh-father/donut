@@ -152,6 +152,8 @@ class DonutModelPLModule(pl.LightningModule):
         num_of_loaders = len(self.config.dataset_name_or_paths)
         if num_of_loaders == 1:
             validation_step_outputs = [validation_step_outputs]
+        print("len validation_step_outputs", len(validation_step_outputs))
+        print("num_of_loaders", num_of_loaders)
         assert len(validation_step_outputs) == num_of_loaders
         cnt = [0] * num_of_loaders
         total_metric = [0] * num_of_loaders
