@@ -138,13 +138,13 @@ class DonutModelPLModule(pl.LightningModule):
             else:
                 scores.append(edit_distance(pred, answer) / max(len(pred), len(answer)))
 
-            # if self.config.get("verbose", False) and len(scores) == 1:
-            #     self.print(f"Prediction: {pred}")
-            #     self.print(f"    Answer: {answer}")
-            #     if self.validation_metric.startswith("teds"):
-            #         self.print(f" TEDS: {scores[0]}")
-            #     else:
-            #         self.print(f" Normed ED: {scores[0]}")
+            if self.config.get("verbose", False):# and len(scores) == 1:
+                self.print(f"Prediction: {pred}")
+                self.print(f"    Answer: {answer}")
+                if self.validation_metric.startswith("teds"):
+                    self.print(f" TEDS: {scores[0]}")
+                else:
+                    self.print(f" Normed ED: {scores[0]}")
 
         return scores
 
@@ -157,9 +157,7 @@ class DonutModelPLModule(pl.LightningModule):
         total_metric = [0] * num_of_loaders
         val_metric = [0] * num_of_loaders
         for i, results in enumerate(validation_step_outputs):
-            print("results len", len(results))
             for scores in results:
-                print("scores len", len(scores))
                 cnt[i] += len(scores)
                 total_metric[i] += np.sum(scores)
             val_metric[i] = total_metric[i] / cnt[i]
