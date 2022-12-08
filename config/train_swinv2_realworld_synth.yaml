@@ -2,28 +2,31 @@ resume_from_checkpoint_path: null # only used for resume_from_checkpoint option 
 result_path: "./result"
 #pretrained_model_name_or_path: "naver-clova-ix/donut-base" # loading a pre-trained model (from moldehub or path)
 pretrained_model_name_or_path: null
-dataset_name_or_paths: ["./dataset/danawa_kr_synth",
-                        "./dataset/google_en_synth",
-                        "./dataset/wiki_en_ori",
-                        "./dataset/wiki_kr_ori_and_bg",
-                        "./dataset/crawling_train_corpus_synth_val",
-                        "./dataset/google_kr_ori",
-                        "./dataset/wiki_en_ori_and_bg",
-                        "./dataset/wiki_kr_synth",
-                        "./dataset/danawa_kr_ori",
-                        "./dataset/google_en_ori",
-                        "./dataset/google_kr_ori_and_bg",
-                        "./dataset/wiki_en_synth",
-                        "./dataset/danawa_kr_ori_and_bg",
-                        "./dataset/google_en_ori_and_bg",
-                        "./dataset/google_kr_synth",
-                        "./dataset/wiki_kr_ori"] # loading datasets (from moldehub or path)
+dataset_name_or_paths: ["./dataset/wiki_en_ori",
+                        "./dataset/google_kr_ori"] # loading datasets (from moldehub or path)
+#dataset_name_or_paths: ["./dataset/danawa_kr_synth",
+#                        "./dataset/google_en_synth",
+#                        "./dataset/wiki_en_ori",
+#                        "./dataset/wiki_kr_ori_and_bg",
+#                        "./dataset/crawling_train_corpus_synth_val",
+#                        "./dataset/google_kr_ori",
+#                        "./dataset/wiki_en_ori_and_bg",
+#                        "./dataset/wiki_kr_synth",
+#                        "./dataset/danawa_kr_ori",
+#                        "./dataset/google_en_ori",
+#                        "./dataset/google_kr_ori_and_bg",
+#                        "./dataset/wiki_en_synth",
+#                        "./dataset/danawa_kr_ori_and_bg",
+#                        "./dataset/google_en_ori_and_bg",
+#                        "./dataset/google_kr_synth",
+#                        "./dataset/wiki_kr_ori"] # loading datasets (from moldehub or path)
 online_synth_dataset: True
 synth_dataset_length: 500000
 synth_config_path: "./thirdparty/synthtable/config_train_for_donut.yaml"
 sort_json_key: False # cord dataset is preprocessed, and publicly available at https://huggingface.co/datasets/naver-clova-ix/cord-v2
 train_batch_sizes: [2]
-val_batch_sizes: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+#val_batch_sizes: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+val_batch_sizes: [1,1]
 input_size: [1280, 960]
 max_length: 3000
 align_long_axis: False
