@@ -86,6 +86,8 @@ def train(config):
                     )
                 )
         data_module.val_datasets = datasets["validation"]
+        print(data_module.val_datasets)
+        print("len data_module.val_datasets", len(data_module.val_datasets))
     else:
         for i, dataset_name_or_path in enumerate(config.dataset_name_or_paths):
             # task_name = os.path.basename(dataset_name_or_path)  # e.g., cord-v2, docvqa, rvlcdip, ...

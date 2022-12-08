@@ -119,6 +119,8 @@ class DonutModelPLModule(pl.LightningModule):
             batch_first=True,
         )
         print("image_tensors len", len(image_tensors))
+        print("batch_idx", batch_idx)
+        print("dataset_idx", dataset_idx)
 
         preds = self.model.inference(
             image_tensors=image_tensors,
