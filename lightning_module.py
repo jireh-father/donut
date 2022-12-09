@@ -361,7 +361,7 @@ class DonutClipModelPLModule(pl.LightningModule):
                 cnt[i] += result[1]
                 total_metric[i] += loss * result[1]
             val_metric[i] = total_metric[i] / cnt[i]
-            val_metric_name = f"val_metric_{i}th_dataset"
+            val_metric_name = f"val_metric_{i}th_{self.config.dataset_name_or_paths[i]}"
             self.log_dict({val_metric_name: val_metric[i]}, sync_dist=True)
         self.log_dict({"val_metric": np.sum(total_metric) / np.sum(cnt)},
                       sync_dist=True)
