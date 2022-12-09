@@ -621,6 +621,58 @@ class DonutModel(PreTrainedModel):
 
         return output
 
+    def inference_one(
+            self,
+            image: PIL.Image = None
+    ):
+        prompt = "<s_tableocr>"
+        image_tensors = self.encoder.prepare_input(image).unsqueeze(0)
+
+        if self.device.type == "cuda":  # half is not compatible in cpu implementation.
+            image_tensors = image_tensors.half()
+            image_tensors = image_tensors.to(self.device)
+        else:
+            image_tensors = image_tensors.to(torch.bfloat16)
+
+        prompt_tensors = self.decoder.tokenizer(prompt, add_special_tokens=False, return_tensors="pt")["input_ids"]
+
+        prompt_tensors = prompt_tensors.to(self.device)
+
+        last_hidden_state = self.encoder(image_tensors)
+        if self.device.type != "cuda":
+            last_hidden_state = last_hidden_state.to(torch.float32)
+
+        encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
+
+        if len(encoder_outputs.last_hidden_state.size()) == 1:
+            encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
+        if len(prompt_tensors.size()) == 1:
+            prompt_tensors = prompt_tensors.unsqueeze(0)
+
+        # get decoder output
+        decoder_output = self.decoder.model.generate(
+            decoder_input_ids=prompt_tensors,
+            encoder_outputs=encoder_outputs,
+            max_length=self.config.max_length,
+            early_stopping=True,
+            pad_token_id=self.decoder.tokenizer.pad_token_id,
+            eos_token_id=self.decoder.tokenizer.eos_token_id,
+            use_cache=True,
+            num_beams=1,
+            bad_words_ids=[[self.decoder.tokenizer.unk_token_id]],
+            return_dict_in_generate=True,
+            output_attentions=False,
+        )
+
+        return self.decoder.tokenizer.batch_decode(decoder_output.sequences)[0]
+        # for seq in self.decoder.tokenizer.batch_decode(decoder_output.sequences):
+        #     seq = seq.replace(self.decoder.tokenizer.eos_token, "").replace(self.decoder.tokenizer.pad_token, "")
+        #     seq = re.sub(r"<.*?>", "", seq, count=1).strip()  # remove first task start token
+        #     if return_json:
+        #         output["predictions"].append(self.token2json(seq))
+        #     else:
+        #         output["predictions"].append(seq)
+
     def json2token(self, obj: Any, update_special_tokens_for_json_key: bool = True, sort_json_key: bool = True):
         """
         Convert an ordered JSON object into a token sequence
