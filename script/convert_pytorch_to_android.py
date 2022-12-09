@@ -99,7 +99,7 @@ def main(args, left_argv):
         # use_fast_tokenizer=config.use_fast_tokenizer,
         tokenizer_name_or_path=config.tokenizer_name_or_path,
         # vision_model_name=config.vision_model_name,
-        bart_prtrained_path=config.bart_prtrained_path,
+        # bart_prtrained_path=config.bart_prtrained_path,
         special_tokens=task_start_tokens + prompt_end_tokens,
         swin_pretrained_path=config.swin_pretrained_path,
         window_size=config.window_size,
