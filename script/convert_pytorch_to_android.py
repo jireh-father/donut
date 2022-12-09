@@ -98,7 +98,7 @@ def main(args, left_argv):
         ignore_mismatched_sizes=True,
         # use_fast_tokenizer=config.use_fast_tokenizer,
         tokenizer_name_or_path=config.tokenizer_name_or_path,
-        vision_model_name=config.vision_model_name,
+        # vision_model_name=config.vision_model_name,
         bart_prtrained_path=config.bart_prtrained_path,
         special_tokens=task_start_tokens + prompt_end_tokens,
         swin_pretrained_path=config.swin_pretrained_path,
