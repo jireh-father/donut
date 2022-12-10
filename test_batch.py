@@ -110,7 +110,7 @@ def test(args, config):
     error_data = []
 
     result_path = os.path.join(args.output_dir, "results.jsonl")
-    dataset_path_list = config.dataset_name_or_paths.split(",")
+    dataset_path_list = config.dataset_name_or_paths
     with open(result_path, "w+", encoding="utf-8") as output:
         for dataset_idx, dataset_name_or_path in enumerate(dataset_path_list):
             dataset_name = os.path.basename(dataset_name_or_path)
