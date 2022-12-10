@@ -575,7 +575,6 @@ class DonutModel(PreTrainedModel):
 
         if prompt_tensors is None:
             prompt_tensors = self.decoder.tokenizer(prompt, add_special_tokens=False, return_tensors="pt")["input_ids"]
-            prompt_tensors = prompt_tensors.unsqueeze(0)
             if len(image_tensors) > 1:
                 prompt_tensors = prompt_tensors.expand(len(image_tensors), -1)
 
@@ -595,7 +594,6 @@ class DonutModel(PreTrainedModel):
         print("prompt_tensors", prompt_tensors.shape)
         # if len(prompt_tensors.size()) == 1:
         #     prompt_tensors = prompt_tensors.unsqueeze(0)
-        print("prompt_tensors", prompt_tensors.shape)
         # get decoder output
         decoder_output = self.decoder.model.generate(
             decoder_input_ids=prompt_tensors,
