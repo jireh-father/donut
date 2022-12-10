@@ -583,6 +583,7 @@ class DonutModel(PreTrainedModel):
             last_hidden_state = last_hidden_state.to(torch.float32)
 
         encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
+        print("encoder_outputs", encoder_outputs.shape)
 
         if len(encoder_outputs.last_hidden_state.size()) == 1:
             encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
@@ -604,6 +605,7 @@ class DonutModel(PreTrainedModel):
             output_attentions=return_attentions,
         )
 
+        print(decoder_output.sequences.shape)
         output = {"predictions": list()}
         for seq in self.decoder.tokenizer.batch_decode(decoder_output.sequences):
             seq = seq.replace(self.decoder.tokenizer.eos_token, "").replace(self.decoder.tokenizer.pad_token, "")
