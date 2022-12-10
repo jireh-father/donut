@@ -142,6 +142,7 @@ def test(args, config):
                         T.postprocess_html_tag(json.loads(batch["ground_truth"][fidx])["gt_parse"]["text_sequence"]))
                 input_tensors = torch.stack(input_tensors, dim=0)
                 preds = model.inference(image_tensors=input_tensors, prompt=f"<s_tableocr>")["predictions"]
+                print("len", preds)
                 pred_list = [T.postprocess_html_tag(re.sub(r"(?:(?<=>) | (?=</s_))", "", pred['text_sequence'])) for
                              pred in preds]
 
