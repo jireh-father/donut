@@ -52,7 +52,7 @@ def main(args, left_argv):
     if args.use_script:
         traced_script_module = torch.jit.script(model)
     else:
-        example = torch.rand((1, 3, config.input_size, config.input_size)).to(device)
+        example = torch.rand(1, 3, config.input_size[0], config.input_size[1]).to(device)
         ret = model(example)
         print(ret, ret.shape)
         traced_script_module = torch.jit.trace(model, example)
