@@ -455,7 +455,7 @@ class DonutConfig(PretrainedConfig):
     ):
         super().__init__()
         self.input_size = input_size
-        self.d_model=d_model
+        self.d_model = d_model
         self.align_long_axis = align_long_axis
         self.window_size = window_size
         self.encoder_layer = encoder_layer
@@ -575,6 +575,9 @@ class DonutModel(PreTrainedModel):
 
         if prompt_tensors is None:
             prompt_tensors = self.decoder.tokenizer(prompt, add_special_tokens=False, return_tensors="pt")["input_ids"]
+            prompt_tensors = prompt_tensors.unsqueeze(0)
+            if len(image_tensors) > 1:
+                prompt_tensors = prompt_tensors.expand(len(image_tensors), -1)
 
         prompt_tensors = prompt_tensors.to(self.device)
 
@@ -582,16 +585,16 @@ class DonutModel(PreTrainedModel):
         if self.device.type != "cuda":
             last_hidden_state = last_hidden_state.to(torch.float32)
 
-        print("last_hidden_state",last_hidden_state.shape)
+        print("last_hidden_state", last_hidden_state.shape)
         encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
         print("encoder_outputs", len(encoder_outputs))
         print("encoder_outputs.last_hidden_state", encoder_outputs.last_hidden_state.shape)
         if len(encoder_outputs.last_hidden_state.size()) == 1:
             encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
 
-        print("prompt_tensors",  prompt_tensors.shape)
-        if len(prompt_tensors.size()) == 1:
-            prompt_tensors = prompt_tensors.unsqueeze(0)
+        print("prompt_tensors", prompt_tensors.shape)
+        # if len(prompt_tensors.size()) == 1:
+        #     prompt_tensors = prompt_tensors.unsqueeze(0)
         print("prompt_tensors", prompt_tensors.shape)
         # get decoder output
         decoder_output = self.decoder.model.generate(
@@ -870,7 +873,7 @@ class DonutClipConfig(PretrainedConfig):
         self.swin_model_size = swin_model_size
         self.d_model = d_model
         self.projection_dim = projection_dim
-        self.swin_name_or_path=swin_name_or_path
+        self.swin_name_or_path = swin_name_or_path
 
 
 def contrastive_loss(logits: torch.Tensor) -> torch.Tensor:
