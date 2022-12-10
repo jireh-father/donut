@@ -18,7 +18,7 @@ import torch
 from datasets import load_dataset
 from PIL import Image
 from tqdm import tqdm
-
+from torch.utils.data import DataLoader
 from donut import DonutModel, JSONParseEvaluator, load_json, save_json, DonutConfig
 import teds as T
 from sconf import Config
@@ -42,8 +42,24 @@ def convert(text):
 
 
 def test(args, config):
+    # model = DonutModel.from_pretrained(
+    #     args.pretrained_model_name_or_path,
+    #     input_size=config.input_size,
+    #     max_length=config.max_length,
+    #     align_long_axis=config.align_long_axis,
+    #     ignore_mismatched_sizes=True,
+    #     use_fast_tokenizer=config.use_fast_tokenizer,
+    #     tokenizer_name_or_path=config.tokenizer_name_or_path,
+    #     vision_model_name=config.vision_model_name,
+    #     bart_prtrained_path=config.bart_prtrained_path,
+    #     special_tokens=['<s_tableocr>'],
+    #     swin_pretrained_path=config.swin_pretrained_path,
+    #     window_size=config.window_size,
+    #     swin_model_size=config.swin_model_size,
+    #     ape=config.ape
+    # )
     model = DonutModel.from_pretrained(
-        args.pretrained_model_name_or_path,
+        config.pretrained_model_name_or_path,
         input_size=config.input_size,
         max_length=config.max_length,
         align_long_axis=config.align_long_axis,
@@ -56,7 +72,15 @@ def test(args, config):
         swin_pretrained_path=config.swin_pretrained_path,
         window_size=config.window_size,
         swin_model_size=config.swin_model_size,
-        ape=config.ape
+        ape=config.ape,
+        swin_name_or_path=config.swin_name_or_path,
+        encoder_layer=config.swin_encoder_layer,
+        d_model=config.d_model,
+        swin_depth_last_block=config.swin_depth_last_block,
+        swin_num_heads_last_block=config.swin_num_heads_last_block,
+        swin_drop_path_rate_last_block=config.swin_drop_path_rate_last_block,
+        swin_init_values_last_block=config.swin_init_values_last_block,
+        ape_last_block=config.ape_last_block
     )
 
     if torch.cuda.is_available():
@@ -68,8 +92,8 @@ def test(args, config):
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    teds_metric_struct = T.TEDS(True, n_jobs=args.num_processes)
-    teds_metric = T.TEDS(n_jobs=args.num_processes)
+    teds_metric_struct = T.TEDS(True, n_jobs=config.num_workers)
+    teds_metric = T.TEDS(n_jobs=config.num_workers)
 
 
     tag_re = re.compile(r'<[^>]+>')
@@ -86,14 +110,22 @@ def test(args, config):
     error_data = []
 
     result_path = os.path.join(args.output_dir, "results.jsonl")
-    dataset_path_list = args.dataset_name_or_paths.split(",")
+    dataset_path_list = config.dataset_name_or_paths.split(",")
     with open(result_path, "w+", encoding="utf-8") as output:
         for dataset_idx, dataset_name_or_path in enumerate(dataset_path_list):
             dataset_name = os.path.basename(dataset_name_or_path)
             dataset = load_dataset(dataset_name_or_path, data_files={"validation": "validation/metadata.jsonl"})["validation"]
 
+            dataloader = DataLoader(
+                dataset,
+                batch_size=config.val_batch_sizes[dataset_idx],
+                pin_memory=False,
+                shuffle=False,
+            )
             # dataset = load_dataset(args.dataset_name_or_path, data_files='metadata.jsonl')['train']
-            for idx, sample in enumerate(dataset):
+            # for idx, sample in enumerate(dataset):
+            for idx, samples in enumerate(dataloader):
+                print(samples)
                 if args.start_index and args.start_index > idx:
                     if idx % 10 == 0:
                         print("skip", idx)
@@ -113,7 +145,7 @@ def test(args, config):
                 file_list.append(file_name)
                 gt_list.append(gt)
                 pred_list.append(pred)
-                if len(gt_list) == args.num_processes:
+                if len(gt_list) == config.num_workers:
                     teds_all_list = teds_metric.batch(pred_list, gt_list)
 
                     teds_struct_list = teds_metric_struct.batch(pred_list, gt_list)
@@ -193,12 +225,9 @@ def test(args, config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pretrained_model_name_or_path", type=str)
-    parser.add_argument("--dataset_name_or_path", type=str)
     parser.add_argument("--output_dir", type=str, default=None)
     parser.add_argument("--verbose", action='store_true', default=False)
     parser.add_argument("--config", type=str, required=True)
-    parser.add_argument("--num_processes", type=int, default=1)
     parser.add_argument("--start_index", type=int, default=1)
     parser.add_argument("--test_cnt", type=int, default=None)
     # 8666/9115
