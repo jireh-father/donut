@@ -124,15 +124,20 @@ def test(args, config):
             )
             # dataset = load_dataset(args.dataset_name_or_path, data_files='metadata.jsonl')['train']
             # for idx, sample in enumerate(dataset):
-            for idx, samples in enumerate(dataloader):
-                print(samples)
-                if args.start_index and args.start_index > idx:
+            for idx, batch in enumerate(dataloader):
+                print(batch)
+                cur_idx = idx * config.val_batch_sizes[dataset_idx]
+                if args.start_index and args.start_index > cur_idx:
                     if idx % 10 == 0:
                         print("skip", idx)
                     continue
-                if args.test_cnt and args.test_cnt < idx:
+                if args.test_cnt and args.test_cnt < cur_idx:
                     break
-                file_name = sample["file_name"]
+                file_names = batch["file_name"]
+                for file_name in file_names:
+                    im = Image.open(os.path.join(args.dataset_name_or_path, file_name))
+                    input_tensor = model.encoder.prepare_input(im, random_padding=False)
+                    print(input_tensor.shape)
                 print("###{}/{}/{}".format(dataset_name, dataset_idx, len(dataset_path_list)), file_name, "{}/{}".format(idx, len(dataset)))
                 sample_data = json.loads(sample["ground_truth"])
                 im = Image.open(os.path.join(args.dataset_name_or_path, file_name))
