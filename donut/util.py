@@ -477,7 +477,7 @@ class OnlineSynthDonutDataset(Dataset):
 
         # input_ids
         if table_html.startswith("<table>"):
-            table_html = table_html[7:-8]
+            table_html = table_html[7:]
         processed_parse = self.task_start_token + table_html + self.donut_model.decoder.tokenizer.eos_token
 
         input_ids = self.donut_model.decoder.tokenizer(

@@ -685,7 +685,7 @@ class DonutModel(PreTrainedModel):
             if len(obj) == 1 and "text_sequence" in obj:
                 text_sequence = obj["text_sequence"]
                 if text_sequence.startswith("<table>"):
-                    text_sequence = text_sequence[7:-8]
+                    text_sequence = text_sequence[7:]
                 return text_sequence
             else:
                 output = ""
@@ -979,7 +979,7 @@ class DonutClipModel(PreTrainedModel):
             if len(obj) == 1 and "text_sequence" in obj:
                 text_sequence = obj["text_sequence"]
                 if text_sequence.startswith("<table>"):
-                    text_sequence = text_sequence[7:-8]
+                    text_sequence = text_sequence[7:]
                 return text_sequence
             else:
                 output = ""
