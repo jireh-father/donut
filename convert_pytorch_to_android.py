@@ -38,10 +38,12 @@ def main(args, left_argv):
         ape_last_block=config.ape_last_block
     )
 
+    model.forward = model.inference_one
+
     if device == 'cpu':
         model.encoder.to(torch.bfloat16)
         # todo: 원래 없던 소스임. 확인 필요
-        model.to(device)
+        # model.to(device)
     else:
         model.half()
         model.to("cuda")
@@ -50,7 +52,7 @@ def main(args, left_argv):
     if args.use_script:
         traced_script_module = torch.jit.script(model)
     else:
-        example = torch.rand(1, 3, config.input_size, config.input_size)
+        example = torch.rand((1, 3, config.input_size, config.input_size)).to(device)
         ret = model(example)
         print(ret, ret.shape)
         traced_script_module = torch.jit.trace(model, example)
