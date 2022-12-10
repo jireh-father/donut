@@ -135,7 +135,7 @@ def test(args, config):
                     break
                 file_names = batch["file_name"]
                 for file_name in file_names:
-                    im = Image.open(os.path.join(args.dataset_name_or_path, "validation", file_name))
+                    im = Image.open(os.path.join(dataset_name_or_path, "validation", file_name))
                     input_tensor = model.encoder.prepare_input(im, random_padding=False)
                     print(input_tensor.shape)
                 print("###{}/{}/{}".format(dataset_name, dataset_idx, len(dataset_path_list)), file_name, "{}/{}".format(idx, len(dataset)))
