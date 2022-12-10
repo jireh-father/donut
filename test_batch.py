@@ -120,7 +120,6 @@ def test(args, config):
             # dataset = load_dataset(args.dataset_name_or_path, data_files='metadata.jsonl')['train']
             # for idx, sample in enumerate(dataset):
             for idx, batch in enumerate(dataloader):
-                print(batch)
                 cur_idx = idx * config.val_batch_sizes[dataset_idx]
                 if args.start_index and args.start_index > cur_idx:
                     if idx % 10 == 0:
