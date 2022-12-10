@@ -5,21 +5,16 @@ MIT License
 """
 import pickle
 import traceback
-import glob
 import argparse
 import json
 import os
-import re
-import shutil
-from pathlib import Path
 import re
 import numpy as np
 import torch
 from datasets import load_dataset
 from PIL import Image
-from tqdm import tqdm
 from torch.utils.data import DataLoader
-from donut import DonutModel, JSONParseEvaluator, load_json, save_json, DonutConfig
+from donut import DonutModel
 import teds as T
 from sconf import Config
 from collections import defaultdict
@@ -95,7 +90,6 @@ def test(args, config):
     teds_metric_struct = T.TEDS(True, n_jobs=config.num_workers)
     teds_metric = T.TEDS(n_jobs=config.num_workers)
 
-
     tag_re = re.compile(r'<[^>]+>')
     gt_list = []
     pred_list = []
@@ -114,7 +108,8 @@ def test(args, config):
     with open(result_path, "w+", encoding="utf-8") as output:
         for dataset_idx, dataset_name_or_path in enumerate(dataset_path_list):
             dataset_name = os.path.basename(dataset_name_or_path)
-            dataset = load_dataset(dataset_name_or_path, data_files={"validation": "validation/metadata.jsonl"})["validation"]
+            dataset = load_dataset(dataset_name_or_path, data_files={"validation": "validation/metadata.jsonl"})[
+                "validation"]
 
             dataloader = DataLoader(
                 dataset,
@@ -133,87 +128,71 @@ def test(args, config):
                     continue
                 if args.test_cnt and args.test_cnt < cur_idx:
                     break
-                file_names = batch["file_name"]
-                for file_name in file_names:
+                print("###{}/{}/{}".format(dataset_name, dataset_idx, len(dataset_path_list)),
+                      "{}/{}".format(idx, len(dataloader)))
+                file_list = batch["file_name"]
+                input_tensors = []
+                gt_list = []
+                image_sizes = []
+                for fidx, file_name in enumerate(file_list):
                     im = Image.open(os.path.join(dataset_name_or_path, "validation", file_name))
+                    image_sizes.append(im.size)
                     input_tensor = model.encoder.prepare_input(im, random_padding=False)
-                    print(input_tensor.shape)
-                print("###{}/{}/{}".format(dataset_name, dataset_idx, len(dataset_path_list)), file_name, "{}/{}".format(idx, len(dataset)))
-                sample_data = json.loads(sample["ground_truth"])
-                im = Image.open(os.path.join(args.dataset_name_or_path, "validation", file_name))
-                width, height = im.size
-                pred = model.inference(im, prompt=f"<s_tableocr>")["predictions"][0]
-                gt = T.postprocess_html_tag(sample_data["gt_parse"]["text_sequence"])
-                pred = re.sub(r"(?:(?<=>) | (?=</s_))", "", pred['text_sequence'])
-                pred = T.postprocess_html_tag(pred)
+                    input_tensors.append(input_tensor)
+                    gt_list.append(
+                        T.postprocess_html_tag(json.loads(batch["ground_truth"][fidx])["gt_parse"]["text_sequence"]))
+                input_tensors = torch.stack(input_tensors, dim=0)
+                preds = model.inference(image_tensors=input_tensors, prompt=f"<s_tableocr>")["predictions"]
+                pred_list = [T.postprocess_html_tag(re.sub(r"(?:(?<=>) | (?=</s_))", "", pred['text_sequence'])) for
+                             pred in preds]
 
-                file_list.append(file_name)
-                gt_list.append(gt)
-                pred_list.append(pred)
-                if len(gt_list) == config.num_workers:
-                    teds_all_list = teds_metric.batch(pred_list, gt_list)
+                teds_all_list = teds_metric.batch(pred_list, gt_list)
+                teds_struct_list = teds_metric_struct.batch(pred_list, gt_list)
+                total_teds_all += teds_all_list
+                total_teds_struct += teds_struct_list
+                if len(dataset_path_list) > 1:
+                    dataset_teds_all[dataset_name] += teds_all_list
+                    dataset_teds_struct[dataset_name] += teds_struct_list
 
-                    teds_struct_list = teds_metric_struct.batch(pred_list, gt_list)
-                    pred_content_list = [convert(pred) for pred in pred_list]
-                    gt_content_list = [convert(gt) for gt in gt_list]
-                    # teds_content_list = teds_metric.batch(pred_content_list, gt_content_list)
-                    total_teds_all += teds_all_list
-                    total_teds_struct += teds_struct_list
-                    if len(dataset_path_list) > 1:
-                        dataset_teds_all[dataset_name] += teds_all_list
-                        dataset_teds_struct[dataset_name] += teds_struct_list
-                    # total_teds_content += teds_content_list
+                for j, gt in enumerate(gt_list):
+                    teds_all = teds_all_list[j]
+                    teds_struct = teds_struct_list[j]
+                    pred = pred_list[j]
 
-                    for j, gt in enumerate(gt_list):
-                        teds_all = teds_all_list[j]
-                        teds_struct = teds_struct_list[j]
-                        # teds_content = teds_content_list[j]
-                        pred = pred_list[j]
+                    item = {
+                        "file_name": file_list[j],
+                        "gt": gt,
+                        "pred": pred,
+                        "teds_all": teds_all,
+                        "teds_struct": teds_struct,
+                        "image_width": image_sizes[j][0],
+                        "image_height": image_sizes[j][1],
+                        "dataset_name": dataset_name
+                    }
+                    try:
+                        output.write("{}\n".format(json.dumps(item)))
+                    except:
+                        item['index'] = idx
+                        error_data.append(item)
+                        traceback.print_exc()
 
-                        item = {
-                            "file_name": file_list[j],
-                            "gt": gt,
-                            "pred": pred,
-                            "teds_all": teds_all,
-                            "teds_struct": teds_struct,
-                            # "teds_content": teds_content,
-                            "image_width": width,
-                            "image_height": height,
-                            "dataset_name": dataset_name
-                        }
-                        try:
-                            output.write("{}\n".format(json.dumps(item)))
-                        except:
-                            item['index'] = idx
-                            error_data.append(item)
-                            traceback.print_exc()
-
-                        if args.verbose:
-                            print("")
-                            print("#####", file_list[j])
-                            print("===== gt")
-                            print(gt)
-                            print("===== pred")
-                            print(pred)
-                            print("===== gt contents")
-                            print(gt_content_list[j])
-                            print("===== pred contents")
-                            print(pred_content_list[j])
-                            print("===== gt structure")
-                            print("".join(tag_re.findall(gt)))
-                            print("===== pred structure")
-                            print("".join(tag_re.findall(pred)))
-                            print("===== teds all", teds_all)
-                            print("===== teds structure", teds_struct)
-                            # print("===== teds content", teds_content)
-                    gt_list = []
-                    pred_list = []
-                    file_list = []
+                    if args.verbose:
+                        print("")
+                        print("#####", file_list[j])
+                        print("===== gt")
+                        print(gt)
+                        print("===== pred")
+                        print(pred)
+                        print("===== gt structure")
+                        print("".join(tag_re.findall(gt)))
+                        print("===== pred structure")
+                        print("".join(tag_re.findall(pred)))
+                        print("===== teds all", teds_all)
+                        print("===== teds structure", teds_struct)
 
     total_teds_mean = {
         "teds_all": np.mean(total_teds_all),
         "teds_structure": np.mean(total_teds_struct),
-        # "teds_content": np.mean(total_teds_content)
     }
     if len(dataset_path_list) > 1:
         for dataset_name in dataset_teds_all:
