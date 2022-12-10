@@ -583,7 +583,7 @@ class DonutModel(PreTrainedModel):
             last_hidden_state = last_hidden_state.to(torch.float32)
 
         encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
-        print("encoder_outputs", encoder_outputs.shape)
+        print("encoder_outputs", len(encoder_outputs))
 
         if len(encoder_outputs.last_hidden_state.size()) == 1:
             encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
