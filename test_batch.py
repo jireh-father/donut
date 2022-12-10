@@ -91,15 +91,11 @@ def test(args, config):
     teds_metric = T.TEDS(n_jobs=config.num_workers)
 
     tag_re = re.compile(r'<[^>]+>')
-    gt_list = []
-    pred_list = []
-    file_list = []
 
     total_teds_all = []
     total_teds_struct = []
     dataset_teds_all = defaultdict(list)
     dataset_teds_struct = defaultdict(list)
-    # total_teds_content = []
 
     error_data = []
 
@@ -145,8 +141,6 @@ def test(args, config):
                 pred_list = [T.postprocess_html_tag(re.sub(r"(?:(?<=>) | (?=</s_))", "", pred['text_sequence'])) for
                              pred in preds]
 
-                # print(pred_list)
-                # print(gt_list)
                 teds_all_list = teds_metric.batch(pred_list, gt_list)
                 teds_struct_list = teds_metric_struct.batch(pred_list, gt_list)
                 total_teds_all += teds_all_list

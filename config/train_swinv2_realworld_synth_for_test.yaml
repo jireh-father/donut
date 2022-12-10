@@ -23,7 +23,7 @@ synth_dataset_length: 250000
 synth_config_path: "./thirdparty/synthtable/config_train_for_donut.yaml"
 sort_json_key: False # cord dataset is preprocessed, and publicly available at https://huggingface.co/datasets/naver-clova-ix/cord-v2
 train_batch_sizes: [3]
-val_batch_sizes: [32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32]
+val_batch_sizes: [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
 input_size: [1280, 960]
 max_length: 3000
 align_long_axis: False
