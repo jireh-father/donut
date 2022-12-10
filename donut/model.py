@@ -658,7 +658,7 @@ class DonutModel(PreTrainedModel):
             output_attentions=False,
         )
 
-        output_seq = self.decoder.tokenizer.batch_decode(decoder_output.sequences)[0]
+        output_seq = self.decoder.tokenizer.batch_decode(decoder_output.sequences)
         print(output_seq)
         return output_seq
         # for seq in self.decoder.tokenizer.batch_decode(decoder_output.sequences):

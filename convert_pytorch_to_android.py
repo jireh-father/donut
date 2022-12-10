@@ -46,6 +46,7 @@ def main(args, left_argv):
         # todo: 원래 없던 소스임. 확인 필요
         # model.to(device)
         example = example.to(torch.bfloat16)
+        # example = example.to(device)
     else:
         model.half()
         model.to(device)
