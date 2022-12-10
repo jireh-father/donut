@@ -87,20 +87,17 @@ def main(args, left_argv):
     config = Config(args.config)
     config.argv_update(left_argv)
 
-    task_start_tokens = [f"<s_{config.task_name}>"]
-    prompt_end_tokens = [f"<s_{config.task_name}>"]
-
     model = DonutModel.from_pretrained(
         config.pretrained_model_name_or_path,
         input_size=config.input_size,
         max_length=config.max_length,
         align_long_axis=config.align_long_axis,
         ignore_mismatched_sizes=True,
-        # use_fast_tokenizer=config.use_fast_tokenizer,
+        use_fast_tokenizer=config.use_fast_tokenizer,
         tokenizer_name_or_path=config.tokenizer_name_or_path,
-        # vision_model_name=config.vision_model_name,
-        # bart_prtrained_path=config.bart_prtrained_path,
-        special_tokens=task_start_tokens + prompt_end_tokens,
+        vision_model_name=config.vision_model_name,
+        bart_prtrained_path=config.bart_prtrained_path,
+        special_tokens=['<s_tableocr>'],
         swin_pretrained_path=config.swin_pretrained_path,
         window_size=config.window_size,
         swin_model_size=config.swin_model_size,

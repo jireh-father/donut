@@ -18,7 +18,7 @@ import torch
 from datasets import load_dataset
 from PIL import Image
 from tqdm import tqdm
-
+from torch.utils.data import DataLoader
 from donut import DonutModel, JSONParseEvaluator, load_json, save_json, DonutConfig
 import teds as T
 from sconf import Config
@@ -42,8 +42,24 @@ def convert(text):
 
 
 def test(args, config):
+    # model = DonutModel.from_pretrained(
+    #     args.pretrained_model_name_or_path,
+    #     input_size=config.input_size,
+    #     max_length=config.max_length,
+    #     align_long_axis=config.align_long_axis,
+    #     ignore_mismatched_sizes=True,
+    #     use_fast_tokenizer=config.use_fast_tokenizer,
+    #     tokenizer_name_or_path=config.tokenizer_name_or_path,
+    #     vision_model_name=config.vision_model_name,
+    #     bart_prtrained_path=config.bart_prtrained_path,
+    #     special_tokens=['<s_tableocr>'],
+    #     swin_pretrained_path=config.swin_pretrained_path,
+    #     window_size=config.window_size,
+    #     swin_model_size=config.swin_model_size,
+    #     ape=config.ape
+    # )
     model = DonutModel.from_pretrained(
-        args.pretrained_model_name_or_path,
+        config.pretrained_model_name_or_path,
         input_size=config.input_size,
         max_length=config.max_length,
         align_long_axis=config.align_long_axis,
@@ -56,7 +72,15 @@ def test(args, config):
         swin_pretrained_path=config.swin_pretrained_path,
         window_size=config.window_size,
         swin_model_size=config.swin_model_size,
-        ape=config.ape
+        ape=config.ape,
+        swin_name_or_path=config.swin_name_or_path,
+        encoder_layer=config.swin_encoder_layer,
+        d_model=config.d_model,
+        swin_depth_last_block=config.swin_depth_last_block,
+        swin_num_heads_last_block=config.swin_num_heads_last_block,
+        swin_drop_path_rate_last_block=config.swin_drop_path_rate_last_block,
+        swin_init_values_last_block=config.swin_init_values_last_block,
+        ape_last_block=config.ape_last_block
     )
 
     if torch.cuda.is_available():
@@ -92,8 +116,16 @@ def test(args, config):
             dataset_name = os.path.basename(dataset_name_or_path)
             dataset = load_dataset(dataset_name_or_path, data_files={"validation": "validation/metadata.jsonl"})["validation"]
 
+            dataloader = DataLoader(
+                dataset,
+                batch_size=args.batch_size,
+                pin_memory=False,
+                shuffle=False,
+            )
             # dataset = load_dataset(args.dataset_name_or_path, data_files='metadata.jsonl')['train']
-            for idx, sample in enumerate(dataset):
+            # for idx, sample in enumerate(dataset):
+            for idx, sample in enumerate(dataloader):
+                print(sample)
                 if args.start_index and args.start_index > idx:
                     if idx % 10 == 0:
                         print("skip", idx)
