@@ -584,14 +584,10 @@ class DonutModel(PreTrainedModel):
         if self.device.type != "cuda":
             last_hidden_state = last_hidden_state.to(torch.float32)
 
-        print("last_hidden_state", last_hidden_state.shape)
         encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
-        print("encoder_outputs", len(encoder_outputs))
-        print("encoder_outputs.last_hidden_state", encoder_outputs.last_hidden_state.shape)
         if len(encoder_outputs.last_hidden_state.size()) == 1:
             encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
 
-        print("prompt_tensors", prompt_tensors.shape)
         # if len(prompt_tensors.size()) == 1:
         #     prompt_tensors = prompt_tensors.unsqueeze(0)
         # get decoder output
