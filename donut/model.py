@@ -627,17 +627,9 @@ class DonutModel(PreTrainedModel):
 
     def inference_one(
             self,
-            image: PIL.Image = None
+            image_tensors
     ):
         prompt = "<s_tableocr>"
-        image_tensors = self.encoder.prepare_input(image).unsqueeze(0)
-
-        if self.device.type == "cuda":  # half is not compatible in cpu implementation.
-            image_tensors = image_tensors.half()
-            image_tensors = image_tensors.to(self.device)
-        else:
-            image_tensors = image_tensors.to(torch.bfloat16)
-
         prompt_tensors = self.decoder.tokenizer(prompt, add_special_tokens=False, return_tensors="pt")["input_ids"]
 
         prompt_tensors = prompt_tensors.to(self.device)
@@ -650,8 +642,6 @@ class DonutModel(PreTrainedModel):
 
         if len(encoder_outputs.last_hidden_state.size()) == 1:
             encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
-        if len(prompt_tensors.size()) == 1:
-            prompt_tensors = prompt_tensors.unsqueeze(0)
 
         # get decoder output
         decoder_output = self.decoder.model.generate(

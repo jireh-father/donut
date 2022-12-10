@@ -40,19 +40,30 @@ def main(args, left_argv):
 
     model.forward = model.inference_one
 
+    example = torch.rand(1, 3, config.input_size[0], config.input_size[1])
     if device == 'cpu':
         model.encoder.to(torch.bfloat16)
         # todo: 원래 없던 소스임. 확인 필요
         # model.to(device)
+        example = example.to(torch.bfloat16)
     else:
         model.half()
-        model.to("cuda")
+        model.to(device)
+        example = example.half()
+        example = example.to(device)
     model.eval()
+
+    # image_tensors = self.encoder.prepare_input(image).unsqueeze(0)
+    #         if self.device.type == "cuda":  # half is not compatible in cpu implementation.
+    #             image_tensors = image_tensors.half()
+    #             image_tensors = image_tensors.to(self.device)
+    #         else:
+    #             image_tensors = image_tensors.to(torch.bfloat16)
 
     if args.use_script:
         traced_script_module = torch.jit.script(model)
     else:
-        example = torch.rand(1, 3, config.input_size[0], config.input_size[1]).to(device)
+
         ret = model(example)
         print(ret, ret.shape)
         traced_script_module = torch.jit.trace(model, example)
