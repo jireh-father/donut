@@ -30,6 +30,9 @@ class CustomCheckpointIO(CheckpointIO):
         torch.save(checkpoint, path)
 
     def load_checkpoint(self, path, storage_options=None):
+        print("##################LOADING MODEL!!!!!!!!!!!!!!!!!")
+        print("##################LOADING MODEL!!!!!!!!!!!!!!!!!")
+        print("##################LOADING MODEL!!!!!!!!!!!!!!!!!")
         checkpoint = torch.load(path + "artifacts.ckpt")
         state_dict = torch.load(path + "pytorch_model.bin")
         checkpoint["state_dict"] = {"model." + key: value for key, value in state_dict.items()}
