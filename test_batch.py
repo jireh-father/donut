@@ -233,7 +233,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_dir", type=str, default=None)
     parser.add_argument("--verbose", action='store_true', default=False)
     parser.add_argument("--config", type=str, required=True)
-    parser.add_argument("--start_index", type=int, default=1)
+    parser.add_argument("--start_index", type=int, default=None)
     parser.add_argument("--test_cnt", type=int, default=None)
     # 8666/9115
     args, left_argv = parser.parse_known_args()
