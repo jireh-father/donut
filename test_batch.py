@@ -134,9 +134,10 @@ def test(args, config):
                     image_sizes.append(im.size)
                     input_tensor = model.encoder.prepare_input(im, random_padding=False)
                     input_tensors.append(input_tensor)
-                    gt = T.postprocess_html_tag(json.loads(batch["ground_truth"][fidx])["gt_parse"]["text_sequence"])
+                    gt = json.loads(batch["ground_truth"][fidx])["gt_parse"]["text_sequence"]
                     if gt.startswith("<table>"):
                         gt = gt[7:]
+                    gt = T.postprocess_html_tag(gt)
                     gt_list.append(gt)
                 input_tensors = torch.stack(input_tensors, dim=0)
                 preds = model.inference(image_tensors=input_tensors, prompt=f"<s_tableocr>")["predictions"]
