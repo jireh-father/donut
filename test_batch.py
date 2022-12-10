@@ -135,12 +135,12 @@ def test(args, config):
                     break
                 file_names = batch["file_name"]
                 for file_name in file_names:
-                    im = Image.open(os.path.join(args.dataset_name_or_path, file_name))
+                    im = Image.open(os.path.join(args.dataset_name_or_path, "validation", file_name))
                     input_tensor = model.encoder.prepare_input(im, random_padding=False)
                     print(input_tensor.shape)
                 print("###{}/{}/{}".format(dataset_name, dataset_idx, len(dataset_path_list)), file_name, "{}/{}".format(idx, len(dataset)))
                 sample_data = json.loads(sample["ground_truth"])
-                im = Image.open(os.path.join(args.dataset_name_or_path, file_name))
+                im = Image.open(os.path.join(args.dataset_name_or_path, "validation", file_name))
                 width, height = im.size
                 pred = model.inference(im, prompt=f"<s_tableocr>")["predictions"][0]
                 gt = T.postprocess_html_tag(sample_data["gt_parse"]["text_sequence"])
