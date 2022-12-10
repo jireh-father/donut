@@ -8,7 +8,7 @@ from sconf import Config
 
 
 def main(args, left_argv):
-    device = 'cuda'
+    device = 'cpu'
 
     config = Config(args.config)
     config.argv_update(left_argv)
