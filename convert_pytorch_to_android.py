@@ -63,9 +63,8 @@ def main(args, left_argv):
     if args.use_script:
         traced_script_module = torch.jit.script(model)
     else:
-
         ret = model(example)
-        print(ret, ret.shape)
+        print(ret)
         traced_script_module = torch.jit.trace(model, example)
 
     if args.use_optimizer:
