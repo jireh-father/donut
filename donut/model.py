@@ -585,7 +585,7 @@ class DonutModel(PreTrainedModel):
         print("last_hidden_state",last_hidden_state.shape)
         encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
         print("encoder_outputs", len(encoder_outputs))
-
+        print("encoder_outputs.last_hidden_state", encoder_outputs.last_hidden_state.shape)
         if len(encoder_outputs.last_hidden_state.size()) == 1:
             encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
         if len(prompt_tensors.size()) == 1:
