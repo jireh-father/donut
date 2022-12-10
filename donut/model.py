@@ -588,9 +588,11 @@ class DonutModel(PreTrainedModel):
         print("encoder_outputs.last_hidden_state", encoder_outputs.last_hidden_state.shape)
         if len(encoder_outputs.last_hidden_state.size()) == 1:
             encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
+
+        print("prompt_tensors",  prompt_tensors.shape)
         if len(prompt_tensors.size()) == 1:
             prompt_tensors = prompt_tensors.unsqueeze(0)
-
+        print("prompt_tensors", prompt_tensors.shape)
         # get decoder output
         decoder_output = self.decoder.model.generate(
             decoder_input_ids=prompt_tensors,
@@ -604,6 +606,7 @@ class DonutModel(PreTrainedModel):
             bad_words_ids=[[self.decoder.tokenizer.unk_token_id]],
             return_dict_in_generate=True,
             output_attentions=return_attentions,
+            output_scores=True
         )
 
         # print(decoder_output.sequences)
