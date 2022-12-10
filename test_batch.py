@@ -146,6 +146,8 @@ def test(args, config):
                 pred_list = [T.postprocess_html_tag(re.sub(r"(?:(?<=>) | (?=</s_))", "", pred['text_sequence'])) for
                              pred in preds]
 
+                print(pred_list)
+                print(gt_list)
                 teds_all_list = teds_metric.batch(pred_list, gt_list)
                 teds_struct_list = teds_metric_struct.batch(pred_list, gt_list)
                 total_teds_all += teds_all_list
