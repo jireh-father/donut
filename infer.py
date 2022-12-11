@@ -99,6 +99,7 @@ def test(args, config):
         input_tensors = torch.stack(input_tensors, dim=0)
         preds = model.inference(image_tensors=input_tensors, prompt=f"<s_tableocr>")["predictions"]
         for i, pred in enumerate(preds):
+            print(pred)
             pred = T.postprocess_html_tag(re.sub(r"(?:(?<=>) | (?=</s_))", "", pred['text_sequence']))
             shutil.copy(batch_images[i], args.output_dir)
             only_file_name = os.path.splitext(os.path.basename(batch_images[i]))[0]
