@@ -113,7 +113,6 @@ def test(args, config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pretrained_model_name_or_path", type=str, default='D:\\result\\tableocr\models\\tokenizer_swinv2_max4k_fs')
     parser.add_argument("--images_pattern", type=str, default='D:\dataset\\table_ocr\\test_samples_en')
     parser.add_argument("--output_dir", type=str, default='D:\\result\\tableocr\infer_results')
     parser.add_argument("--config", type=str, required=True, default='./config/train_table_ocr_v2_swinv2_max4k.yaml')
