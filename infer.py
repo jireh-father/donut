@@ -100,6 +100,7 @@ def test(args, config):
         preds = model.inference(image_tensors=input_tensors, prompt=f"<s_tableocr>")["predictions"]
         for i, pred in enumerate(preds):
             pred = T.postprocess_html_tag(re.sub(r"(?:(?<=>) | (?=</s_))", "", pred['text_sequence']))
+            shutil.copy(batch_images[i], args.output_dir)
             only_file_name = os.path.splitext(os.path.basename(batch_images[i]))[0]
             output_html = html_template.format(pred.replace("<table>", '<table border="1">'))
             html_path = os.path.join(args.output_dir, only_file_name + ".html")
