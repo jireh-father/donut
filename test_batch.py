@@ -131,6 +131,8 @@ def test(args, config):
                 image_sizes = []
                 for fidx, file_name in enumerate(file_list):
                     im = Image.open(os.path.join(dataset_name_or_path, "validation", file_name))
+                    if im.mode != "RGB":
+                        im = im.convert("RGB")
                     image_sizes.append(im.size)
                     input_tensor = model.encoder.prepare_input(im, random_padding=False)
                     input_tensors.append(input_tensor)
