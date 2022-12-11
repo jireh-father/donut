@@ -97,6 +97,7 @@ def test(args, config):
             input_tensor = model.encoder.prepare_input(im, random_padding=False)
             input_tensors.append(input_tensor)
         input_tensors = torch.stack(input_tensors, dim=0)
+        print("input_tensors", len(input_tensors))
         preds = model.inference(image_tensors=input_tensors, prompt=f"<s_tableocr>")["predictions"]
         for i, pred in enumerate(preds):
             print(pred)
