@@ -44,9 +44,9 @@ def main(args, left_argv):
     if device == 'cpu':
         model.encoder.to(torch.bfloat16)
         # todo: 원래 없던 소스임. 확인 필요
-        # model.to(device)
+        model.to(device)
         example = example.to(torch.bfloat16)
-        # example = example.to(device)
+        example = example.to(device)
     else:
         model.half()
         model.to(device)
