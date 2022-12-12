@@ -4,7 +4,7 @@ Copyright (c) 2022-present NAVER Corp.
 MIT License
 """
 from .model import DonutConfig, DonutModel, DonutClipModel, DonutClipConfig
-from .util import DonutDataset, JSONParseEvaluator, load_json, save_json, DonutClipDataset, OnlineSynthDonutDataset, preprocess_label
+from .util import DonutDataset, JSONParseEvaluator, load_json, save_json, DonutClipDataset, OnlineSynthDonutDataset
 
 __all__ = [
     "DonutConfig",
@@ -16,6 +16,5 @@ __all__ = [
     "load_json",
     "save_json",
     "DonutClipModel",
-    "DonutClipConfig",
-    "preprocess_label"
+    "DonutClipConfig"
 ]

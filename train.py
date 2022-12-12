@@ -68,8 +68,7 @@ def train(config):
             else f"<s_{config.task_name}>",
             prompt_end_token=f"<s_{config.task_name}>",
             dataset_length=config.synth_dataset_length,
-            synth_config_path=config.synth_config_path,
-            remove_img_tag=config.remove_img_tag if hasattr(config, 'remove_img_tag') else False
+            synth_config_path=config.synth_config_path
         )]
         for i, dataset_name_or_path in enumerate(config.dataset_name_or_paths):
             if os.path.isdir(os.path.join(dataset_name_or_path, "validation")):
@@ -84,7 +83,6 @@ def train(config):
                         else f"<s_{config.task_name}>",
                         prompt_end_token=f"<s_{config.task_name}>",
                         sort_json_key=config.sort_json_key,
-                        remove_img_tag=config.remove_img_tag if hasattr(config, 'remove_img_tag') else False
                     )
                 )
         data_module.val_datasets = datasets["validation"]
@@ -106,7 +104,6 @@ def train(config):
                             else f"<s_{task_name}>",
                             prompt_end_token="<s_answer>" if "docvqa" in dataset_name_or_path else f"<s_{task_name}>",
                             sort_json_key=config.sort_json_key,
-                            remove_img_tag=config.remove_img_tag if hasattr(config, 'remove_img_tag') else False
                         )
                     )
                     # prompt_end_token is used for ignoring a given prompt in a loss function
