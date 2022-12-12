@@ -607,7 +607,7 @@ class DonutModel(PreTrainedModel):
 
         # print(decoder_output.sequences)
         output = {"predictions": list()}
-        print(decoder_output)
+        print(decoder_output.keys())
         for seq in self.decoder.tokenizer.batch_decode(decoder_output.sequences):
             seq = seq.replace(self.decoder.tokenizer.eos_token, "").replace(self.decoder.tokenizer.pad_token, "")
             seq = re.sub(r"<.*?>", "", seq, count=1).strip()  # remove first task start token
