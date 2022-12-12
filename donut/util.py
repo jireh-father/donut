@@ -17,6 +17,7 @@ from transformers.modeling_utils import PreTrainedModel
 from zss import Node
 from PIL import Image
 import traceback
+import re
 
 
 def save_json(write_path: Union[str, bytes, os.PathLike], save_obj: Any):
@@ -51,6 +52,7 @@ class DonutDataset(Dataset):
             task_start_token: str = "<s>",
             prompt_end_token: str = None,
             sort_json_key: bool = True,
+            remove_img_tag: bool = False
     ):
         super().__init__()
 
@@ -82,9 +84,9 @@ class DonutDataset(Dataset):
                 [
                     task_start_token
                     + self.donut_model.json2token(
-                        gt_json,
+                        preprocess_label(gt_json["text_sequence"], remove_img_tag=remove_img_tag),
                         update_special_tokens_for_json_key=self.split == "train",
-                        sort_json_key=self.sort_json_key,
+                        sort_json_key=self.sort_json_key
                     )
                     + self.donut_model.decoder.tokenizer.eos_token
                     for gt_json in gt_jsons  # load json from list of json
@@ -423,6 +425,7 @@ class OnlineSynthDonutDataset(Dataset):
             prompt_end_token: str = None,
             dataset_length: int = None,
             synth_config_path: str = None,
+            remove_img_tag: bool = False,
     ):
         super().__init__()
 
@@ -432,6 +435,7 @@ class OnlineSynthDonutDataset(Dataset):
         self.task_start_token = task_start_token
         self.prompt_end_token = prompt_end_token if prompt_end_token else task_start_token
         self.gt_token_sequences = []
+        self.remove_img_tag = remove_img_tag
 
         import synthtiger
         import sys
@@ -476,8 +480,8 @@ class OnlineSynthDonutDataset(Dataset):
         input_tensor = self.donut_model.encoder.prepare_input(im, random_padding=True)
 
         # input_ids
-        if table_html.startswith("<table>"):
-            table_html = table_html[7:]
+        table_html = preprocess_label(table_html, self.remove_img_tag)
+
         processed_parse = self.task_start_token + table_html + self.donut_model.decoder.tokenizer.eos_token
 
         input_ids = self.donut_model.decoder.tokenizer(
@@ -496,3 +500,20 @@ class OnlineSynthDonutDataset(Dataset):
         labels[: torch.nonzero(
             labels == self.prompt_end_token_id).sum() + 1] = self.ignore_id  # model doesn't need to predict prompt (for VQA)
         return input_tensor, input_ids, labels
+
+
+multiple_space_regex = re.compile('\s+')
+
+
+def remove_multiple_spaces(text):
+    return re.sub(multiple_space_regex, ' ', text)
+
+
+def preprocess_label(table_html, remove_img_tag=False):
+    if table_html.startswith("<table>"):
+        table_html = table_html[7:]
+    if remove_img_tag:
+        table_html = table_html.replace("<img>", "")
+
+        table_html = remove_multiple_spaces(table_html)
+    return table_html

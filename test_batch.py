@@ -14,11 +14,10 @@ import torch
 from datasets import load_dataset
 from PIL import Image
 from torch.utils.data import DataLoader
-from donut import DonutModel
+from donut import DonutModel, preprocess_label
 import teds as T
 from sconf import Config
 from collections import defaultdict
-
 
 def remove_html_tags(text):
     """Remove html tags from a string"""
@@ -137,8 +136,8 @@ def test(args, config):
                     input_tensor = model.encoder.prepare_input(im, random_padding=False)
                     input_tensors.append(input_tensor)
                     gt = json.loads(batch["ground_truth"][fidx])["gt_parse"]["text_sequence"]
-                    if gt.startswith("<table>"):
-                        gt = gt[7:]
+                    gt = preprocess_label(gt, args.remove_img_tag)
+
                     gt = T.postprocess_html_tag(gt)
                     gt_list.append(gt)
                 input_tensors = torch.stack(input_tensors, dim=0)
@@ -211,9 +210,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output_dir", type=str, default=None)
     parser.add_argument("--verbose", action='store_true', default=False)
+    parser.add_argument("--remove_img_tag", action='store_true', default=False)
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--start_index", type=int, default=None)
     parser.add_argument("--test_cnt", type=int, default=None)
+
     # 8666/9115
     args, left_argv = parser.parse_known_args()
 
