@@ -3,6 +3,8 @@ from transformers import AutoTokenizer, XLMRobertaTokenizer, MBartTokenizer
 import argparse
 import os
 import glob
+from donut import preprocess_label
+
 
 def get_training_corpus(corpus_lines):
     for start_idx in range(0, len(corpus_lines), 1000):
@@ -17,7 +19,10 @@ def main(args):
     corpus_lines = []
     for corpus_path in corpus_paths:
         with open(corpus_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()
+            if args.use_image_tag:
+                lines = f.readlines()
+            else:
+                lines = [preprocess_label(line) for line in f.readlines()]
             if not lines[-1].strip():
                 del lines[-1]
             corpus_lines.extend(lines)
@@ -36,6 +41,7 @@ def main(args):
         new_tokens += ['<thead>', '<tbody>']
     if args.use_image_tag:
         new_tokens += ['<img>']
+
     # new_tokens += ['&gt;', '&lt;']
     # old_tokenizer.add_tokens(new_tokens)
     # print("added tokens", old_tokenizer)
@@ -73,7 +79,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--corpus_paths', type=str,
                         default="D:\dataset\\table_ocr\crawling_train_corpus_without_except_chars\*_tokenizer_corpus.txt")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/tokenizer_crawled_ko_with_imgtag_no_theadtag_span20")
+    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/tokenizer_crawled_ko_no_imgtheadtag_span20")
     parser.add_argument('--pretrained_name', type=str, default="hyunwoongko/asian-bart-ko")
 
     parser.add_argument('--vocab_size', type=int, default=None)  # 100000)
@@ -81,6 +87,6 @@ if __name__ == '__main__':
     parser.add_argument('--max_col_span', type=int, default=20)  # 100000)
 
     parser.add_argument('--use_thead', action='store_true', default=False)
-    parser.add_argument('--use_image_tag', action='store_true', default=True)
+    parser.add_argument('--use_image_tag', action='store_true', default=False)
 
     main(parser.parse_args())

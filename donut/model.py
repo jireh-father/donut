@@ -583,7 +583,6 @@ class DonutModel(PreTrainedModel):
         if self.device.type != "cuda":
             last_hidden_state = last_hidden_state.to(torch.float32)
 
-        print(last_hidden_state.shape)
         encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
         if len(encoder_outputs.last_hidden_state.size()) == 1:
             encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
@@ -608,10 +607,6 @@ class DonutModel(PreTrainedModel):
 
         # print(decoder_output.sequences)
         output = {"predictions": list()}
-        print(decoder_output.keys())
-        print(decoder_output.scores[0])
-        print(decoder_output.scores[0].shape)
-        print(decoder_output.scores[1].shape)
         for seq in self.decoder.tokenizer.batch_decode(decoder_output.sequences):
             seq = seq.replace(self.decoder.tokenizer.eos_token, "").replace(self.decoder.tokenizer.pad_token, "")
             seq = re.sub(r"<.*?>", "", seq, count=1).strip()  # remove first task start token
