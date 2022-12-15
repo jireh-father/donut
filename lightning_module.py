@@ -161,7 +161,7 @@ class DonutModelPLModule(pl.LightningModule):
                 cnt[i] += len(scores)
                 total_metric[i] += np.sum(scores)
             val_metric[i] = total_metric[i] / cnt[i]
-            val_metric_name = f"val_metric_{i}th_dataset"
+            val_metric_name = f"val_metric_{i}th_{self.config.dataset_name_or_paths[i]}"
             self.log_dict({val_metric_name: val_metric[i]}, sync_dist=True)
             print("{} average val teds".format(val_metric_name), val_metric[i])
         self.log_dict({"val_metric": np.sum(total_metric) / np.sum(cnt)},
