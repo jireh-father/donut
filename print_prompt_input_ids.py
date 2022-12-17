@@ -40,6 +40,7 @@ def main(args, left_argv):
     prompt = "<s_tableocr>"
     prompt_tensors = model.decoder.tokenizer(prompt, add_special_tokens=False, return_tensors="pt")["input_ids"]
     print(prompt_tensors)
+    print(prompt_tensors.dtype)
     print(type(prompt_tensors))
     print("done")
 
