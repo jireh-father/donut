@@ -146,6 +146,17 @@ class SwinEncoder(nn.Module):
                     new_swin_state_dict[x] = swin_state_dict[x]
         self.model.load_state_dict(new_swin_state_dict)
 
+    def forward_one(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.model.patch_embed(x)
+        x = self.model.pos_drop(x)
+        # print("patch embed", x.shape)
+        if self.vision_model_name in ["SwinTransformerV2", "SwinV2WithVit"]:
+            for layer in self.model.layers:
+                x = layer(x)
+        else:
+            x = self.model.layers(x)
+        return x[0].view(-1)
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:

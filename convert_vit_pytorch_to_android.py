@@ -39,6 +39,7 @@ def main(args, left_argv):
     )
 
     model = model.encoder
+    model.forward = model.forward_one
 
     example = torch.rand(1, 3, config.input_size[0], config.input_size[1])
     if device == 'cpu':
