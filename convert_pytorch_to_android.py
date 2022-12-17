@@ -38,21 +38,23 @@ def main(args, left_argv):
         ape_last_block=config.ape_last_block
     )
 
-    model.forward = model.inference_one
+    model.forward = getattr(model, args.infer_function)
 
     example = torch.rand(1, 3, config.input_size[0], config.input_size[1])
     if device == 'cpu':
-        model.encoder.to(torch.bfloat16)
-        # todo: 원래 없던 소스임. 확인 필요
         # model.to(device)
+        model.encoder.to(torch.bfloat16)
+        # example.to(device)
         example = example.to(torch.bfloat16)
-        # example = example.to(device)
     else:
         model.half()
         model.to(device)
         example = example.half()
         example = example.to(device)
     model.eval()
+
+    model.prompt_tensors = torch.tensor([[config.prompt_id]])
+    model.prompt_tensors = model.prompt_tensors.to(model.device)
 
     # image_tensors = self.encoder.prepare_input(image).unsqueeze(0)
     #         if self.device.type == "cuda":  # half is not compatible in cpu implementation.
@@ -82,6 +84,8 @@ if __name__ == '__main__':
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument('--output_path', default='efbl0_quantized.torchscript', type=str)
     parser.add_argument('--use_optimizer', default=False, action='store_true')
+    parser.add_argument('--prompt_id', default=8714, type=int)
+    parser.add_argument('--infer_function', default='inference_one', type=str)
     parser.add_argument('--use_script', default=False, action='store_true')
 
     args, left_argv = parser.parse_known_args()

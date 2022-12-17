@@ -627,10 +627,7 @@ class DonutModel(PreTrainedModel):
             self,
             image_tensors
     ):
-        prompt = "<s_tableocr>"
-        prompt_tensors = self.decoder.tokenizer(prompt, add_special_tokens=False, return_tensors="pt")["input_ids"]
-
-        prompt_tensors = prompt_tensors.to(self.device)
+        prompt_tensors = self.prompt_tensors
 
         last_hidden_state = self.encoder(image_tensors)
         if self.device.type != "cuda":
@@ -666,6 +663,19 @@ class DonutModel(PreTrainedModel):
         #         output["predictions"].append(self.token2json(seq))
         #     else:
         #         output["predictions"].append(seq)
+
+    def inference_vision(
+            self,
+            image_tensors
+    ):
+        last_hidden_state = self.encoder(image_tensors)
+        if self.device.type != "cuda":
+            last_hidden_state = last_hidden_state.to(torch.float32)
+
+        if len(last_hidden_state.size()) == 1:
+            last_hidden_state = last_hidden_state.unsqueeze(0)
+
+        return last_hidden_state
 
     def json2token(self, obj: Any, update_special_tokens_for_json_key: bool = True, sort_json_key: bool = True):
         """
