@@ -2,7 +2,7 @@ import os.path
 import json
 import traceback
 from bs4 import BeautifulSoup
-
+from utils.html_util import convert_bs_to_html_string
 from PIL import Image
 from utils import image_util
 from synthtiger.components.component import Component
@@ -32,6 +32,8 @@ class StaticTable(Component):
         self.max_rows = config_selectors['html']['max_row'].select()
         self.min_cols = config_selectors['html']['min_col'].select()
         self.max_cols = config_selectors['html']['max_row'].select()
+        self.remove_img_tag = config_selectors['html']['remove_img_tag'].select() if 'remove_img_tag' in \
+                                                                                     config_selectors['html'] else False
         self.max_col_span = config_selectors['html']['max_col_span'].select() if 'max_col_span' in config_selectors[
             'html'] else None
         self.max_row_span = config_selectors['html']['max_row_span'].select() if 'max_row_span' in config_selectors[
@@ -98,8 +100,18 @@ class StaticTable(Component):
             html_json = json.load(open(html_json_path), encoding='utf-8')
 
             bs = None
-            if self.max_empty_cell_ratio:
+            if self.remove_img_tag:
                 bs = BeautifulSoup(html_json['html'], 'html.parser')
+                has_img_tag = False
+                for img_tag in bs.find_all("img"):
+                    img_tag.decompose()
+                    has_img_tag = True
+                if has_img_tag:
+                    html_json['html'] = convert_bs_to_html_string(bs)
+
+            if self.max_empty_cell_ratio:
+                if not bs:
+                    bs = BeautifulSoup(html_json['html'], 'html.parser')
                 num_empty_tds = 0
                 tds = bs.find_all("td")
                 for td in tds:

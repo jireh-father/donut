@@ -73,6 +73,9 @@ class SynthTable(Component):
         self.max_rows = config_selectors['html']['max_row'].select()
         self.min_cols = config_selectors['html']['min_col'].select()
         self.max_cols = config_selectors['html']['max_col'].select()
+        self.remove_img_tag = config_selectors['html']['remove_img_tag'].select() if 'remove_img_tag' in \
+                                                                                     config_selectors['html'] else False
+
         self.max_col_span = config_selectors['html']['max_col_span'].select() if 'max_col_span' in config_selectors[
             'html'] else None
         self.max_row_span = config_selectors['html']['max_row_span'].select() if 'max_row_span' in config_selectors[
@@ -829,6 +832,10 @@ class SynthTable(Component):
                 self.meta['html_bs'] = bs
             # remove html tag's attrs except img's src, td'colspan, td'rowspan and ol's type
             self._remove_html_tag_attrs()
+
+            if self.remove_img_tag:
+                for img_tag in self.meta['html_bs'].find_all("img"):
+                    img_tag.decompose()
 
             self.meta['html_path'] = html_path
             # insert tbody
