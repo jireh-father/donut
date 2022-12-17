@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument('--output_path', default='efbl0_quantized.torchscript', type=str)
-    parser.add_argument('--use_optimizer', default=True, action='store_true')
+    parser.add_argument('--use_optimizer', default=False, action='store_true')
     parser.add_argument('--use_script', default=False, action='store_true')
 
     args, left_argv = parser.parse_known_args()
