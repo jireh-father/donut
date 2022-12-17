@@ -53,7 +53,7 @@ def main(args, left_argv):
         example = example.to(device)
     model.eval()
 
-    model.prompt_tensors = torch.tensor([[config.prompt_id]])
+    model.prompt_tensors = torch.tensor([[args.prompt_id]])
     model.prompt_tensors = model.prompt_tensors.to(model.device)
 
     # image_tensors = self.encoder.prepare_input(image).unsqueeze(0)
