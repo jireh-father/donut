@@ -12,7 +12,7 @@ def main(args, left_argv):
     config = Config(args.config)
     config.argv_update(left_argv)
     start = time.time()
-    ret = model(torch.rand(1, 3, config.input_size[0], config.input_size[1]))
+    ret = model(torch.rand(1, 3, config.input_size[0], config.input_size[1]).to(torch.bfloat16))
     print(time.time() - start)
     print(ret)
     #
