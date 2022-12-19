@@ -43,10 +43,10 @@ def main(args, left_argv):
 
     example = torch.rand(1, 3, config.input_size[0], config.input_size[1])
     if device == 'cpu':
-        # model.to(device)
-        model.to(torch.bfloat16)
-        # example.to(device)
-        example = example.to(torch.bfloat16)
+        model.to(device)
+        # model.to(torch.bfloat16)
+        example.to(device)
+        # example = example.to(torch.bfloat16)
     else:
         model.half()
         model.to(device)
