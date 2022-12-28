@@ -18,11 +18,12 @@ import torch
 from datasets import load_dataset
 from PIL import Image
 from tqdm import tqdm
-import time
+
 from donut import DonutModel, JSONParseEvaluator, load_json, save_json, DonutConfig
 import teds as T
 from sconf import Config
 import imgkit
+import time
 
 def remove_html_tags(text):
     """Remove html tags from a string"""
@@ -76,18 +77,24 @@ def test(args, config):
         local_files_only=True
     )
 
+
     if torch.cuda.is_available():
         model.half()
         model.to("cuda")
+        model.decoder.device = "cuda"
         print("cuda")
     else:
         model.encoder.to(torch.bfloat16)
+        model.decoder.device = "cpu"
         print("cpu")
     model.eval()
 
     os.makedirs(args.output_dir, exist_ok=True)
 
     image_files = glob.glob(args.images_pattern)
+
+    vocab = model.decoder.tokenizer.get_vocab()
+    inv_vocab = {v: k for k, v in vocab.items()}
 
     for start_idx in range(0, len(image_files), args.batch_size):
         print(start_idx, len(image_files))
@@ -100,15 +107,36 @@ def test(args, config):
             input_tensor = model.encoder.prepare_input(im, random_padding=False)
             input_tensors.append(input_tensor)
         input_tensors = torch.stack(input_tensors, dim=0)
+        print("input_tensors", input_tensors.shape)
+
+        if torch.cuda.is_available():
+            input_tensors = input_tensors.half()
+            input_tensors = input_tensors.to('cuda')
+        else:
+            input_tensors = input_tensors.to('cpu')
+
+        # preds = model.inference(image_tensors=input_tensors, prompt=f"<s_tableocr>")["predictions"]
         start = time.time()
-        preds = model.inference(image_tensors=input_tensors, prompt=f"<s_tableocr>")["predictions"]
-        print(time.time() - start)
-        print("preds", preds)
+        # preds = model.inference_direct(image_tensors=input_tensors, prompt=f"<s_tableocr>")
+        preds = model.inference_for_android(image_tensors=input_tensors)
+        print("inference time", time.time() - start)
+        print("preds", preds.shape)
         for i, pred in enumerate(preds):
-            pred = T.postprocess_html_tag(re.sub(r"(?:(?<=>) | (?=</s_))", "", pred['text_sequence']))
+            print(pred)
+            pred = [inv_vocab.get(int(p), "") for p in pred]
+            print(pred)
+            # pred = model.decoder.tokenizer.decode(pred)
+            # if pred.startswith("<s_tableocr> "):
+            #     pred = pred[len("<s_tableocr> "):]
+            # if pred.endswith("</s>"):
+            #     pred = pred[:-len("</s>")]
+            pred = "".join(pred[1:-1]).replace("▁", " ")
+            print(pred)
+            pred = T.postprocess_html_tag(re.sub(r"(?:(?<=>) | (?=</s_))", "", pred))
             print(pred)
             shutil.copy(batch_images[i], args.output_dir)
             only_file_name = os.path.splitext(os.path.basename(batch_images[i]))[0]
+            print(pred)
             output_html = html_template.format(pred.replace("<table>", '<table border="1">'))
             html_path = os.path.join(args.output_dir, only_file_name + ".html")
             with open(html_path, "w+", encoding='utf-8') as fp:

@@ -29,6 +29,7 @@ from transformers.file_utils import ModelOutput
 from transformers.modeling_utils import PretrainedConfig, PreTrainedModel
 from transformers import CLIPProcessor, CLIPModel
 
+
 class SwinEncoder(nn.Module):
     r"""
     Donut encoder based on SwinTransformer
@@ -150,12 +151,9 @@ class SwinEncoder(nn.Module):
         x = self.model.patch_embed(x)
         x = self.model.pos_drop(x)
         # print("patch embed", x.shape)
-        if self.vision_model_name in ["SwinTransformerV2", "SwinV2WithVit"]:
-            for layer in self.model.layers:
-                x = layer(x)
-        else:
-            x = self.model.layers(x)
-        return x[0].view(-1)
+        for layer in self.model.layers:
+            x = layer(x)
+        return x
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -227,11 +225,12 @@ class BARTDecoder(nn.Module):
     def __init__(
             self, decoder_layer: int, max_position_embeddings: int, name_or_path: Union[str, bytes, os.PathLike] = None,
             use_fast_tokenizer=False, bart_prtrained_path="hyunwoongko/asian-bart-en", special_tokens=None,
-            d_model=1024
+            d_model=1024, max_length=None
     ):
         super().__init__()
         self.decoder_layer = decoder_layer
         self.max_position_embeddings = max_position_embeddings
+        self.max_length = max_length
 
         if use_fast_tokenizer:
             self.tokenizer = AutoTokenizer.from_pretrained(
@@ -241,6 +240,7 @@ class BARTDecoder(nn.Module):
             self.tokenizer = XLMRobertaTokenizer.from_pretrained(
                 name_or_path
             )
+
         self.model = MBartForCausalLM(
             config=MBartConfig(
                 d_model=d_model,
@@ -290,6 +290,11 @@ class BARTDecoder(nn.Module):
                 else:
                     new_bart_state_dict[x] = bart_state_dict[x]
             self.model.load_state_dict(new_bart_state_dict)
+        self.prompt_tensors = None
+        self.pad_token_id = self.tokenizer.pad_token_id
+        self.eos_token_id = self.tokenizer.eos_token_id
+        self.unk_token_id = self.tokenizer.unk_token_id
+        self.static_bad_words_mask: Optional[torch.LongTensor] = None
 
     def add_special_tokens(self, list_of_tokens: List[str]):
         """
@@ -319,6 +324,209 @@ class BARTDecoder(nn.Module):
             "encoder_hidden_states": model_kwargs["encoder_outputs"].last_hidden_state,
         }
         return output
+
+    def inference_one(self, last_hidden_state):
+        encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
+
+        if len(encoder_outputs.last_hidden_state.size()) == 1:
+            encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
+
+        # get decoder output
+        decoder_output = self.model.generate(
+            decoder_input_ids=self.prompt_tensors,
+            encoder_outputs=encoder_outputs,
+            max_length=self.max_length,
+            early_stopping=True,
+            pad_token_id=self.pad_token_id,
+            eos_token_id=self.eos_token_id,
+            use_cache=True,
+            num_beams=1,
+            bad_words_ids=[[self.unk_token_id]],
+            return_dict_in_generate=False,
+            output_attentions=False,
+        )
+
+        return decoder_output[0]
+
+    def inference_custom(self, last_hidden_state):
+
+        encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
+
+        model_kwargs = {"encoder_outputs": encoder_outputs, 'use_cache': True}
+        eos_token_id = self.eos_token_id
+        pad_token_id = self.pad_token_id
+
+        self.prompt_tensors = self.tokenizer("<s_tableocr>", add_special_tokens=False, return_tensors="pt")["input_ids"]
+        self.prompt_tensors = self.prompt_tensors.to(self.device)
+        input_ids = self.prompt_tensors
+        unfinished_sequences = input_ids.new(input_ids.shape[0]).fill_(1)
+        cur_len = input_ids.shape[-1]
+
+        while True:
+            print("model_kwargs", model_kwargs.keys())
+            # print("before input_ids", input_ids)
+            # attention_mask는 input_ids와 같은 shape으로 1로 채워진 tensor를 만들어준다.
+            # attention_mask tensor([[1, 1, 1, 1, 1]], device='cuda:0')
+
+            # input_ids는 마지막 텐서만 사용
+            # input_ids tensor([[3208]], device='cuda:0')
+
+            # encoder_hidden_states 는 그대로 사용
+            # past_key_values 도 그대로 사용
+            model_inputs = self.model.prepare_inputs_for_generation(input_ids, **model_kwargs)
+            # print("after input_ids", input_ids)
+            print("model_inputs", model_inputs.keys())
+            print('input_ids', model_inputs['input_ids'])
+            print('attention_mask', model_inputs['attention_mask'])
+            outputs = self.model(**model_inputs,
+                                 return_dict=True,
+                                 output_attentions=False,
+                                 output_hidden_states=False)
+            # outputs의 logts, past_key_values 2가지만 사용
+            next_token_logits = outputs.logits[:, -1, :]
+
+            if self.static_bad_words_mask is None:
+                static_bad_words_mask = torch.zeros(next_token_logits.shape[1])
+                static_bad_words_mask[[self.unk_token_id]] = 1
+                self.static_bad_words_mask = static_bad_words_mask.unsqueeze(0).to(next_token_logits.device).bool()
+
+            # test checking <unk> token
+            # 이걸로 정확도 낮은 글자 찾아내고 오타 보정으로 보정해낼수도?
+            tmp = torch.argmax(next_token_logits, dim=-1)
+            if tmp == self.unk_token_id:
+                print("unk token found")
+
+            next_token_logits = next_token_logits.masked_fill(self.static_bad_words_mask, -float("inf"))
+
+            next_tokens = torch.argmax(next_token_logits, dim=-1)
+            if tmp == self.unk_token_id:
+                print("unk token found", next_tokens, len(input_ids))
+            # 배치 단위로 할때 이미 끝난 문장 뒤에 패딩 붙히기 위한 작업
+            # if eos_token_id is not None:
+            #     if pad_token_id is None:
+            #         raise ValueError("If `eos_token_id` is defined, make sure that `pad_token_id` is defined.")
+            #     next_tokens = next_tokens * unfinished_sequences + pad_token_id * (1 - unfinished_sequences)
+
+            # update generated ids, model inputs, and length for next step
+            input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
+            print("outputs keys", outputs.keys())
+            # outputs keys odict_keys(['loss', 'logits', 'past_key_values', 'hidden_states', 'decoder_attentions', 'cross_attentions'])
+            # model_kwargs 에다가 outputs의 outputs['past_key_values']를 넣어준다.
+            model_kwargs = self.model._update_model_kwargs_for_generation(
+                outputs, model_kwargs, is_encoder_decoder=True
+            )
+
+            cur_len = cur_len + 1
+
+            unfinished_sequences = unfinished_sequences.mul((next_tokens != eos_token_id).long())
+
+            # stop when each sentence is finished, or if we exceed the maximum length
+            if unfinished_sequences.max() == 0:
+                break
+            if input_ids.shape[-1] >= self.max_length:
+                break
+
+        return input_ids
+        # get decoder output
+        # decoder_output = self.model.generate(
+        #     decoder_input_ids=self.prompt_tensors,
+        #     encoder_outputs=encoder_outputs,
+        #     max_length=self.max_length,
+        #     early_stopping=True,
+        #     pad_token_id=self.pad_token_id,
+        #     eos_token_id=self.eos_token_id,
+        #     use_cache=True,
+        #     num_beams=1,
+        #     bad_words_ids=[[self.unk_token_id]],
+        #     return_dict_in_generate=False,
+        #     output_attentions=False,
+        # )
+        #
+        # return decoder_output[0]
+
+    def inference_for_android(self, last_hidden_state):
+        encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
+
+        model_kwargs = {"encoder_outputs": encoder_outputs, 'use_cache': True}
+        eos_token_id = self.eos_token_id
+        pad_token_id = self.pad_token_id
+
+        self.prompt_tensors = self.tokenizer("<s_tableocr>", add_special_tokens=False, return_tensors="pt")["input_ids"]
+        self.prompt_tensors = self.prompt_tensors.to(self.device)
+        input_ids = self.prompt_tensors
+        unfinished_sequences = input_ids.new(input_ids.shape[0]).fill_(1)
+        cur_len = input_ids.shape[-1]
+        past_key_values = None
+        while True:
+            print("model_kwargs", model_kwargs.keys())
+            # print("before input_ids", input_ids)
+            # attention_mask는 input_ids와 같은 shape으로 1로 채워진 tensor를 만들어준다.
+            # attention_mask tensor([[1, 1, 1, 1, 1]], device='cuda:0')
+
+            # input_ids는 마지막 텐서만 사용
+            # input_ids tensor([[3208]], device='cuda:0')
+
+            # encoder_hidden_states 는 그대로 사용
+            # past_key_values 도 그대로 사용
+            model_inputs = self.model.prepare_inputs_for_generation(input_ids, **model_kwargs)
+            # print("after input_ids", input_ids)
+            print("model_inputs", model_inputs.keys())
+            print('input_ids', model_inputs['input_ids'])
+            print('attention_mask', model_inputs['attention_mask'])
+            logits, past_key_values = self.inference_decode_one_step_for_android(
+                input_ids,
+                last_hidden_state,
+                past_key_values,
+                use_cache=True)
+            outputs = self.model(**model_inputs,
+                                 return_dict=True,
+                                 output_attentions=False,
+                                 output_hidden_states=False)
+            # outputs의 logts, past_key_values 2가지만 사용
+            next_token_logits = outputs.logits[:, -1, :]
+
+            if self.static_bad_words_mask is None:
+                static_bad_words_mask = torch.zeros(next_token_logits.shape[1])
+                static_bad_words_mask[[self.unk_token_id]] = 1
+                self.static_bad_words_mask = static_bad_words_mask.unsqueeze(0).to(next_token_logits.device).bool()
+
+            # test checking <unk> token
+            # 이걸로 정확도 낮은 글자 찾아내고 오타 보정으로 보정해낼수도?
+            tmp = torch.argmax(next_token_logits, dim=-1)
+            if tmp == self.unk_token_id:
+                print("unk token found")
+
+            next_token_logits = next_token_logits.masked_fill(self.static_bad_words_mask, -float("inf"))
+
+            next_tokens = torch.argmax(next_token_logits, dim=-1)
+            if tmp == self.unk_token_id:
+                print("unk token found", next_tokens, len(input_ids))
+            # 배치 단위로 할때 이미 끝난 문장 뒤에 패딩 붙히기 위한 작업
+            # if eos_token_id is not None:
+            #     if pad_token_id is None:
+            #         raise ValueError("If `eos_token_id` is defined, make sure that `pad_token_id` is defined.")
+            #     next_tokens = next_tokens * unfinished_sequences + pad_token_id * (1 - unfinished_sequences)
+
+            # update generated ids, model inputs, and length for next step
+            input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
+            print("outputs keys", outputs.keys())
+            # outputs keys odict_keys(['loss', 'logits', 'past_key_values', 'hidden_states', 'decoder_attentions', 'cross_attentions'])
+            # model_kwargs 에다가 outputs의 outputs['past_key_values']를 넣어준다.
+            model_kwargs = self.model._update_model_kwargs_for_generation(
+                outputs, model_kwargs, is_encoder_decoder=True
+            )
+
+            cur_len = cur_len + 1
+
+            unfinished_sequences = unfinished_sequences.mul((next_tokens != eos_token_id).long())
+
+            # stop when each sentence is finished, or if we exceed the maximum length
+            if unfinished_sequences.max() == 0:
+                break
+            if input_ids.shape[-1] >= self.max_length:
+                break
+
+        return input_ids
 
     def forward(
             self,
@@ -385,6 +593,30 @@ class BARTDecoder(nn.Module):
             decoder_attentions=outputs.attentions,
             cross_attentions=outputs.cross_attentions,
         )
+
+    def inference_decode_one_step_for_android(
+            self,
+            input_ids,
+            encoder_hidden_states: Optional[torch.Tensor] = None,
+            past_key_values: Optional[torch.Tensor] = None,
+            use_cache: bool = None
+    ):
+        attention_mask = input_ids.new_ones(input_ids.shape)
+
+        outputs = self.model.model.decoder(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            encoder_hidden_states=encoder_hidden_states,
+            past_key_values=past_key_values,
+            use_cache=use_cache,
+            output_attentions=False,
+            output_hidden_states=False,
+            return_dict=True,
+        )
+
+        logits = self.model.lm_head(outputs[0])
+
+        return logits, outputs.past_key_values
 
     @staticmethod
     def resize_bart_abs_pos_emb(weight: torch.Tensor, max_length: int) -> torch.Tensor:
@@ -526,7 +758,8 @@ class DonutModel(PreTrainedModel):
             use_fast_tokenizer=self.config.use_fast_tokenizer,
             name_or_path=self.config.tokenizer_name_or_path,
             bart_prtrained_path=self.config.bart_prtrained_path,
-            special_tokens=self.config.special_tokens
+            special_tokens=self.config.special_tokens,
+            max_length=config.max_length
         )
 
     def forward(self, image_tensors: torch.Tensor, decoder_input_ids: torch.Tensor, decoder_labels: torch.Tensor):
@@ -594,6 +827,8 @@ class DonutModel(PreTrainedModel):
         if self.device.type != "cuda":
             last_hidden_state = last_hidden_state.to(torch.float32)
 
+        print("last_hidden_state", last_hidden_state.shape)
+
         encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
         if len(encoder_outputs.last_hidden_state.size()) == 1:
             encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
@@ -634,15 +869,82 @@ class DonutModel(PreTrainedModel):
 
         return output
 
-    def inference_one(
+    def inference_direct(
             self,
-            image_tensors
+            image: PIL.Image = None,
+            prompt: str = None,
+            image_tensors: Optional[torch.Tensor] = None,
+            prompt_tensors: Optional[torch.Tensor] = None,
+            return_json: bool = True,
+            return_attentions: bool = False,
     ):
-        prompt_tensors = self.prompt_tensors
+        # prepare backbone inputs (image and prompt)
+        if image is None and image_tensors is None:
+            raise ValueError("Expected either image or image_tensors")
+        if all(v is None for v in {prompt, prompt_tensors}):
+            raise ValueError("Expected either prompt or prompt_tensors")
+
+        if image_tensors is None:
+            image_tensors = self.encoder.prepare_input(image).unsqueeze(0)
+
+        if self.device.type == "cuda":  # half is not compatible in cpu implementation.
+            image_tensors = image_tensors.half()
+            image_tensors = image_tensors.to(self.device)
+            print("cuda")
+        else:
+            image_tensors = image_tensors.to(torch.bfloat16)
+            print("cpu")
 
         last_hidden_state = self.encoder(image_tensors)
         if self.device.type != "cuda":
             last_hidden_state = last_hidden_state.to(torch.float32)
+
+        print("last_hidden_state", last_hidden_state.shape)
+        print("encoder_outputs.last_hidden_state.size()", last_hidden_state.size())
+
+        encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
+        if len(encoder_outputs.last_hidden_state.size()) == 1:
+            encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
+
+        # if len(prompt_tensors.size()) == 1:
+        #     prompt_tensors = prompt_tensors.unsqueeze(0)
+        # get decoder output
+        return self.decoder.inference_custom(encoder_outputs.last_hidden_state)
+
+    def inference_for_android(
+            self,
+            image_tensors: Optional[torch.Tensor] = None,
+    ):
+
+        last_hidden_state = self.encoder.forward_one(image_tensors)
+        if self.device.type != "cuda":
+            last_hidden_state = last_hidden_state.to(torch.float32)
+
+        # if len(prompt_tensors.size()) == 1:
+        #     prompt_tensors = prompt_tensors.unsqueeze(0)
+        # get decoder output
+        return self.decoder.inference_for_android(last_hidden_state)
+
+    def inference_e2e(
+            self,
+            image_tensors: Optional[torch.Tensor] = None,
+    ):
+        last_hidden_state = self.encoder(image_tensors)
+
+        encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
+        if len(encoder_outputs.last_hidden_state.size()) == 1:
+            encoder_outputs.last_hidden_state = encoder_outputs.last_hidden_state.unsqueeze(0)
+
+        # if len(prompt_tensors.size()) == 1:
+        #     prompt_tensors = prompt_tensors.unsqueeze(0)
+        # get decoder output
+        return self.decoder.inference_custom(encoder_outputs.last_hidden_state)[0]
+
+    def inference_decoder(
+            self,
+            last_hidden_state
+    ):
+        prompt_tensors = self.prompt_tensors
 
         encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
 
