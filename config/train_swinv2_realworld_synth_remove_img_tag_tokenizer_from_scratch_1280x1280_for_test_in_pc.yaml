@@ -2,7 +2,7 @@ resume_from_checkpoint_path: null # only used for resume_from_checkpoint option 
 result_path: "./result"
 #pretrained_model_name_or_path: "naver-clova-ix/donut-base" # loading a pre-trained model (from moldehub or path)
 remove_img_tag: True
-pretrained_model_name_or_path: "./result/train_swinv2_realworld_synth_remove_img_tag_tokenizer_from_scratch_1280x1280/realworld_synth_remove_img_tag_tokenizer_from_scratch_1280x1280"
+pretrained_model_name_or_path: "D:/result/tableocr/android/realworld_synth_remove_img_tag_tokenizer_from_scratch_1280x1280"
 dataset_name_or_paths: ["./dataset/danawa_kr_synth",
                         "./dataset/google_en_synth",
                         "./dataset/wiki_en_ori",
@@ -40,7 +40,7 @@ val_check_interval: 1.0
 check_val_every_n_epoch: 1
 gradient_clip_val: 1.0
 verbose: True
-tokenizer_name_or_path: "./tokenizer_crawled_ko_no_imgtheadtag_span20"
+tokenizer_name_or_path: "D:/dataset/table_ocr/tokenizer_crawled_ko_no_imgtheadtag_span20"
 task_name: tableocr
 validation_metric: teds
 use_fast_tokenizer: False

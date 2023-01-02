@@ -122,7 +122,7 @@ def test(args, config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--images_pattern", type=str, default='D:\dataset\\table_ocr\\test_sample_en_one2/*')
+    parser.add_argument("--images_pattern", type=str, default='D:\dataset\\table_ocr\\test_sample_en_one/*')
     parser.add_argument("--output_dir", type=str, default='D:\\result\\tableocr\infer_results_one')
     parser.add_argument("--config", type=str, default='./config/train_swinv2_realworld_synth_for_test_in_pc.yaml')
     parser.add_argument("--batch_size", type=int, default=1)

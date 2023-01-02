@@ -1,18 +1,32 @@
-import torch
-import torch.nn as nn
+"""
+Donut
+Copyright (c) 2022-present NAVER Corp.
+MIT License
+"""
+import pickle
+import traceback
+import glob
 import argparse
+import json
 import os
-from torch.utils.mobile_optimizer import optimize_for_mobile
+import re
+import shutil
+from pathlib import Path
+import re
+import numpy as np
+import torch
+from datasets import load_dataset
+from PIL import Image
+from tqdm import tqdm
+
 from donut import DonutModel, JSONParseEvaluator, load_json, save_json, DonutConfig
+import teds as T
 from sconf import Config
+import imgkit
+import time
 
 
-def main(args, left_argv):
-    device = 'cpu'
-
-    config = Config(args.config)
-    config.argv_update(left_argv)
-
+def test(args, config):
     model = DonutModel.from_pretrained(
         config.pretrained_model_name_or_path,
         input_size=config.input_size,
@@ -35,48 +49,25 @@ def main(args, left_argv):
         swin_num_heads_last_block=config.swin_num_heads_last_block,
         swin_drop_path_rate_last_block=config.swin_drop_path_rate_last_block,
         swin_init_values_last_block=config.swin_init_values_last_block,
-        ape_last_block=config.ape_last_block
+        ape_last_block=config.ape_last_block,
+        local_files_only=True
     )
-
-    model = model.encoder
-    model.forward = model.forward_one
-
-    example = torch.rand(1, 3, config.input_size[0], config.input_size[1])
-    if device == 'cpu':
-        model.to(device)
-        # model.to(torch.bfloat16)
-        example.to(device)
-        # example = example.to(torch.bfloat16)
-    else:
-        model.half()
-        model.to(device)
-        example = example.half()
-        example = example.to(device)
-    model.eval()
-
-    if args.use_script:
-        traced_script_module = torch.jit.script(model)
-    else:
-        ret = model(example)
-        print("ret", ret)
-        print(ret.shape)
-        traced_script_module = torch.jit.trace(model, example)
-
-    if args.use_optimizer:
-        traced_script_module = optimize_for_mobile(traced_script_module)
-
-    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
-    traced_script_module.save(args.output_path)
-    print("done")
+    os.makedirs(args.output_dir, exist_ok=True)
+    vocab = model.decoder.tokenizer.get_vocab()
+    json.dump(vocab, open(os.path.join(args.output_dir, "word_to_idx.json"), "w+"))
+    inv_vocab = {"{}".format(v): k for k, v in vocab.items()}
+    json.dump(inv_vocab, open(os.path.join(args.output_dir, "idx_to_word.json"), "w+"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-
+    parser.add_argument("--output_dir", type=str, default='D:\\result\\tableocr\\android\\tokenizer_dict_json')
     parser.add_argument("--config", type=str, default='./config/train_swinv2_realworld_synth_remove_img_tag_tokenizer_from_scratch_1280x1280_for_test_in_pc.yaml')
-    parser.add_argument('--output_path', default='D:\\result\\tableocr\\android/encoder_1280x1280.ptl', type=str)
-    parser.add_argument('--use_optimizer', default=False, action='store_true')
-    parser.add_argument('--use_script', default=False, action='store_true')
-
+    # 8666/9115
     args, left_argv = parser.parse_known_args()
-    main(args, left_argv)
+
+    print("initializing config")
+    config = Config(args.config)
+    # config.argv_update(left_argv)
+
+    test(args, config)

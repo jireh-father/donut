@@ -203,6 +203,7 @@ class SwinEncoder(nn.Module):
             delta_width - pad_width,
             delta_height - pad_height,
         )
+        ImageOps.expand(img, padding).save("swin_sample_im.jpg")
         return self.to_tensor(ImageOps.expand(img, padding))
 
 
@@ -445,88 +446,55 @@ class BARTDecoder(nn.Module):
         # return decoder_output[0]
 
     def inference_for_android(self, last_hidden_state):
-        encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
-
-        model_kwargs = {"encoder_outputs": encoder_outputs, 'use_cache': True}
         eos_token_id = self.eos_token_id
-        pad_token_id = self.pad_token_id
 
-        self.prompt_tensors = self.tokenizer("<s_tableocr>", add_special_tokens=False, return_tensors="pt")["input_ids"]
-        self.prompt_tensors = self.prompt_tensors.to(self.device)
-        input_ids = self.prompt_tensors
-        unfinished_sequences = input_ids.new(input_ids.shape[0]).fill_(1)
-        cur_len = input_ids.shape[-1]
-        past_key_values = None
+        # self.prompt_tensors = self.tokenizer("<s_tableocr>", add_special_tokens=False, return_tensors="pt")["input_ids"]
+        # self.prompt_tensors = self.prompt_tensors.to(self.device)
+        max_len = 3000
+        # print('self.tokenizer.get_vocab()["<s_tableocr>"]', self.tokenizer.get_vocab()["<s_tableocr>"])
+        input_ids = torch.tensor([[self.tokenizer.get_vocab()["<s_tableocr>"]] + [self.pad_token_id] * (max_len - 1)])
+        input_ids = input_ids.to(self.device)
+        print(input_ids.shape)
+        print("input_ids", input_ids)
+
+        # input_ids = self.prompt_tensors
+        cur_len = 1
+        # attention_mask = input_ids.ne(self.tokenizer.pad_token_id).long()
+        # print('attention_mask', attention_mask.shape)
         while True:
-            print("model_kwargs", model_kwargs.keys())
-            # print("before input_ids", input_ids)
-            # attention_mask는 input_ids와 같은 shape으로 1로 채워진 tensor를 만들어준다.
-            # attention_mask tensor([[1, 1, 1, 1, 1]], device='cuda:0')
-
-            # input_ids는 마지막 텐서만 사용
-            # input_ids tensor([[3208]], device='cuda:0')
-
-            # encoder_hidden_states 는 그대로 사용
-            # past_key_values 도 그대로 사용
-            model_inputs = self.model.prepare_inputs_for_generation(input_ids, **model_kwargs)
-            # print("after input_ids", input_ids)
-            print("model_inputs", model_inputs.keys())
-            print('input_ids', model_inputs['input_ids'])
-            print('attention_mask', model_inputs['attention_mask'])
-            logits, past_key_values = self.inference_decode_one_step_for_android(
-                input_ids,
-                last_hidden_state,
-                past_key_values,
-                use_cache=True)
-            outputs = self.model(**model_inputs,
-                                 return_dict=True,
-                                 output_attentions=False,
-                                 output_hidden_states=False)
-            # outputs의 logts, past_key_values 2가지만 사용
-            next_token_logits = outputs.logits[:, -1, :]
+            # print("input_ids", input_ids)
+            # print("attention_mask", attention_mask)
+            print(cur_len, input_ids)
+            logits = self.inference_decode_one_step_for_android(input_ids, last_hidden_state, torch.tensor([cur_len - 1]).to(self.device))
+            # logits = self.inference_decode_one_step_for_android(input_ids,last_hidden_state,attention_mask)
+            # next_token_logits = logits[:, cur_len-1, :]
+            next_token_logits = logits
+            # attention_mask[:, cur_len] = 1
 
             if self.static_bad_words_mask is None:
-                static_bad_words_mask = torch.zeros(next_token_logits.shape[1])
-                static_bad_words_mask[[self.unk_token_id]] = 1
-                self.static_bad_words_mask = static_bad_words_mask.unsqueeze(0).to(next_token_logits.device).bool()
+                static_bad_words_mask = torch.zeros(next_token_logits.shape[0])
+                static_bad_words_mask[self.unk_token_id] = 1
+                self.static_bad_words_mask = static_bad_words_mask.to(next_token_logits.device).bool()
 
             # test checking <unk> token
             # 이걸로 정확도 낮은 글자 찾아내고 오타 보정으로 보정해낼수도?
             tmp = torch.argmax(next_token_logits, dim=-1)
-            if tmp == self.unk_token_id:
-                print("unk token found")
-
             next_token_logits = next_token_logits.masked_fill(self.static_bad_words_mask, -float("inf"))
 
-            next_tokens = torch.argmax(next_token_logits, dim=-1)
+            next_token = torch.argmax(next_token_logits, dim=-1)
             if tmp == self.unk_token_id:
-                print("unk token found", next_tokens, len(input_ids))
-            # 배치 단위로 할때 이미 끝난 문장 뒤에 패딩 붙히기 위한 작업
-            # if eos_token_id is not None:
-            #     if pad_token_id is None:
-            #         raise ValueError("If `eos_token_id` is defined, make sure that `pad_token_id` is defined.")
-            #     next_tokens = next_tokens * unfinished_sequences + pad_token_id * (1 - unfinished_sequences)
+                print("unk token found", next_token, len(input_ids))
 
-            # update generated ids, model inputs, and length for next step
-            input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
-            print("outputs keys", outputs.keys())
-            # outputs keys odict_keys(['loss', 'logits', 'past_key_values', 'hidden_states', 'decoder_attentions', 'cross_attentions'])
-            # model_kwargs 에다가 outputs의 outputs['past_key_values']를 넣어준다.
-            model_kwargs = self.model._update_model_kwargs_for_generation(
-                outputs, model_kwargs, is_encoder_decoder=True
-            )
-
+            input_ids[:, cur_len] = next_token
+            # input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
             cur_len = cur_len + 1
 
-            unfinished_sequences = unfinished_sequences.mul((next_tokens != eos_token_id).long())
-
-            # stop when each sentence is finished, or if we exceed the maximum length
-            if unfinished_sequences.max() == 0:
+            if next_token == eos_token_id:
                 break
-            if input_ids.shape[-1] >= self.max_length:
+            if cur_len >= self.max_length:
                 break
 
-        return input_ids
+        return input_ids[:, :cur_len]
 
     def forward(
             self,
@@ -598,17 +566,32 @@ class BARTDecoder(nn.Module):
             self,
             input_ids,
             encoder_hidden_states: Optional[torch.Tensor] = None,
-            past_key_values: Optional[torch.Tensor] = None,
-            use_cache: bool = None
+            return_index: Optional[torch.Tensor] = None,
+            # attention_mask: Optional[torch.Tensor] = None,
     ):
-        attention_mask = input_ids.new_ones(input_ids.shape)
-
+        # attention_mask = input_ids.ne(self.pad_token_id).long()
         outputs = self.model.model.decoder(
             input_ids=input_ids,
-            attention_mask=attention_mask,
             encoder_hidden_states=encoder_hidden_states,
-            past_key_values=past_key_values,
-            use_cache=use_cache,
+            # attention_mask=attention_mask,
+            use_cache=False,
+            output_attentions=False,
+            output_hidden_states=False,
+            return_dict=True,
+        )
+        logits = self.model.lm_head(outputs[0])
+
+        return logits[0, return_index[0], :]
+
+    def inference_decode_one_step_for_torchscript(
+            self,
+            input_ids,
+            encoder_hidden_states: Optional[torch.Tensor] = None
+    ):
+        outputs = self.model.model.decoder(
+            input_ids=input_ids,
+            encoder_hidden_states=encoder_hidden_states,
+            use_cache=False,
             output_attentions=False,
             output_hidden_states=False,
             return_dict=True,
@@ -616,7 +599,7 @@ class BARTDecoder(nn.Module):
 
         logits = self.model.lm_head(outputs[0])
 
-        return logits, outputs.past_key_values
+        return logits
 
     @staticmethod
     def resize_bart_abs_pos_emb(weight: torch.Tensor, max_length: int) -> torch.Tensor:
@@ -923,6 +906,7 @@ class DonutModel(PreTrainedModel):
         # if len(prompt_tensors.size()) == 1:
         #     prompt_tensors = prompt_tensors.unsqueeze(0)
         # get decoder output
+        print("last_hidden_state", last_hidden_state)
         return self.decoder.inference_for_android(last_hidden_state)
 
     def inference_e2e(

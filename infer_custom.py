@@ -118,11 +118,13 @@ def test(args, config):
         # preds = model.inference(image_tensors=input_tensors, prompt=f"<s_tableocr>")["predictions"]
         start = time.time()
         # preds = model.inference_direct(image_tensors=input_tensors, prompt=f"<s_tableocr>")
-        preds = model.inference_for_android(image_tensors=input_tensors)
+        with torch.set_grad_enabled(False):
+            preds = model.inference_for_android(image_tensors=input_tensors)
         print("inference time", time.time() - start)
         print("preds", preds.shape)
         for i, pred in enumerate(preds):
             print(pred)
+            print("len", len(pred))
             pred = [inv_vocab.get(int(p), "") for p in pred]
             print(pred)
             # pred = model.decoder.tokenizer.decode(pred)

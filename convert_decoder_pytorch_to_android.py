@@ -37,31 +37,41 @@ def main(args, left_argv):
         swin_init_values_last_block=config.swin_init_values_last_block,
         ape_last_block=config.ape_last_block
     )
-
     model = model.decoder
-    model.max_length = config.max_length
-    model.forward = model.inference_one
+    max_len = 3000
+    input_ids = torch.tensor([[model.tokenizer.get_vocab()["<s_tableocr>"]] + [model.pad_token_id] * (max_len - 1)])
+    # input_ids = model.tokenizer("<s_tableocr>", add_special_tokens=False, return_tensors="pt")["input_ids"]
+
+    model.forward = model.inference_decode_one_step_for_android
+    return_index = torch.tensor([0])
+
 
     example = torch.rand(1, 1200, 1024)
     if device == 'cpu':
         model.to(device)
         # model.to(torch.bfloat16)
         example.to(device)
+        input_ids.to(device)
+        return_index = return_index.to(device)
         # example = example.to(torch.bfloat16)
     else:
         model.half()
         model.to(device)
         example = example.half()
         example = example.to(device)
+        input_ids = input_ids.half()
+        input_ids = input_ids.to(device)
+        return_index = return_index.half()
+        return_index = return_index.to(device)
     model.eval()
 
     if args.use_script:
         traced_script_module = torch.jit.script(model)
     else:
-        ret = model(example)
+        ret = model(input_ids, example, return_index)
         print("ret", ret)
         print(ret.shape)
-        traced_script_module = torch.jit.trace(model, example)
+        traced_script_module = torch.jit.trace(model, (input_ids, example, return_index))
 
     if args.use_optimizer:
         traced_script_module = optimize_for_mobile(traced_script_module)
@@ -74,8 +84,8 @@ def main(args, left_argv):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--config", type=str, default='./config/train_swinv2_realworld_synth_for_test_in_pc.yaml')
-    parser.add_argument('--output_path', default='D:\\result\\tableocr\\android/decoder.pth', type=str)
+    parser.add_argument("--config", type=str, default='./config/train_swinv2_realworld_synth_remove_img_tag_tokenizer_from_scratch_1280x1280_for_test_in_pc.yaml')
+    parser.add_argument('--output_path', default='D:\\result\\tableocr\\android/decoder_1280x1280.ptl', type=str)
     parser.add_argument('--use_optimizer', default=False, action='store_true')
     parser.add_argument('--use_script', default=False, action='store_true')
 

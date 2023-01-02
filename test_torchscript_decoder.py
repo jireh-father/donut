@@ -5,15 +5,13 @@ import os
 from torch.utils.mobile_optimizer import optimize_for_mobile
 from donut import DonutModel, JSONParseEvaluator, load_json, save_json, DonutConfig
 from sconf import Config
-
+import time
 
 def main(args, left_argv):
-    device = 'cpu'
-
     config = Config(args.config)
     config.argv_update(left_argv)
 
-    model = DonutModel.from_pretrained(
+    ori_model = DonutModel.from_pretrained(
         config.pretrained_model_name_or_path,
         input_size=config.input_size,
         max_length=config.max_length,
@@ -37,46 +35,29 @@ def main(args, left_argv):
         swin_init_values_last_block=config.swin_init_values_last_block,
         ape_last_block=config.ape_last_block
     )
+    ori_model = ori_model.decoder
+    # input_ids = ori_model.tokenizer("<s_tableocr>", add_special_tokens=False, return_tensors="pt")["input_ids"]
+    input_ids = torch.tensor([[ori_model.tokenizer.get_vocab()["<s_tableocr>"]] + [ori_model.pad_token_id] * 100])
+    model = torch.jit.load(args.model_path)
+    config = Config(args.config)
+    config.argv_update(left_argv)
 
-    model = model.encoder
-    model.forward = model.forward_one
-
-    example = torch.rand(1, 3, config.input_size[0], config.input_size[1])
-    if device == 'cpu':
-        model.to(device)
-        # model.to(torch.bfloat16)
-        example.to(device)
-        # example = example.to(torch.bfloat16)
-    else:
-        model.half()
-        model.to(device)
-        example = example.half()
-        example = example.to(device)
-    model.eval()
-
-    if args.use_script:
-        traced_script_module = torch.jit.script(model)
-    else:
-        ret = model(example)
-        print("ret", ret)
-        print(ret.shape)
-        traced_script_module = torch.jit.trace(model, example)
-
-    if args.use_optimizer:
-        traced_script_module = optimize_for_mobile(traced_script_module)
-
-    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
-    traced_script_module.save(args.output_path)
+    device = 'cpu'
+    input_ids = input_ids.to(device)
+    hidden_state = torch.rand(1, 1200, 1024).to(device)
+    hidden_state = hidden_state.to(device)
+    start = time.time()
+    ret = model(input_ids, hidden_state)
+    print(time.time() - start)
+    print(ret)
+    print(ret.shape)
     print("done")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-
-    parser.add_argument("--config", type=str, default='./config/train_swinv2_realworld_synth_remove_img_tag_tokenizer_from_scratch_1280x1280_for_test_in_pc.yaml')
-    parser.add_argument('--output_path', default='D:\\result\\tableocr\\android/encoder_1280x1280.ptl', type=str)
-    parser.add_argument('--use_optimizer', default=False, action='store_true')
-    parser.add_argument('--use_script', default=False, action='store_true')
+    parser.add_argument("--config", type=str, default='./config/train_swinv2_realworld_synth_for_test_in_pc.yaml')
+    parser.add_argument('--model_path', default='D:\\result\\tableocr\\android/only_decoder.pth', type=str)
 
     args, left_argv = parser.parse_known_args()
     main(args, left_argv)
