@@ -61,4 +61,4 @@ if __name__ == "__main__":
     parser.add_argument("--result_file", type=str, default=True)
     parser.add_argument("--dataset_root", type=str, default=None)
 
-    test(args)
+    test(parser.parse_args())
