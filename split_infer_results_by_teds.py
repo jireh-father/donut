@@ -40,7 +40,7 @@ def test(args):
         file_name = row['file_name']
         only_file_name = os.path.splitext(file_name)[0]
         pred_html = row['pred']
-        teds_score = "10" if row['teds_all'] >= 1 else str(row['teds_all'])[2:3] + "0"
+        teds_score = "100" if row['teds_all'] >= 1 else str(row['teds_all'])[2:3] + "0"
 
         cur_output_dir = os.path.join(args.output_dir, "vis_dataset_and_teds", dataset_name, teds_score)
         os.makedirs(cur_output_dir, exist_ok=True)
