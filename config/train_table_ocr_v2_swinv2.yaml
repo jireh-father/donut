@@ -1,7 +1,7 @@
 resume_from_checkpoint_path: null # only used for resume_from_checkpoint option in PL
 result_path: "./result"
 #pretrained_model_name_or_path: "naver-clova-ix/donut-base" # loading a pre-trained model (from moldehub or path)
-pretrained_model_name_or_path: null
+  pretrained_model_name_or_path: null
 dataset_name_or_paths: ["./dataset/pubtabnet"] # loading datasets (from moldehub or path)
 online_synth_dataset: False
 synth_dataset_length: 0
