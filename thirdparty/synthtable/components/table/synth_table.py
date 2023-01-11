@@ -271,6 +271,9 @@ class SynthTable(Component):
 
     def _sample_global_thead_outline(self):
         thead_outline_type = self.config_selectors['style']['global']['absolute']['thead']['outline'].select()
+        if self.meta['nums_row'] < 3 or self.meta['nums_col'] < 3:
+            thead_outline_type = "all"
+
         self.meta['thead_outline_type'] = thead_outline_type
 
         if thead_outline_type == "all":
@@ -283,6 +286,13 @@ class SynthTable(Component):
     def _sample_global_inner_border(self, css_selector):
         inner_border_type = self.config_selectors['style']['global']['absolute'][css_selector][
             'inner_border'].select()
+        while inner_border_type == "empty" and css_selector == 'tbody' and self.meta['table_background_config'] in ['empty', 'solid']:
+            inner_border_type = self.config_selectors['style']['global']['absolute'][css_selector][
+                'inner_border'].select()
+
+        if self.meta['nums_row'] < 3 or self.meta['nums_col'] < 3:
+            inner_border_type = "all"
+
         self.meta[css_selector + '_inner_border_type'] = inner_border_type
         if inner_border_type == "all":
             self._set_inner_border_row(css_selector)

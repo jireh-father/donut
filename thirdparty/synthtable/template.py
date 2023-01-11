@@ -211,4 +211,8 @@ if __name__ == '__main__':
     synth_table = SynthTable(synthtiger.read_config("config_danawa_kr_synth_val_remove_img_tag_easy_test_on_pc.yaml"))
 
     for i in range(100):
-        synth_table.save("./output", synth_table.generate(), i)
+        print(i)
+        try:
+            synth_table.save("./output", synth_table.generate(), i)
+        except Exception as e:
+            continue
