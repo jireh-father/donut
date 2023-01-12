@@ -12,8 +12,8 @@ background:
     image: 1
     color: 1
   image:
-    paths: [ resources/background/background,resources/background/deep_learning_paper,resources/background/document,resources/background/free_photo,resources/background/high_street,resources/background/random_image,resources/background/scholar_paper,resources/background/text ]
-    weights: [ 1,1,1,1,1,1,1,1 ]
+    paths: [ resources/background ]
+    weights: [ 1 ]
     alpha: [ 0.8, 1.0 ]
     grayscale: 0.5
     crop: 0.5
@@ -105,9 +105,9 @@ document:
             ccw:
               prob: 0.5
         html:
-          paths: [ resources/table_html/danawa_kr/val ]
+          paths: [ D:/dataset/table_ocr/crawling_synthtiger_html_json/google_en ]
           weights: [1]
-          shuffle: False
+          shuffle: True
           charset: null
           min_row: 1
           max_row: 20
@@ -172,7 +172,7 @@ document:
 #                  augmentation_charset: resources/charset/alphanum_special.txt
                 base:
                   weight: 1
-                  paths: [ resources/corpus/pubtabnet/train_thead_corpus.txt ]
+                  paths: [ resources/corpus/test_ko.txt ]
                   weights: [ 1 ]
                   min_length: 1
                   max_length: 5211
@@ -180,8 +180,8 @@ document:
               tbody:
                 length_augmentable:
                   weight: 1
-                  paths: [ resources/corpus/mjsynth.txt, resources/corpus/synthtext.txt ]
-                  weights: [ 1, 1 ]
+                  paths: [ resources/corpus/test_ko.txt ]
+                  weights: [ 1 ]
                   min_length: 1
                   max_length: 5211
                   textcase: [ lower, upper, capitalize ]
@@ -198,7 +198,7 @@ document:
 #                  augmentation_charset: resources/charset/alphanum_special.txt
                 base:
                   weight: 1
-                  paths: [ resources/corpus/pubtabnet/train_tbody_corpus.txt ]
+                  paths: [ resources/corpus/test_ko.txt ]
                   weights: [ 1 ]
                   min_length: 1
                   max_length: 5211
@@ -215,7 +215,7 @@ document:
               portion: [0.2, 0.8]
         style:
           font:
-            paths: [ resources/fonts ]
+            paths: [ E:/dataset/ocr/fonts/fonts_supported_by_chrome_with_glyphs_txt ]
             weights: [ 1 ]
           color_set:
             dark: [ MediumVioletRed, blue, darkmagenta, darkblue, forestgreen, blueviolet, mediumblue, darkslateblue, darkred, darkviolet, purple, dimgray, firebrick, maroon, darkorchid, brown, navy, crimson, indigo, darkcyan, red, green, black, chocolate, darkgreen, darkslategray, MidnightBlue,Navy,OrangeRed,Purple,RebeccaPurple,RoyalBlue,SaddleBrown ]
@@ -225,8 +225,8 @@ document:
               table_wrapper:
                 background:
                   paper:
-                    weight: 2
-                    paths: [ resources/background/paper_background ]
+                    weight: 1
+                    paths: [ resources/paper ]
                     weights: [ 1 ]
                     alpha: [ 0.1, 0.3 ]
                     grayscale: 0.5
@@ -237,7 +237,7 @@ document:
                     angle: [ 0, 359 ]
                     num_colors: [ 2, 5 ]
                     random_stop_position:
-                      prob: 0.3
+                      prob: 0.0
                   empty:
                     weight: 1
                   solid:

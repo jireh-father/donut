@@ -208,11 +208,11 @@ if __name__ == '__main__':
     # parser.add_argument('--line_width', type=int, default=1)
     # parser.add_argument('--use_cuda', action='store_true', default=False)
 
-    synth_table = SynthTable(synthtiger.read_config("config_danawa_kr_synth_val_remove_img_tag_easy_test_on_pc.yaml"))
+    synth_table = SynthTable(synthtiger.read_config("config_danawa_kr_synth_val_remove_img_tag_easy_test_on_pc_nopoly.yaml"))
 
     for i in range(100):
         print(i)
         try:
-            synth_table.save("./output", synth_table.generate(), i)
+            synth_table.save("./output_nopoly", synth_table.generate(), i)
         except Exception as e:
             continue

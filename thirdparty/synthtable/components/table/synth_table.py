@@ -286,12 +286,20 @@ class SynthTable(Component):
     def _sample_global_inner_border(self, css_selector):
         inner_border_type = self.config_selectors['style']['global']['absolute'][css_selector][
             'inner_border'].select()
-        while inner_border_type == "empty" and css_selector == 'tbody' and self.meta['table_background_config'] in ['empty', 'solid']:
-            inner_border_type = self.config_selectors['style']['global']['absolute'][css_selector][
-                'inner_border'].select()
+        # while inner_border_type == "empty" and css_selector == 'tbody' and self.meta['table_background_config'] in ['empty', 'solid']:
+        #     inner_border_type = self.config_selectors['style']['global']['absolute'][css_selector][
+        #         'inner_border'].select()
 
         if self.meta['nums_row'] < 3 or self.meta['nums_col'] < 3:
             inner_border_type = "all"
+
+        # while css_selector == 'tbody' and self.meta['table_background_config'] in ['empty', 'solid'] and inner_border_type in ["col", "empty"]:
+        #     inner_border_type = self.config_selectors['style']['global']['absolute'][css_selector][
+        #         'inner_border'].select()
+        #
+        # while css_selector == 'thead' and self.meta['table_background_config'] in ['empty', 'solid'] and inner_border_type in ["row", "empty"]:
+        #     inner_border_type = self.config_selectors['style']['global']['absolute'][css_selector][
+        #         'inner_border'].select()
 
         self.meta[css_selector + '_inner_border_type'] = inner_border_type
         if inner_border_type == "all":
@@ -797,7 +805,9 @@ class SynthTable(Component):
                     self._remove_html_tag_attrs_recur(tag.contents)
 
     def _remove_html_tag_attrs(self):
-        self._remove_html_tag_attrs_recur(self.meta['html_bs'].find("table").contents)
+        table_tag = self.meta['html_bs'].find("table")
+        table_tag.attrs = {}
+        self._remove_html_tag_attrs_recur(table_tag.contents)
 
     def sample(self, meta=None):
         # synth structure config

@@ -48,6 +48,7 @@ class TableLayer(Layer):
             <meta charset="UTF-8">
              <style>
              {}
+             {}
             </style>
         </head>
         <body>
@@ -58,7 +59,7 @@ class TableLayer(Layer):
         </html>
         """
         with open(html_path, "w+", encoding='utf-8') as html_file:
-            html = html_template.format(self._convert_global_style_to_css(), self.html)
+            html = html_template.format('td:empty::after{ content: "\\00a0";}', self._convert_global_style_to_css(), self.html)
             html_file.write(html)
 
     def _get_margin_vertical_and_horizontal(self):
