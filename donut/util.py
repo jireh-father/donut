@@ -468,8 +468,8 @@ class OnlineSynthDonutDataset(Dataset):
             except Exception as e:
                 if str(e) == "Failed to sample html. do resample!":
                     continue
-                print("in dataloader, synthtable error")
-                traceback.print_exc()
+                # print("in dataloader, synthtable error")
+                # traceback.print_exc()
 
         im, table_html = self.synth_table.load(data)
 
