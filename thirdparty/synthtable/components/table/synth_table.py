@@ -827,6 +827,8 @@ class SynthTable(Component):
             synth_structure_config = structure_config['config']
             self.synth_structure_config = synth_structure_config
 
+            self.meta['has_row_span'] = False
+            self.meta['has_col_span'] = False
             self.meta['nums_row'] = synth_structure_config['nums_row'].select()
             self.meta['nums_col'] = synth_structure_config['nums_col'].select()
             if 'skip_1x1' in synth_structure_config:
