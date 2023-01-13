@@ -22,12 +22,11 @@ def main(args):
             if args.use_image_tag:
                 lines = f.readlines()
             else:
-                lines = [preprocess_label(line) for line in f.readlines()]
+                lines = [preprocess_label(line.strip(), True) for line in f.readlines()]
             if not lines[-1].strip():
                 del lines[-1]
             corpus_lines.extend(lines)
     # corpus_lines = open(args.corpus_path, encoding='utf-8').readlines()
-
     training_corpus = get_training_corpus(corpus_lines)
 
     old_tokenizer = AutoTokenizer.from_pretrained(args.pretrained_name)
@@ -68,10 +67,29 @@ def main(args):
     # xlmroberta_tokenizer = XLMRobertaTokenizer.from_pretrained(args.output_dir)
     # print(xlmroberta_tokenizer)
 
-    mbart_tokenizer = MBartTokenizer.from_pretrained(args.output_dir)
 
-    print(mbart_tokenizer)
-    print(mbart_tokenizer.encode("<tr><td>test<tr><td>"))
+
+    xlmroberta_tokenizer = XLMRobertaTokenizer.from_pretrained(args.output_dir)
+    if args.use_unk_token:
+        total_tokens = set()
+        for line in corpus_lines:
+            total_tokens.update(set(line))
+        try:
+            total_tokens.remove(' ')
+        except:
+            pass
+        unk_tokens = []
+        for c in total_tokens:
+            if 3 in xlmroberta_tokenizer.encode(c):
+                unk_tokens.append(c)
+        print(unk_tokens)
+        print("add unk tokens", len(unk_tokens))
+        xlmroberta_tokenizer.add_tokens(unk_tokens)
+        # xlmroberta_tokenizer.add_special_tokens({"additional_special_tokens": sorted(set(unk_tokens))})
+        xlmroberta_tokenizer.save_pretrained(args.output_dir)
+
+    print(xlmroberta_tokenizer)
+    print(xlmroberta_tokenizer.encode("<tr><td>test<tr><td>"))
     print("done")
 
 
@@ -79,8 +97,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--corpus_paths', type=str,
                         default="D:\dataset\\table_ocr\crawling_train_corpus_without_except_chars\*_tokenizer_corpus.txt")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/tokenizer_crawled_ko_no_imgtheadtag_span20")
+    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/tokenizer_crawled_ko_no_imgtheadtag_span20_with_unk_tokens")
     parser.add_argument('--pretrained_name', type=str, default="hyunwoongko/asian-bart-ko")
+    # parser.add_argument('--charset_path', type=str, default="thirdparty/synthtable/resources/charset/alphanum_special_korean.txt")
 
     parser.add_argument('--vocab_size', type=int, default=None)  # 100000)
     parser.add_argument('--max_row_span', type=int, default=20)  # 100000)
@@ -88,5 +107,6 @@ if __name__ == '__main__':
 
     parser.add_argument('--use_thead', action='store_true', default=False)
     parser.add_argument('--use_image_tag', action='store_true', default=False)
+    parser.add_argument('--use_unk_token', action='store_true', default=True)
 
     main(parser.parse_args())

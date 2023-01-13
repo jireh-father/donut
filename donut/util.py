@@ -510,8 +510,6 @@ def remove_multiple_spaces(text):
 
 
 def preprocess_label(table_html, remove_img_tag=False):
-    if table_html.startswith("<table>"):
-        table_html = table_html[7:]
     if remove_img_tag:
         table_html = table_html.replace("<img>", "")
 

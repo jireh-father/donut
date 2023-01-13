@@ -293,6 +293,14 @@ class SynthTable(Component):
         if self.meta['nums_row'] < 3 or self.meta['nums_col'] < 3:
             inner_border_type = "all"
 
+        while self.meta['has_col_span'] and inner_border_type in ["col", "empty"] and self.meta['table_background_config'] in ['empty', 'solid']:
+            inner_border_type = self.config_selectors['style']['global']['absolute'][css_selector]['inner_border'].select()
+
+        if self.meta['has_row_span'] and self.meta['has_row_span'] and inner_border_type != "all":
+            if self.meta['table_background_config'] in ['empty', 'solid']:
+                inner_border_type = "all"
+            else:
+                inner_border_type = "col"
         # while css_selector == 'tbody' and self.meta['table_background_config'] in ['empty', 'solid'] and inner_border_type in ["col", "empty"]:
         #     inner_border_type = self.config_selectors['style']['global']['absolute'][css_selector][
         #         'inner_border'].select()
@@ -874,6 +882,8 @@ class SynthTable(Component):
             self.meta['nums_row'] = html_json['nums_row']
 
             self.meta['span'] = html_json['has_span']
+            self.meta['has_row_span'] = html_json['has_row_span']
+            self.meta['has_col_span'] = html_json['has_col_span']
 
         if 'html_bs' not in self.meta:
             self.meta['html_bs'] = BeautifulSoup(self.meta['html'], 'html.parser')
@@ -1032,6 +1042,7 @@ class SynthTable(Component):
                             row_span = np.random.randint(2, max_row_span + 1)
                             spans.append(' rowspan="{}"'.format(row_span))
                             span_table[row:row + row_span, col] = True
+                            self.meta['has_row_span'] = True
                     if self.synth_structure_config['span'].get()['col_span'].on():
                         max_col_span = self.meta['nums_col'] - col
                         for col_span_idx in range(1, max_col_span):
@@ -1043,6 +1054,7 @@ class SynthTable(Component):
                             col_span = np.random.randint(2, max_col_span + 1)
                             spans.append(' colspan="{}"'.format(col_span))
                             span_table[row, col:col + col_span] = True
+                            self.meta['has_col_span'] = True
                     if len(spans) == 2:
                         span_table[row:row + row_span, col:col + col_span] = True
                     span_attr = "".join(spans)
