@@ -293,11 +293,11 @@ class SynthTable(Component):
         if self.meta['nums_row'] < 3 or self.meta['nums_col'] < 3:
             inner_border_type = "all"
 
-        while self.meta['has_col_span'] and inner_border_type in ["col", "empty"] and self.meta['table_background_config'] in ['empty', 'solid']:
+        while self.meta['has_col_span'] and inner_border_type in ["col", "empty"] and (self.meta['background_config'] == 'paper' or self.meta['table_background_config'] in ['empty', 'solid']):
             inner_border_type = self.config_selectors['style']['global']['absolute'][css_selector]['inner_border'].select()
 
         if self.meta['has_row_span'] and self.meta['has_row_span'] and inner_border_type != "all":
-            if self.meta['table_background_config'] in ['empty', 'solid']:
+            if self.meta['background_config'] == 'paper' or self.meta['table_background_config'] in ['empty', 'solid']:
                 inner_border_type = "all"
             else:
                 inner_border_type = "col"
