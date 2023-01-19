@@ -122,10 +122,11 @@ class SwinEncoder(nn.Module):
                 ape_last_block=ape_last_block
             )
         elif vision_model_name.startswith("efficientnet"):
-            model = timm.create_model("efficientnet_b1", pretrained=True)
+            model = timm.create_model(vision_model_name, pretrained=True)
             in_channels = model.conv_head.in_channels
             model.bn2 = torch.nn.modules.batchnorm.BatchNorm2d(embed_dim * 8)
             model.conv_head = timm.models.efficientnet.create_conv2d(in_channels, embed_dim * 8, 1, padding='')
+            self.model = model
 
         # weight init with swin
         if vision_model_name.startswith('Swin'):
