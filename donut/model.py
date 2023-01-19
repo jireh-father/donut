@@ -121,31 +121,38 @@ class SwinEncoder(nn.Module):
                 init_values_last_block=init_values_last_block,  # or 1e-5
                 ape_last_block=ape_last_block
             )
+        elif vision_model_name.startswith("efficientnet"):
+            import timm
+            model = timm.create_model("efficientnet_b1", pretrained=True)
+            in_channels = model.conv_head.in_channels
+            model.bn2 = torch.nn.modules.batchnorm.BatchNorm2d(embed_dim * 8)
+            model.conv_head = timm.models.efficientnet.create_conv2d(in_channels, embed_dim * 8, 1, padding='')
 
         # weight init with swin
-        if not swin_name_or_path:
-            swin_state_dict = timm.create_model(swin_pretrained_path, pretrained=True).state_dict()
-        else:
-            checkpoint_dict = torch.load(swin_name_or_path)
-            swin_state_dict = checkpoint_dict['state_dict']
-        new_swin_state_dict = self.model.state_dict()
-        for x in new_swin_state_dict:
-            if x.endswith("relative_position_index") or x.endswith("attn_mask"):
-                pass
-            elif (
-                    x.endswith("relative_position_bias_table")
-                    and self.model.layers[0].blocks[0].attn.window_size[0] != 12
-            ):
-                pos_bias = swin_state_dict[x].unsqueeze(0)[0]
-                old_len = int(math.sqrt(len(pos_bias)))
-                new_len = int(2 * window_size - 1)
-                pos_bias = pos_bias.reshape(1, old_len, old_len, -1).permute(0, 3, 1, 2)
-                pos_bias = F.interpolate(pos_bias, size=(new_len, new_len), mode="bicubic", align_corners=False)
-                new_swin_state_dict[x] = pos_bias.permute(0, 2, 3, 1).reshape(1, new_len ** 2, -1).squeeze(0)
+        if vision_model_name.startswith('Swin'):
+            if not swin_name_or_path:
+                swin_state_dict = timm.create_model(swin_pretrained_path, pretrained=True).state_dict()
             else:
-                if x in swin_state_dict:
-                    new_swin_state_dict[x] = swin_state_dict[x]
-        self.model.load_state_dict(new_swin_state_dict)
+                checkpoint_dict = torch.load(swin_name_or_path)
+                swin_state_dict = checkpoint_dict['state_dict']
+            new_swin_state_dict = self.model.state_dict()
+            for x in new_swin_state_dict:
+                if x.endswith("relative_position_index") or x.endswith("attn_mask"):
+                    pass
+                elif (
+                        x.endswith("relative_position_bias_table")
+                        and self.model.layers[0].blocks[0].attn.window_size[0] != 12
+                ):
+                    pos_bias = swin_state_dict[x].unsqueeze(0)[0]
+                    old_len = int(math.sqrt(len(pos_bias)))
+                    new_len = int(2 * window_size - 1)
+                    pos_bias = pos_bias.reshape(1, old_len, old_len, -1).permute(0, 3, 1, 2)
+                    pos_bias = F.interpolate(pos_bias, size=(new_len, new_len), mode="bicubic", align_corners=False)
+                    new_swin_state_dict[x] = pos_bias.permute(0, 2, 3, 1).reshape(1, new_len ** 2, -1).squeeze(0)
+                else:
+                    if x in swin_state_dict:
+                        new_swin_state_dict[x] = swin_state_dict[x]
+            self.model.load_state_dict(new_swin_state_dict)
 
     def forward_one(self, x: torch.Tensor) -> torch.Tensor:
         x = self.model.patch_embed(x)
@@ -160,8 +167,8 @@ class SwinEncoder(nn.Module):
         Args:
             x: (batch_size, num_channels, height, width)
         """
-        # print("================")
-        # print("*** input size", x.shape)
+        print("================")
+        print("*** input size", x.shape)
         x = self.model.patch_embed(x)
         x = self.model.pos_drop(x)
         # print("patch embed", x.shape)
