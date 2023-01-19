@@ -122,7 +122,6 @@ class SwinEncoder(nn.Module):
                 ape_last_block=ape_last_block
             )
         elif vision_model_name.startswith("efficientnet"):
-            import timm
             model = timm.create_model("efficientnet_b1", pretrained=True)
             in_channels = model.conv_head.in_channels
             model.bn2 = torch.nn.modules.batchnorm.BatchNorm2d(embed_dim * 8)
