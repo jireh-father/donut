@@ -168,16 +168,20 @@ class SwinEncoder(nn.Module):
         """
         print("================")
         print("*** input size", x.shape)
-        x = self.model.patch_embed(x)
-        x = self.model.pos_drop(x)
-        # print("patch embed", x.shape)
-        if self.vision_model_name in ["SwinTransformerV2", "SwinV2WithVit"]:
-            for layer in self.model.layers:
-                x = layer(x)
+        if self.vision_model_name.startswith("efficientnet"):
+            x = self.model.forward_features(x).flatten(2).permute(0, 2, 1)
+            print("efficientnet output", x.shape)
         else:
-            x = self.model.layers(x)
+            x = self.model.patch_embed(x)
+            x = self.model.pos_drop(x)
+            # print("patch embed", x.shape)
+            if self.vision_model_name in ["SwinTransformerV2", "SwinV2WithVit"]:
+                for layer in self.model.layers:
+                    x = layer(x)
+            else:
+                x = self.model.layers(x)
 
-        print("swin encoder output", x.shape)
+            print("swin encoder output", x.shape)
         return x
 
     def prepare_input(self, img: PIL.Image.Image, random_padding: bool = False) -> torch.Tensor:
@@ -471,7 +475,8 @@ class BARTDecoder(nn.Module):
             # print("input_ids", input_ids)
             # print("attention_mask", attention_mask)
             print(cur_len, input_ids)
-            logits = self.inference_decode_one_step_for_android(input_ids, last_hidden_state, torch.tensor([cur_len - 1]).to(self.device))
+            logits = self.inference_decode_one_step_for_android(input_ids, last_hidden_state,
+                                                                torch.tensor([cur_len - 1]).to(self.device))
             # logits = self.inference_decode_one_step_for_android(input_ids,last_hidden_state,attention_mask)
             # next_token_logits = logits[:, cur_len-1, :]
             next_token_logits = logits
