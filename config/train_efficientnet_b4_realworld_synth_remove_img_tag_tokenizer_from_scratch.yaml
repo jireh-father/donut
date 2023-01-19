@@ -1,0 +1,60 @@
+resume_from_checkpoint_path: null # only used for resume_from_checkpoint option in PL
+result_path: "./result"
+#pretrained_model_name_or_path: "naver-clova-ix/donut-base" # loading a pre-trained model (from moldehub or path)
+remove_img_tag: True
+pretrained_model_name_or_path: null
+dataset_name_or_paths: ["./dataset/danawa_kr_synth",
+                        "./dataset/google_en_synth",
+                        "./dataset/wiki_en_ori",
+                        "./dataset/wiki_kr_ori_and_bg",
+                        "./dataset/crawling_train_corpus_synth_val",
+                        "./dataset/google_kr_ori",
+                        "./dataset/wiki_en_ori_and_bg",
+                        "./dataset/wiki_kr_synth",
+                        "./dataset/danawa_kr_ori",
+                        "./dataset/google_en_ori",
+                        "./dataset/google_kr_ori_and_bg",
+                        "./dataset/wiki_en_synth",
+                        "./dataset/danawa_kr_ori_and_bg",
+                        "./dataset/google_en_ori_and_bg",
+                        "./dataset/google_kr_synth",
+                        "./dataset/wiki_kr_ori"] # loading datasets (from moldehub or path)
+online_synth_dataset: True
+synth_dataset_length: 250000
+synth_config_path: "./thirdparty/synthtable/config_train_for_donut.yaml"
+sort_json_key: False # cord dataset is preprocessed, and publicly available at https://huggingface.co/datasets/naver-clova-ix/cord-v2
+train_batch_sizes: [3]
+val_batch_sizes: [8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8]
+input_size: [1280, 960]
+max_length: 3000
+align_long_axis: False
+num_nodes: 1
+seed: 2022
+lr: 3e-5
+warmup_steps: 300 # 800/8*30/10, 10%
+num_training_samples_per_epoch: 250000
+max_epochs: 100
+max_steps: -1
+num_workers: 8
+val_check_interval: 1.0
+check_val_every_n_epoch: 1
+gradient_clip_val: 1.0
+verbose: True
+tokenizer_name_or_path: "./tokenizer_crawled_ko_no_imgtheadtag_span20"
+task_name: tableocr
+validation_metric: teds
+use_fast_tokenizer: False
+vision_model_name: efficientnet_b4
+bart_prtrained_path: hyunwoongko/asian-bart-en
+swin_pretrained_path: swinv2_base_window12_192_22k
+window_size: 10
+swin_model_size: base
+ape: False
+swin_name_or_path: null
+swin_encoder_layer: [2, 2, 14, 2]
+d_model: 1024
+swin_depth_last_block: 2
+swin_num_heads_last_block: 8
+swin_drop_path_rate_last_block: 0.0
+swin_init_values_last_block: null
+ape_last_block: False
