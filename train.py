@@ -161,6 +161,7 @@ if __name__ == "__main__":
     print("initializing parser")
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True)
+
     parser.add_argument("--exp_version", type=str, required=False)
     args, left_argv = parser.parse_known_args()
 

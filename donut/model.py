@@ -171,7 +171,7 @@ class SwinEncoder(nn.Module):
         else:
             x = self.model.layers(x)
 
-        # print("swin encoder output", x.shape)
+        print("swin encoder output", x.shape)
         return x
 
     def prepare_input(self, img: PIL.Image.Image, random_padding: bool = False) -> torch.Tensor:
