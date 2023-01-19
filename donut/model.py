@@ -168,10 +168,10 @@ class SwinEncoder(nn.Module):
             x: (batch_size, num_channels, height, width)
         """
         print("================")
-        print("*** input size", x.shape)
+        # print("*** input size", x.shape)
         if self.vision_model_name.startswith("efficientnet"):
             x = self.model.forward_features(x).flatten(2).permute(0, 2, 1)
-            print("efficientnet output", x.shape)
+            # print("efficientnet output", x.shape)
         else:
             x = self.model.patch_embed(x)
             x = self.model.pos_drop(x)
@@ -182,7 +182,7 @@ class SwinEncoder(nn.Module):
             else:
                 x = self.model.layers(x)
 
-            print("swin encoder output", x.shape)
+            # print("swin encoder output", x.shape)
         return x
 
     def prepare_input(self, img: PIL.Image.Image, random_padding: bool = False) -> torch.Tensor:
