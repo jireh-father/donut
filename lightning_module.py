@@ -20,6 +20,7 @@ from torch.utils.data import DataLoader
 
 from donut import DonutConfig, DonutModel, DonutClipModel, DonutClipConfig
 import teds
+import os
 
 
 class DonutModelPLModule(pl.LightningModule):
@@ -101,6 +102,7 @@ class DonutModelPLModule(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         image_tensors, decoder_input_ids, decoder_labels = list(), list(), list()
+
         for batch_data in batch:
             image_tensors.append(batch_data[0])
             decoder_input_ids.append(batch_data[1][:, :-1])
@@ -161,7 +163,8 @@ class DonutModelPLModule(pl.LightningModule):
                 cnt[i] += len(scores)
                 total_metric[i] += np.sum(scores)
             val_metric[i] = total_metric[i] / cnt[i]
-            val_metric_name = f"val_metric_{i}th_{self.config.dataset_name_or_paths[i]}"
+            val_dataset_name = os.path.basename(self.config.dataset_name_or_paths[i])
+            val_metric_name = f"val_metric_{i}th_{val_dataset_name}"
             self.log_dict({val_metric_name: val_metric[i]}, sync_dist=True)
             print("{} average val teds".format(val_metric_name), val_metric[i])
         self.log_dict({"val_metric": np.sum(total_metric) / np.sum(cnt)},
