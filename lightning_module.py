@@ -134,8 +134,9 @@ class DonutModelPLModule(pl.LightningModule):
             answer = re.sub(r"<.*?>", "", answer, count=1)
             answer = answer.replace(self.model.decoder.tokenizer.eos_token, "")
             if self.validation_metric.startswith("teds"):
-                pred = teds.postprocess_html_tag(pred)
-                answer = teds.postprocess_html_tag(answer)
+                if not answer.startswith("<thead>"):
+                    pred = teds.postprocess_html_tag(pred)
+                    answer = teds.postprocess_html_tag(answer)
                 scores.append(self.teds.evaluate(pred, answer))
             else:
                 scores.append(edit_distance(pred, answer) / max(len(pred), len(answer)))

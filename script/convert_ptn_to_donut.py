@@ -19,7 +19,7 @@ def remove_html_tags(text):
 # https://huggingface.co/docs/transformers/main_classes/tokenizer#transformers.PreTrainedTokenizer
 # https://misconstructed.tistory.com/80
 
-def convert_ptn_item_to_simple_html(item, use_thead=False):
+def convert_ptn_item_to_simple_html(item, use_thead=False, use_close_tag=False):
     table_tag = []
 
     text_set = set()
@@ -33,10 +33,10 @@ def convert_ptn_item_to_simple_html(item, use_thead=False):
         tag = tag.strip()
         i += 1
         if use_thead:
-            if tag.startswith("</t"):
+            if tag.startswith("</t") and not use_close_tag:
                 continue
         else:
-            if tag in ["<thead>", "</thead>", "<tbody>", "</tbody>"] or tag.startswith("</t"):
+            if tag in ["<thead>", "</thead>", "<tbody>", "</tbody>"] or (tag.startswith("</t") and not use_close_tag):
                 continue
         if tag == "<td":
             split_tag = item['html']['structure']['tokens'][i].strip().split('"')
@@ -90,7 +90,7 @@ def main(args):
                 break
             item = json.loads(line)
             table_tag, tmp_total_texts, text_set, tmp_max_row_span, tmp_max_col_span = convert_ptn_item_to_simple_html(
-                item, args.use_thead)
+                item, args.use_thead, args.use_close_tag)
 
             if max_row_span < tmp_max_row_span:
                 max_row_span = tmp_max_row_span
@@ -131,9 +131,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--label_path', type=str,
                         default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\PubTabNet_2.0.0.jsonl")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset\\table_ocr\pubtabnet\pubtabnet\ofa_dataset")
+    parser.add_argument('--output_dir', type=str, default="D:\dataset\\table_ocr\pubtabnet\pubtabnet_full_tag")
 
     parser.add_argument('--test_cnt', type=int, default=None)
     parser.add_argument('--join_delimiter', type=str, default='')
-    parser.add_argument('--use_thead', action='store_true', default=False)
+    parser.add_argument('--use_thead', action='store_true', default=True)
+    parser.add_argument('--use_close_tag', action='store_true', default=True)
     main(parser.parse_args())

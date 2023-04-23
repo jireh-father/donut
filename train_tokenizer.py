@@ -35,9 +35,14 @@ def main(args):
     # print(old_xlmroberta_tokenizer)
     # old_mbart_tokenizer = MBartTokenizer.from_pretrained("hyunwoongko/asian-bart-en")
     # print(old_mbart_tokenizer)
-    new_tokens = ['<tr>', '<td>'] + ['<td colspan="{}">'.format(i) for i in range(args.max_col_span)] + ['<td rowspan="{}">'.format(i) for i in range(args.max_row_span)]
-    if args.use_thead:
-        new_tokens += ['<thead>', '<tbody>']
+    if args.use_full_tag:
+        new_tokens = ['<tr>', '</tr>', '<td>', '<td col', '<td row', '</td>'] + ['span="{}">'.format(i) for i in range(args.max_col_span)]
+        if args.use_thead:
+            new_tokens += ['<thead>', '</thaed>', '<tbody>', '</tbody>']
+    else:
+        new_tokens = ['<tr>', '<td>'] + ['<td colspan="{}">'.format(i) for i in range(args.max_col_span)] + ['<td rowspan="{}">'.format(i) for i in range(args.max_row_span)]
+        if args.use_thead:
+            new_tokens += ['<thead>', '<tbody>']
     if args.use_image_tag:
         new_tokens += ['<img>']
 
@@ -96,17 +101,18 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--corpus_paths', type=str,
-                        default="D:\dataset\\table_ocr\crawling_train_corpus_without_except_chars\*_tokenizer_corpus.txt")
-    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/tokenizer_crawled_ko_no_imgtheadtag_span20_with_unk_tokens")
+                        default="D:\dataset\\table_ocr\pubtabnet\pubtabnet_full_tag\\train_corpus.txt")
+    parser.add_argument('--output_dir', type=str, default="D:\dataset/table_ocr/pubtabnet\pubtabnet_full_tag\\tokenizer")
     parser.add_argument('--pretrained_name', type=str, default="hyunwoongko/asian-bart-ko")
     # parser.add_argument('--charset_path', type=str, default="thirdparty/synthtable/resources/charset/alphanum_special_korean.txt")
 
     parser.add_argument('--vocab_size', type=int, default=None)  # 100000)
-    parser.add_argument('--max_row_span', type=int, default=20)  # 100000)
-    parser.add_argument('--max_col_span', type=int, default=20)  # 100000)
+    parser.add_argument('--max_row_span', type=int, default=10)  # 100000)
+    parser.add_argument('--max_col_span', type=int, default=10)  # 100000)
 
-    parser.add_argument('--use_thead', action='store_true', default=False)
+    parser.add_argument('--use_thead', action='store_true', default=True)
+    parser.add_argument('--use_full_tag', action='store_true', default=True)
     parser.add_argument('--use_image_tag', action='store_true', default=False)
-    parser.add_argument('--use_unk_token', action='store_true', default=True)
+    parser.add_argument('--use_unk_token', action='store_true', default=False)
 
     main(parser.parse_args())
