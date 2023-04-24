@@ -2,7 +2,7 @@ resume_from_checkpoint_path: null # only used for resume_from_checkpoint option 
 result_path: "./result"
 #pretrained_model_name_or_path: "naver-clova-ix/donut-base" # loading a pre-trained model (from moldehub or path)
 pretrained_model_name_or_path: null
-dataset_name_or_paths: ["./dataset/pubtabnet"] # loading datasets (from moldehub or path)
+dataset_name_or_paths: ["./dataset/pubtabnet_full_tag"] # loading datasets (from moldehub or path)
 online_synth_dataset: False
 synth_dataset_length: 0
 synth_config_path: null
@@ -24,7 +24,7 @@ val_check_interval: 1.0
 check_val_every_n_epoch: 1
 gradient_clip_val: 1.0
 verbose: True
-tokenizer_name_or_path: "./tokenizer"
+tokenizer_name_or_path: "./dataset/pubtabnet_full_tag/tokenizer"
 task_name: tableocr
 validation_metric: teds
 use_fast_tokenizer: False
