@@ -24,7 +24,7 @@ val_check_interval: 1.0
 check_val_every_n_epoch: 1
 gradient_clip_val: 1.0
 verbose: True
-tokenizer_name_or_path: "./dataset/pubtabnet_full_tag/tokenizer"
+tokenizer_name_or_path: "./dataset/pubtabnet_full_tag_label/tokenizer"
 task_name: tableocr
 validation_metric: teds
 use_fast_tokenizer: False
