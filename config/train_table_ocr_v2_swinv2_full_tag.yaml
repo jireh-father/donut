@@ -42,3 +42,4 @@ swin_num_heads_last_block: 8
 swin_drop_path_rate_last_block: 0.0
 swin_init_values_last_block: null
 ape_last_block: False
+remove_img_tag: False
